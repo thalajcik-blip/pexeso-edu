@@ -58,7 +58,7 @@ export default function GameBoard() {
         )}
       </div>
 
-      <div className="overflow-auto rounded-xl py-2 px-1" style={{ maxHeight: 'calc(100vh - 155px)', scrollbarGutter: 'stable', background: tc.cardGridBg }}>
+      <div className="overflow-auto rounded-xl py-2 px-1" style={{ background: tc.cardGridBg }}>
         <div
           className="grid w-full mx-auto"
           style={{
@@ -73,11 +73,8 @@ export default function GameBoard() {
         </div>
       </div>
 
-      <div
-        className="fixed bottom-0 left-0 right-0 flex flex-col items-center gap-0.5 pb-2 pt-1 pointer-events-none"
-        style={{ background: tc.footerGradient }}
-      >
-        <button onClick={openRules} className="text-sm pointer-events-auto transition-opacity opacity-35 hover:opacity-70">
+      <div className="flex flex-col items-center gap-0.5 py-3">
+        <button onClick={openRules} className="text-sm transition-opacity opacity-35 hover:opacity-70">
           {tr.rulesLink}
         </button>
         <p className="text-xs" style={{ color: tc.textFaint }}>

@@ -36,7 +36,7 @@ export default function SetupScreen() {
   const activeBtn   = { background: tc.accent, borderColor: tc.accent, color: tc.accentText }
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-28 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
+    <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-6 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
       <div className="flex items-center gap-3">
         <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="QuizMatch logo" className="w-14 h-14 drop-shadow-lg" />
         <h1 className="text-5xl font-bold tracking-tight" style={{ color: tc.accent, textShadow: `0 0 40px ${tc.accentGlow}` }}>
@@ -160,11 +160,8 @@ export default function SetupScreen() {
         </div>
       </div>
 
-      <div
-        className="fixed bottom-0 left-0 right-0 flex flex-col items-center gap-0.5 pb-2 pt-1 pointer-events-none"
-        style={{ background: tc.footerGradient }}
-      >
-        <button onClick={openRules} className="text-sm pointer-events-auto transition-opacity opacity-35 hover:opacity-70">
+      <div className="flex flex-col items-center gap-0.5 pb-2 pt-1">
+        <button onClick={openRules} className="text-sm transition-opacity opacity-35 hover:opacity-70">
           {tr.rulesLink}
         </button>
         <p className="text-xs" style={{ color: tc.textFaint }}>
