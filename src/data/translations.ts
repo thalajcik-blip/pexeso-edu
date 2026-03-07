@@ -16,6 +16,8 @@ export interface Translations {
   // Game
   newGame: string
   onTurn: string          // contains {name}
+  turnCorrect: string     // contains {name}
+  turnWrong: string       // contains {name}
   // Quiz
   continueBtn: string
   correct: string         // contains {answer}
@@ -55,6 +57,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sizeSmall: 'Malé',
     newGame: '↺ Nová hra',
     onTurn: 'Na tahu: {name}',
+    turnCorrect: '✓ Správně! {name} hraje znovu.',
+    turnWrong: '✗ Škoda. {name} hraje znovu.',
     continueBtn: 'Pokračovat →',
     correct: '🎉 Správně! „{answer}" je správná odpověď.',
     wrong: '❌ Špatně. Správně je „{answer}".',
@@ -104,6 +108,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sizeSmall: 'Malé',
     newGame: '↺ Nová hra',
     onTurn: 'Na rade: {name}',
+    turnCorrect: '✓ Správne! {name} hrá znovu.',
+    turnWrong: '✗ Škoda. {name} hrá znovu.',
     continueBtn: 'Pokračovať →',
     correct: '🎉 Správne! „{answer}" je správna odpoveď.',
     wrong: '❌ Zle. Správne je „{answer}".',
@@ -153,6 +159,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sizeSmall: 'Small',
     newGame: '↺ New game',
     onTurn: 'Turn: {name}',
+    turnCorrect: '✓ Correct! {name} plays again.',
+    turnWrong: '✗ Too bad. {name} plays again.',
     continueBtn: 'Continue →',
     correct: '🎉 Correct! That\'s a true fact.',
     wrong: '❌ Wrong. The correct fact was the other one.',

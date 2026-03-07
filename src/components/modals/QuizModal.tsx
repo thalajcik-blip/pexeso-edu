@@ -38,9 +38,12 @@ export default function QuizModal() {
     options = shuffle([correct, ...enData.wrong])
     hint    = item.answer  // English name (e.g. "Fox")
   } else {
-    // CS / SK: translation quiz
-    correct = item.answer
-    const others = Object.values(deck.pool).map(d => d.answer).filter(a => a !== correct)
+    // CS/SK translation quiz, or EN flags fallback (answerEn)
+    const useEn = isEn && !enData
+    correct = useEn ? (item.answerEn ?? item.answer) : item.answer
+    const others = Object.values(deck.pool)
+      .map(d => useEn ? (d.answerEn ?? d.answer) : d.answer)
+      .filter(a => a !== correct)
     options = shuffle([correct, ...shuffle(others).slice(0, 3)])
     hint    = item.hint ?? ''
   }

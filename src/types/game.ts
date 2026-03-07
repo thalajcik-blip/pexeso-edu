@@ -5,6 +5,7 @@ export type GamePhase = 'setup' | 'playing' | 'quiz' | 'win'
 export interface DeckItem {
   hint: string | null
   answer: string
+  answerEn?: string
   fact: string
   factSk?: string
 }

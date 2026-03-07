@@ -142,9 +142,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     )
     const allMatched = cards.every(c => c.state === 'matched')
     const playerName = players[currentPlayer].name
+    const tr = TRANSLATIONS[get().language]
     const msg = correct
-      ? `✓ Správně! ${playerName} hraje znovu.`
-      : `✗ Škoda. ${playerName} hraje znovu.`
+      ? tr.turnCorrect.replace('{name}', playerName)
+      : tr.turnWrong.replace('{name}', playerName)
 
     set({
       players: updatedPlayers,
