@@ -75,14 +75,16 @@ button, a { cursor: pointer; }
   animation: card-match-flash 0.5s ease forwards;
 }
 
-/* Floating score +1 */
-@keyframes score-float {
-  0%   { transform: translateY(0)     scale(1);    opacity: 1; }
-  20%  { transform: translateY(-6px)  scale(1.15); opacity: 1; }
-  100% { transform: translateY(-32px) scale(0.9);  opacity: 0; }
+/* Score gain pop */
+@keyframes score-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.65); }
+  70%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
 }
-.score-float {
-  animation: score-float 0.85s cubic-bezier(.2,.8,.4,1) forwards;
+.score-pop {
+  display: inline-block;
+  animation: score-pop 0.45s cubic-bezier(.34,1.56,.64,1);
 }
 
 /* Quiz/Win overlay animations */

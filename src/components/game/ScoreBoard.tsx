@@ -21,21 +21,6 @@ export default function ScoreBoard() {
 
   const [timeLeft, setTimeLeft] = useState(turnTime)
   const prevTurnTime = useRef<number | null>(null)
-  const prevScores = useRef<number[]>([])
-  const floatCounter = useRef(0)
-  const [floats, setFloats] = useState<{ id: number; playerIdx: number }[]>([])
-
-  useEffect(() => {
-    const prev = prevScores.current
-    players.forEach((p, i) => {
-      if (prev[i] !== undefined && p.score > prev[i]) {
-        const id = floatCounter.current++
-        setFloats(f => [...f, { id, playerIdx: i }])
-        setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 900)
-      }
-    })
-    prevScores.current = players.map(p => p.score)
-  }, [players])
 
   // Reset + run countdown on new turn
   useEffect(() => {
@@ -96,7 +81,7 @@ export default function ScoreBoard() {
         {players.map((p, i) => (
           <div
             key={i}
-            className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 text-sm transition-all"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 text-sm transition-all"
             style={i === currentPlayer
               ? { borderColor: tc.accentBorderActive, background: tc.accentBgActive }
               : { borderColor: 'transparent', background: tc.scorePillBg }
@@ -104,16 +89,9 @@ export default function ScoreBoard() {
           >
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
             <span className="font-medium">{p.name}</span>
-            <span className="font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>{p.score} b.</span>
-            {floats.filter(f => f.playerIdx === i).map(f => (
-              <span
-                key={f.id}
-                className="score-float absolute -top-1 left-1/2 -translate-x-1/2 text-sm font-black pointer-events-none select-none"
-                style={{ color: tc.accent }}
-              >
-                +1
-              </span>
-            ))}
+            <span key={`${i}-${p.score}`} className="score-pop font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>
+              {p.score} b.
+            </span>
           </div>
         ))}
       </div>
