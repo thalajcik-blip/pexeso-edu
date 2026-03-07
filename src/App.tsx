@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useGameStore } from './store/gameStore'
+import { THEMES } from './data/themes'
 import SetupScreen from './components/setup/SetupScreen'
 import GameBoard from './components/game/GameBoard'
 import QuizModal from './components/modals/QuizModal'
@@ -8,7 +9,9 @@ import RulesModal from './components/modals/RulesModal'
 
 export default function App() {
   const phase = useGameStore(s => s.phase)
+  const theme = useGameStore(s => s.theme)
   const debugEndGame = useGameStore(s => s.debugEndGame)
+  const tc = THEMES[theme]
 
   // Debug shortcut
   useEffect(() => {
@@ -21,8 +24,8 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen text-white select-none"
-      style={{ fontFamily: "'Readex Pro', sans-serif", background: '#0d1b2a' }}
+      className="min-h-screen select-none transition-colors duration-300"
+      style={{ fontFamily: "'Readex Pro', sans-serif", background: tc.bg, color: tc.text }}
     >
       {phase === 'setup' && <SetupScreen />}
       {(phase === 'playing' || phase === 'quiz' || phase === 'win') && <GameBoard />}

@@ -1,23 +1,26 @@
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS, pluralize } from '../../data/translations'
+import { THEMES } from '../../data/themes'
 
 const MEDALS = ['🥇', '🥈', '🥉', '4️⃣']
 
 export default function WinModal() {
   const players = useGameStore(s => s.players)
   const language = useGameStore(s => s.language)
+  const theme = useGameStore(s => s.theme)
   const playAgain = useGameStore(s => s.playAgain)
   const resetToSetup = useGameStore(s => s.resetToSetup)
   const tr = TRANSLATIONS[language]
+  const tc = THEMES[theme]
 
   const sorted = [...players].sort((a, b) => b.score - a.score)
   const maxScore = sorted[0]?.score ?? 0
   const winners = sorted.filter(p => p.score === maxScore)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.88)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.winOverlayBg }}>
       <div className="pop-in rounded-2xl p-10 text-center"
-        style={{ background: 'linear-gradient(160deg, #0d1b2a 0%, #1a237e 100%)', border: '2px solid #f9d74e', boxShadow: '0 0 60px rgba(249,215,78,0.2)' }}>
+        style={{ background: 'linear-gradient(160deg, #0d1b2a 0%, #1a237e 100%)', border: '2px solid #f9d74e', boxShadow: '0 0 60px rgba(249,215,78,0.2)', color: '#ffffff' }}>
 
         <div className="text-4xl mb-1">🎉</div>
         <div className="text-2xl font-bold mb-1" style={{ color: '#f9d74e' }}>{tr.gameOver}</div>

@@ -1,12 +1,15 @@
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS, t } from '../../data/translations'
+import { THEMES } from '../../data/themes'
 
 export default function ScoreBoard() {
   const players = useGameStore(s => s.players)
   const currentPlayer = useGameStore(s => s.currentPlayer)
   const turnMessage = useGameStore(s => s.turnMessage)
   const language = useGameStore(s => s.language)
+  const theme = useGameStore(s => s.theme)
   const tr = TRANSLATIONS[language]
+  const tc = THEMES[theme]
 
   return (
     <>
@@ -17,7 +20,7 @@ export default function ScoreBoard() {
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 text-sm transition-all"
             style={i === currentPlayer
               ? { borderColor: 'rgba(249,215,78,0.7)', background: 'rgba(249,215,78,0.1)' }
-              : { borderColor: 'transparent', background: 'rgba(255,255,255,0.04)' }
+              : { borderColor: 'transparent', background: tc.scorePillBg }
             }
           >
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
@@ -27,7 +30,7 @@ export default function ScoreBoard() {
         ))}
       </div>
 
-      <div className="text-center mb-2 text-sm min-h-[1.4em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
+      <div className="text-center mb-2 text-sm min-h-[1.4em]" style={{ color: tc.textDim }}>
         {turnMessage
           ? <span dangerouslySetInnerHTML={{ __html: turnMessage }} />
           : <span dangerouslySetInnerHTML={{ __html: t(tr, 'onTurn', { name: `<strong style="color:${players[currentPlayer]?.color}">${players[currentPlayer]?.name}</strong>` }) }} />

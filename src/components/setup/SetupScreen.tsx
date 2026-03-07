@@ -4,6 +4,7 @@ import { TRANSLATIONS } from "../../data/translations"
 import { DEFAULT_NAMES, PLAYER_COLORS } from '../../types/game'
 import type { DeckId, BoardSize } from '../../types/game'
 import type { Language } from '../../data/translations'
+import { THEMES } from '../../data/themes'
 
 const SIZES: { id: BoardSize; labelKey: 'sizeLarge' | 'sizeMedium' | 'sizeSmall'; grid: string }[] = [
   { id: 'large',  labelKey: 'sizeLarge',  grid: '8×8' },
@@ -20,6 +21,7 @@ const LANGUAGES: { id: Language; label: string; flag: string }[] = [
 export default function SetupScreen() {
   const {
     language, setLanguage,
+    theme, toggleTheme,
     selectedDeckId, selectDeck,
     selectedSize, selectSize,
     numPlayers, setNumPlayers,
@@ -28,6 +30,10 @@ export default function SetupScreen() {
   } = useGameStore()
 
   const tr = TRANSLATIONS[language]
+  const tc = THEMES[theme]
+
+  const inactiveBtn = { background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }
+  const activeBtn   = { background: '#f9d74e', borderColor: '#f9d74e', color: '#0d1b2a' }
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-28 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
@@ -38,38 +44,40 @@ export default function SetupScreen() {
         </h1>
       </div>
 
-      {/* Language selector */}
-      <div className="flex gap-2">
+      {/* Language + theme row */}
+      <div className="flex items-center gap-2">
         {LANGUAGES.map(lang => (
           <button
             key={lang.id}
             onClick={() => setLanguage(lang.id)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all"
-            style={language === lang.id
-              ? { background: '#f9d74e', borderColor: '#f9d74e', color: '#0d1b2a' }
-              : { background: 'transparent', borderColor: 'rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.55)' }
-            }
+            style={language === lang.id ? activeBtn : inactiveBtn}
           >
             <span>{lang.flag}</span>
             <span>{lang.label}</span>
           </button>
         ))}
+        <button
+          onClick={toggleTheme}
+          className="px-3 py-1.5 rounded-lg border text-sm transition-all"
+          style={inactiveBtn}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
       </div>
 
-      <div className="w-full max-w-md rounded-2xl p-6 space-y-5" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="w-full max-w-md rounded-2xl p-6 space-y-5" style={{ background: tc.surface, border: `1px solid ${tc.surfaceBorder}` }}>
         {/* Deck */}
         <div>
-          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>{tr.deckLabel}</div>
+          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.deckLabel}</div>
           <div className="grid grid-cols-4 gap-3">
             {DECKS.map(deck => (
               <button
                 key={deck.id}
                 onClick={() => selectDeck(deck.id as DeckId)}
                 className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer"
-                style={selectedDeckId === deck.id
-                  ? { background: '#f9d74e', borderColor: '#f9d74e', color: '#0d1b2a' }
-                  : { background: 'transparent', borderColor: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)' }
-                }
+                style={selectedDeckId === deck.id ? activeBtn : inactiveBtn}
               >
                 <span className="text-3xl leading-none">{deck.icon}</span>
                 <span className="text-xs">{tr.deckNames[deck.id as DeckId]}</span>
@@ -80,17 +88,14 @@ export default function SetupScreen() {
 
         {/* Size */}
         <div>
-          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>{tr.sizeLabel}</div>
+          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.sizeLabel}</div>
           <div className="flex gap-3">
             {SIZES.map(s => (
               <button
                 key={s.id}
                 onClick={() => selectSize(s.id)}
                 className="flex-1 py-2.5 rounded-xl border-2 font-bold transition-all cursor-pointer"
-                style={selectedSize === s.id
-                  ? { background: '#f9d74e', borderColor: '#f9d74e', color: '#0d1b2a' }
-                  : { background: 'transparent', borderColor: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)' }
-                }
+                style={selectedSize === s.id ? activeBtn : inactiveBtn}
               >
                 {s.grid}
                 <div className="text-xs font-normal opacity-70">{tr[s.labelKey]}</div>
@@ -101,17 +106,14 @@ export default function SetupScreen() {
 
         {/* Player count */}
         <div>
-          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>{tr.playersLabel}</div>
+          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.playersLabel}</div>
           <div className="flex gap-3">
             {[2, 3, 4].map(n => (
               <button
                 key={n}
                 onClick={() => setNumPlayers(n)}
                 className="flex-1 py-2.5 rounded-xl border-2 text-xl font-bold transition-all cursor-pointer"
-                style={numPlayers === n
-                  ? { background: '#f9d74e', borderColor: '#f9d74e', color: '#0d1b2a' }
-                  : { background: 'transparent', borderColor: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)' }
-                }
+                style={numPlayers === n ? activeBtn : inactiveBtn}
               >
                 {n}
               </button>
@@ -121,19 +123,19 @@ export default function SetupScreen() {
 
         {/* Player names */}
         <div>
-          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>{tr.namesLabel}</div>
+          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.namesLabel}</div>
           <div className="flex flex-col gap-2">
             {Array.from({ length: numPlayers }, (_, i) => (
               <div key={i} className="flex items-center gap-3">
                 <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[i] }} />
                 <input
-                  className="flex-1 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors"
-                  style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)' }}
+                  className="flex-1 rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                  style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}`, color: tc.text }}
                   value={playerNames[i]}
                   placeholder={DEFAULT_NAMES[i]}
                   onChange={e => setPlayerName(i, e.target.value)}
                   onFocus={e => e.target.style.borderColor = '#f9d74e'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.13)'}
+                  onBlur={e => e.target.style.borderColor = tc.inputBorder}
                 />
               </div>
             ))}

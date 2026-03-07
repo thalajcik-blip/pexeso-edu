@@ -1,5 +1,6 @@
 import type { CardData } from '../../types/game'
 import { useGameStore } from '../../store/gameStore'
+import { THEMES } from '../../data/themes'
 
 interface Props {
   card: CardData
@@ -14,6 +15,8 @@ const EMOJI_SIZE: Record<string, string> = {
 export default function GameCard({ card }: Props) {
   const flipCard = useGameStore(s => s.flipCard)
   const selectedSize = useGameStore(s => s.selectedSize)
+  const theme = useGameStore(s => s.theme)
+  const tc = THEMES[theme]
 
   const isFlipped  = card.state === 'flipped'
   const isMatched  = card.state === 'matched'
@@ -51,7 +54,7 @@ export default function GameCard({ card }: Props) {
         <div
           className="card-front absolute inset-0 flex items-center justify-center rounded-[6px]"
           style={{
-            background: isMatched ? '#e8f5e9' : '#f0f4ff',
+            background: isMatched ? tc.cardMatched : tc.cardFront,
             fontSize: EMOJI_SIZE[selectedSize],
             opacity: isMatched ? 0.65 : 1,
           }}

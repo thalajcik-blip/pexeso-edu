@@ -5,10 +5,12 @@ import { DECKS } from '../data/decks'
 import { shuffle } from '../utils/shuffle'
 import type { Language } from '../data/translations'
 import { TRANSLATIONS } from '../data/translations'
+import type { Theme } from '../data/themes'
 
 interface GameStore {
   // Setup
   language: Language
+  theme: Theme
   selectedDeckId: DeckId
   selectedSize: BoardSize
   numPlayers: number
@@ -31,6 +33,7 @@ interface GameStore {
 
   // Actions
   setLanguage: (lang: Language) => void
+  toggleTheme: () => void
   selectDeck: (id: DeckId) => void
   selectSize: (size: BoardSize) => void
   setNumPlayers: (n: number) => void
@@ -48,6 +51,7 @@ interface GameStore {
 export const useGameStore = create<GameStore>((set, get) => ({
   // Setup defaults
   language: 'cs',
+  theme: 'dark',
   selectedDeckId: 'animals',
   selectedSize: 'large',
   numPlayers: 2,
@@ -65,6 +69,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   rulesOpen: false,
 
   setLanguage: (lang) => set({ language: lang, playerNames: [...TRANSLATIONS[lang].defaultPlayerNames] }),
+  toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
   selectDeck: (id) => set({ selectedDeckId: id }),
   selectSize: (size) => set({ selectedSize: size }),
   setNumPlayers: (n) => set({ numPlayers: n }),

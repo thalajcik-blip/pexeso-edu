@@ -1,6 +1,7 @@
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS } from '../../data/translations'
 import { SIZE_CONFIG } from '../../types/game'
+import { THEMES } from '../../data/themes'
 import GameCard from './GameCard'
 import ScoreBoard from './ScoreBoard'
 
@@ -8,10 +9,12 @@ export default function GameBoard() {
   const cards = useGameStore(s => s.cards)
   const selectedSize = useGameStore(s => s.selectedSize)
   const language = useGameStore(s => s.language)
+  const theme = useGameStore(s => s.theme)
   const resetToSetup = useGameStore(s => s.resetToSetup)
   const openRules = useGameStore(s => s.openRules)
   const debugEndGame = useGameStore(s => s.debugEndGame)
   const tr = TRANSLATIONS[language]
+  const tc = THEMES[theme]
   const cols = SIZE_CONFIG[selectedSize].cols
 
   return (
@@ -22,7 +25,7 @@ export default function GameBoard() {
         <button
           onClick={resetToSetup}
           className="text-xs px-3 py-1 rounded-md transition-colors"
-          style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.45)' }}
+          style={{ background: tc.newGameBg, border: `1px solid ${tc.newGameBorder}`, color: tc.newGameText }}
         >
           {tr.newGame}
         </button>
@@ -54,12 +57,12 @@ export default function GameBoard() {
 
       <div
         className="fixed bottom-0 left-0 right-0 flex flex-col items-center gap-0.5 pb-2 pt-1 pointer-events-none"
-        style={{ background: 'linear-gradient(to top, rgba(13,27,42,0.95) 60%, transparent)' }}
+        style={{ background: tc.footerGradient }}
       >
         <button onClick={openRules} className="text-sm pointer-events-auto transition-opacity opacity-35 hover:opacity-70">
           {tr.rulesLink}
         </button>
-        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
+        <p className="text-xs" style={{ color: tc.textFaint }}>
           © {new Date().getFullYear()} teamplayer.cz
         </p>
       </div>
