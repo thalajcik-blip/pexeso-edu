@@ -88,28 +88,20 @@ export default function ScoreBoard() {
           const pid = playerIds[i]
           const emoji = pid ? emojiReactions[pid] : undefined
           return (
-            <div key={i} className="relative flex flex-col items-center">
-              {emoji && (
-                <div
-                  className="pop-in absolute -top-7 text-xl pointer-events-none select-none"
-                  style={{ zIndex: 10 }}
-                >
-                  {emoji}
-                </div>
-              )}
-              <div
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 text-sm transition-all"
-                style={i === currentPlayer
-                  ? { borderColor: tc.accentBorderActive, background: tc.accentBgActive }
-                  : { borderColor: 'transparent', background: tc.scorePillBg }
-                }
-              >
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
-                <span className="font-medium">{p.name}</span>
-                <span key={`${i}-${p.score}`} className="score-pop font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>
-                  {p.score} b.
-                </span>
-              </div>
+            <div
+              key={i}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 text-sm transition-all"
+              style={i === currentPlayer
+                ? { borderColor: tc.accentBorderActive, background: tc.accentBgActive }
+                : { borderColor: 'transparent', background: tc.scorePillBg }
+              }
+            >
+              <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
+              <span className="font-medium">{p.name}</span>
+              {emoji && <span key={`${i}-emoji-${emoji}`} className="pop-in">{emoji}</span>}
+              <span key={`${i}-${p.score}`} className="score-pop font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>
+                {p.score} b.
+              </span>
             </div>
           )
         })}
