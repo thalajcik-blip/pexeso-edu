@@ -21,6 +21,8 @@ import type { LobbyPlayer, GameAction } from '../services/multiplayerService'
 
 const SESSION_ROOM_KEY = 'qm_last_room'
 
+let revealTimer: ReturnType<typeof setTimeout> | null = null
+
 function computeCorrectAnswer(quizSymbol: string, selectedDeckId: string, language: string): string {
   const deck = DECKS.find(d => d.id === selectedDeckId)!
   const item = deck.pool[quizSymbol]
@@ -420,20 +422,30 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   _applyQuizVote: (playerId, answer) => {
-    const { quizVotes, isHost, quizCountdownEnd, quizSymbol } = get()
+    const { quizVotes, isHost, quizCountdownEnd, quizSymbol, players } = get()
     if (!quizSymbol) return
     const isFirstVote = Object.keys(quizVotes).length === 0
+    const newVotes = { ...quizVotes, [playerId]: answer }
     const newCountdownEnd = isFirstVote ? Date.now() + 5000 : quizCountdownEnd
-    set({ quizVotes: { ...quizVotes, [playerId]: answer }, quizCountdownEnd: newCountdownEnd })
-    if (isFirstVote && isHost) {
-      setTimeout(() => {
-        const { quizSymbol: sym, selectedDeckId: deckId, language: lang } = get()
-        if (!sym) return
-        const correct = computeCorrectAnswer(sym, deckId, lang)
-        broadcastGameAction({ type: 'quiz_reveal', correct })
-        set({ quizRevealCorrect: correct })
-        setTimeout(() => get()._resolveQuizVotes(correct), 1500)
-      }, 5000)
+    set({ quizVotes: newVotes, quizCountdownEnd: newCountdownEnd })
+
+    if (!isHost) return
+
+    const triggerReveal = () => {
+      const { quizSymbol: sym, selectedDeckId: deckId, language: lang } = get()
+      if (!sym) return
+      if (revealTimer) { clearTimeout(revealTimer); revealTimer = null }
+      const correct = computeCorrectAnswer(sym, deckId, lang)
+      broadcastGameAction({ type: 'quiz_reveal', correct })
+      set({ quizRevealCorrect: correct })
+      setTimeout(() => get()._resolveQuizVotes(correct), 1500)
+    }
+
+    const allVoted = Object.keys(newVotes).length >= players.length
+    if (allVoted) {
+      triggerReveal()
+    } else if (isFirstVote) {
+      revealTimer = setTimeout(triggerReveal, 5000)
     }
   },
 
