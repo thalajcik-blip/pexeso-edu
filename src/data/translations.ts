@@ -62,6 +62,9 @@ export interface Translations {
   waitingForTurn: string  // contains {name}
   playerLeft: string      // contains {name}
   youAreAlone: string
+  turnTimeLabel: string
+  quizTimeLabel: string
+  turnTimeOff: string
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -133,6 +136,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     waitingForTurn: 'Čekáš na tah hráče {name}...',
     playerLeft: '{name} opustil hru.',
     youAreAlone: 'Zůstal jsi sám v místnosti.',
+    turnTimeLabel: 'Čas na tah',
+    quizTimeLabel: 'Čas na kvíz',
+    turnTimeOff: 'Bez limitu',
   },
 
   sk: {
@@ -203,6 +209,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     waitingForTurn: 'Čakáš na ťah hráča {name}...',
     playerLeft: '{name} opustil hru.',
     youAreAlone: 'Zostal si sám v miestnosti.',
+    turnTimeLabel: 'Čas na ťah',
+    quizTimeLabel: 'Čas na kvíz',
+    turnTimeOff: 'Bez limitu',
   },
 
   en: {
@@ -273,6 +282,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     waitingForTurn: 'Waiting for {name}...',
     playerLeft: '{name} left the game.',
     youAreAlone: 'You are alone in the room.',
+    turnTimeLabel: 'Turn time',
+    quizTimeLabel: 'Quiz time',
+    turnTimeOff: 'Unlimited',
   },
 }
 

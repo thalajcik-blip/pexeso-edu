@@ -68,6 +68,8 @@ interface GameStore {
   quizCountdownEnd: number | null   // timestamp when voting closes
   quizRevealCorrect: string | null  // set briefly to show results before closing
   disconnectedPlayer: string | null // name of player who just left (shown briefly)
+  turnTime: number   // seconds; 0 = unlimited
+  quizTime: number   // seconds
 
   // Setup actions
   setLanguage: (lang: Language) => void
@@ -85,19 +87,25 @@ interface GameStore {
   closeRules: () => void
   debugEndGame: () => void
 
+  // Timer settings (host only, before game)
+  setTurnTime: (t: number) => void
+  setQuizTime: (t: number) => void
+
   // Multiplayer actions
   goToLobby: () => void
   createRoom: (myName: string) => Promise<void>
   joinRoom: (code: string, myName: string) => Promise<void>
   leaveRoom: () => void
   startOnlineGame: () => void
+  timeoutTurn: () => void
 
   // Internal
   _setLobbyPlayers: (players: LobbyPlayer[]) => void
   _applyAction: (action: GameAction) => void
   _flipCard: (index: number) => void
   _answerQuiz: (correct: boolean) => void
-  _applyGameStart: (cards: CardData[], playerIds: string[], playerNames: string[], deckId: string, size: string) => void
+  _applyGameStart: (cards: CardData[], playerIds: string[], playerNames: string[], deckId: string, size: string, turnTime: number, quizTime: number) => void
+  _applyTurnTimeout: () => void
   _broadcastStateIfHost: () => void
   _applyQuizVote: (playerId: string, answer: string) => void
   _resolveQuizVotes: (correct: string) => void
@@ -133,6 +141,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   quizCountdownEnd: null,
   quizRevealCorrect: null,
   disconnectedPlayer: null,
+  turnTime: 20,
+  quizTime: 5,
 
   setLanguage: (lang) => set({ language: lang, playerNames: [...TRANSLATIONS[lang].defaultPlayerNames] }),
   toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
@@ -144,6 +154,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     names[i] = name
     set({ playerNames: names })
   },
+
+  setTurnTime: (t) => set({ turnTime: t }),
+  setQuizTime: (t) => set({ quizTime: t }),
 
   startGame: () => {
     const { selectedDeckId, selectedSize, numPlayers, playerNames } = get()
@@ -216,7 +229,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })
   },
 
-  _applyGameStart: (cards, playerIds, playerNames, deckId, size) => {
+  _applyTurnTimeout: () => {
+    const { players, currentPlayer, cards } = get()
+    const resetCards = cards.map(c => c.state === 'flipped' ? { ...c, state: 'hidden' as const } : c)
+    const nextPlayer = (currentPlayer + 1) % players.length
+    set({ cards: resetCards, flipped: [], locked: false, currentPlayer: nextPlayer, turnMessage: '' })
+  },
+
+  _applyGameStart: (cards, playerIds, playerNames, deckId, size, turnTime, quizTime) => {
     const { language, myPlayerId } = get()
     const players: Player[] = playerNames.map((name, i) => ({
       name: name.trim() || TRANSLATIONS[language].defaultPlayerNames[i],
@@ -227,6 +247,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({
       selectedDeckId: deckId as DeckId,
       selectedSize: size as BoardSize,
+      turnTime,
+      quizTime,
       phase: 'playing',
       cards,
       players,
@@ -246,6 +268,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       case 'flip_card':
         get()._flipCard(action.index)
         break
+      case 'turn_timeout':
+        get()._applyTurnTimeout()
+        break
       case 'quiz_vote':
         get()._applyQuizVote(action.playerId, action.answer)
         break
@@ -253,7 +278,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         get()._answerQuiz(action.correct)
         break
       case 'game_start':
-        get()._applyGameStart(action.cards, action.playerIds, action.playerNames, action.deckId, action.size)
+        get()._applyGameStart(action.cards, action.playerIds, action.playerNames, action.deckId, action.size, action.turnTime, action.quizTime)
         break
       case 'state_snapshot': {
         const myIndex = action.playerIds.indexOf(myPlayerId)
@@ -294,8 +319,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get()._answerQuiz(correct)
   },
 
+  timeoutTurn: () => {
+    if (get().phase !== 'playing') return
+    broadcastGameAction({ type: 'turn_timeout' })
+    get()._applyTurnTimeout()
+  },
+
   playAgain: () => {
-    const { isOnline, isHost, players, playerIds, selectedDeckId, selectedSize } = get()
+    const { isOnline, isHost, players, playerIds, selectedDeckId, selectedSize, turnTime, quizTime } = get()
     if (isOnline && !isHost) return
     const deck = DECKS.find(d => d.id === selectedDeckId)!
     const size = SIZE_CONFIG[selectedSize]
@@ -305,8 +336,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     if (isOnline) {
       const playerNames = players.map(p => p.name)
-      broadcastGameAction({ type: 'game_start', cards, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize })
-      get()._applyGameStart(cards, playerIds, playerNames, selectedDeckId, selectedSize)
+      broadcastGameAction({ type: 'game_start', cards, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize, turnTime, quizTime })
+      get()._applyGameStart(cards, playerIds, playerNames, selectedDeckId, selectedSize, turnTime, quizTime)
     } else {
       const resetPlayers = players.map(p => ({ ...p, score: 0, pairs: 0, quizzes: 0 }))
       set({ phase: 'playing', cards, players: resetPlayers, currentPlayer: 0, flipped: [], locked: false, turnMessage: '', quizSymbol: null })
@@ -336,10 +367,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   goToLobby: () => set({ phase: 'lobby' }),
 
   createRoom: async (myName) => {
-    const { selectedDeckId, selectedSize, language } = get()
+    const { selectedDeckId, selectedSize, language, turnTime, quizTime } = get()
     const code = generateRoomCode()
     const playerId = getPlayerId()
-    await createRoomInDb(code, playerId, { deckId: selectedDeckId, size: selectedSize, language })
+    await createRoomInDb(code, playerId, { deckId: selectedDeckId, size: selectedSize, language, turnTime, quizTime })
     const myPresence: LobbyPlayer = { id: playerId, name: myName, isHost: true, joinedAt: Date.now() }
     await joinRealtimeChannel(
       code,
@@ -374,6 +405,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       selectedDeckId: room.settings.deckId as DeckId,
       selectedSize: room.settings.size as BoardSize,
       language: room.settings.language as Language,
+      turnTime: room.settings.turnTime ?? 20,
+      quizTime: room.settings.quizTime ?? 5,
     })
   },
 
@@ -391,7 +424,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   startOnlineGame: () => {
-    const { lobbyPlayers, selectedDeckId, selectedSize, myPlayerId } = get()
+    const { lobbyPlayers, selectedDeckId, selectedSize, myPlayerId, turnTime, quizTime } = get()
     // Sort: host first, then by joinedAt
     const sorted = [...lobbyPlayers].sort((a, b) => {
       if (a.isHost && !b.isHost) return -1
@@ -405,9 +438,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const symbols = shuffle(Object.keys(deck.pool)).slice(0, size.pairs)
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
-    broadcastGameAction({ type: 'game_start', cards, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize })
+    broadcastGameAction({ type: 'game_start', cards, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize, turnTime, quizTime })
     const myIndex = playerIds.indexOf(myPlayerId)
-    get()._applyGameStart(cards, playerIds, playerNames, selectedDeckId, selectedSize)
+    get()._applyGameStart(cards, playerIds, playerNames, selectedDeckId, selectedSize, turnTime, quizTime)
     if (myIndex >= 0) set({ myPlayerIndex: myIndex })
   },
 
@@ -441,11 +474,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   _applyQuizVote: (playerId, answer) => {
-    const { quizVotes, quizCountdownEnd, quizSymbol } = get()
+    const { quizVotes, quizCountdownEnd, quizSymbol, quizTime } = get()
     if (!quizSymbol) return
     const isFirstVote = Object.keys(quizVotes).length === 0
     const newVotes = { ...quizVotes, [playerId]: answer }
-    const newCountdownEnd = isFirstVote ? Date.now() + 5000 : quizCountdownEnd
+    const newCountdownEnd = isFirstVote ? Date.now() + quizTime * 1000 : quizCountdownEnd
     set({ quizVotes: newVotes, quizCountdownEnd: newCountdownEnd })
   },
 
