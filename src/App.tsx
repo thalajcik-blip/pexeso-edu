@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useGameStore } from './store/gameStore'
 import { THEMES } from './data/themes'
 import SetupScreen from './components/setup/SetupScreen'
+import LobbyScreen from './components/lobby/LobbyScreen'
 import GameBoard from './components/game/GameBoard'
 import QuizModal from './components/modals/QuizModal'
 import WinModal from './components/modals/WinModal'
@@ -28,6 +29,7 @@ export default function App() {
       style={{ fontFamily: "'Readex Pro', sans-serif", background: tc.bg, color: tc.text }}
     >
       {phase === 'setup' && <SetupScreen />}
+      {phase === 'lobby' && <LobbyScreen />}
       {(phase === 'playing' || phase === 'quiz' || phase === 'win') && <GameBoard />}
       {phase === 'quiz' && <QuizModal />}
       {phase === 'win' && <WinModal />}

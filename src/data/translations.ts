@@ -42,6 +42,23 @@ export interface Translations {
   deckNames: Record<DeckId, string>
   // Default player names
   defaultPlayerNames: string[]
+  // Lobby / online
+  localBtn: string
+  onlineBtn: string
+  createRoom: string
+  joinRoom: string
+  roomCode: string
+  copied: string
+  waitingForPlayers: string
+  startOnlineGame: string
+  waitingForHost: string
+  connectedPlayers: string
+  roomNotFound: string
+  connecting: string
+  leaveRoom: string
+  you: string
+  lobbyHost: string
+  backBtn: string
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -94,6 +111,22 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       jobs:    'Povolání',
     },
     defaultPlayerNames: ['Hráč 1', 'Hráč 2', 'Hráč 3', 'Hráč 4'],
+    localBtn: 'Místní hra →',
+    onlineBtn: '🌐 Online hra',
+    createRoom: 'Vytvořit místnost',
+    joinRoom: 'Připojit se ke hře',
+    roomCode: 'Kód místnosti',
+    copied: 'Zkopírováno!',
+    waitingForPlayers: 'Čekání na dalšího hráče...',
+    startOnlineGame: 'Spustit hru',
+    waitingForHost: 'Čekání na spuštění hry...',
+    connectedPlayers: 'Hráči v místnosti',
+    roomNotFound: 'Místnost nenalezena. Zkontroluj kód.',
+    connecting: 'Připojování...',
+    leaveRoom: 'Opustit místnost',
+    you: '(ty)',
+    lobbyHost: 'Hostitel',
+    backBtn: 'Zpět',
   },
 
   sk: {
@@ -145,6 +178,22 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       jobs:    'Povolania',
     },
     defaultPlayerNames: ['Hráč 1', 'Hráč 2', 'Hráč 3', 'Hráč 4'],
+    localBtn: 'Lokálna hra →',
+    onlineBtn: '🌐 Online hra',
+    createRoom: 'Vytvoriť miestnosť',
+    joinRoom: 'Pripojiť sa ku hre',
+    roomCode: 'Kód miestnosti',
+    copied: 'Skopírované!',
+    waitingForPlayers: 'Čakanie na ďalšieho hráča...',
+    startOnlineGame: 'Spustiť hru',
+    waitingForHost: 'Čakanie na spustenie hry...',
+    connectedPlayers: 'Hráči v miestnosti',
+    roomNotFound: 'Miestnosť nenájdená. Skontroluj kód.',
+    connecting: 'Pripájanie...',
+    leaveRoom: 'Opustiť miestnosť',
+    you: '(ty)',
+    lobbyHost: 'Hostiteľ',
+    backBtn: 'Späť',
   },
 
   en: {
@@ -196,6 +245,22 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       jobs:    'Professions',
     },
     defaultPlayerNames: ['Player 1', 'Player 2', 'Player 3', 'Player 4'],
+    localBtn: 'Local game →',
+    onlineBtn: '🌐 Online game',
+    createRoom: 'Create Room',
+    joinRoom: 'Join a Game',
+    roomCode: 'Room Code',
+    copied: 'Copied!',
+    waitingForPlayers: 'Waiting for another player...',
+    startOnlineGame: 'Start Game',
+    waitingForHost: 'Waiting for host to start...',
+    connectedPlayers: 'Players in room',
+    roomNotFound: 'Room not found. Check the code.',
+    connecting: 'Connecting...',
+    leaveRoom: 'Leave room',
+    you: '(you)',
+    lobbyHost: 'Host',
+    backBtn: 'Back',
   },
 }
 

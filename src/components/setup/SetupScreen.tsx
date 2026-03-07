@@ -26,7 +26,7 @@ export default function SetupScreen() {
     selectedSize, selectSize,
     numPlayers, setNumPlayers,
     playerNames, setPlayerName,
-    startGame, openRules,
+    startGame, openRules, goToLobby,
   } = useGameStore()
 
   const tr = TRANSLATIONS[language]
@@ -142,13 +142,22 @@ export default function SetupScreen() {
           </div>
         </div>
 
-        <button
-          onClick={startGame}
-          className="w-full py-3.5 rounded-xl text-lg font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
-          style={{ background: tc.accent, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
-        >
-          {tr.startBtn}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={startGame}
+            className="flex-1 py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
+            style={{ background: tc.accent, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
+          >
+            {tr.localBtn}
+          </button>
+          <button
+            onClick={goToLobby}
+            className="flex-1 py-3.5 rounded-xl text-base font-bold border-2 transition-all hover:-translate-y-0.5 cursor-pointer"
+            style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
+          >
+            {tr.onlineBtn}
+          </button>
+        </div>
       </div>
 
       <button onClick={openRules} className="text-sm opacity-35 hover:opacity-70 transition-opacity">

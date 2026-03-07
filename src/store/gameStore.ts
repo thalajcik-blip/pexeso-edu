@@ -6,6 +6,17 @@ import { shuffle } from '../utils/shuffle'
 import type { Language } from '../data/translations'
 import { TRANSLATIONS } from '../data/translations'
 import type { Theme } from '../data/themes'
+import {
+  broadcastGameAction,
+  joinRealtimeChannel,
+  leaveRealtimeChannel,
+  createRoomInDb,
+  fetchRoomFromDb,
+  deleteRoomFromDb,
+  generateRoomCode,
+  getPlayerId,
+} from '../services/multiplayerService'
+import type { LobbyPlayer, GameAction } from '../services/multiplayerService'
 
 interface GameStore {
   // Setup
@@ -31,7 +42,15 @@ interface GameStore {
   // Rules
   rulesOpen: boolean
 
-  // Actions
+  // Multiplayer
+  isOnline: boolean
+  roomId: string | null
+  myPlayerId: string
+  myPlayerIndex: number
+  isHost: boolean
+  lobbyPlayers: LobbyPlayer[]
+
+  // Setup actions
   setLanguage: (lang: Language) => void
   toggleTheme: () => void
   selectDeck: (id: DeckId) => void
@@ -46,18 +65,30 @@ interface GameStore {
   openRules: () => void
   closeRules: () => void
   debugEndGame: () => void
+
+  // Multiplayer actions
+  goToLobby: () => void
+  createRoom: (myName: string) => Promise<void>
+  joinRoom: (code: string, myName: string) => Promise<void>
+  leaveRoom: () => void
+  startOnlineGame: () => void
+
+  // Internal (used by multiplayer service callbacks)
+  _setLobbyPlayers: (players: LobbyPlayer[]) => void
+  _applyAction: (action: GameAction) => void
+  _flipCard: (index: number) => void
+  _answerQuiz: (correct: boolean) => void
+  _applyGameStart: (cards: CardData[], playerNames: string[], deckId: string, size: string) => void
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
-  // Setup defaults
+  // Defaults
   language: 'cs',
   theme: 'dark',
   selectedDeckId: 'flags',
   selectedSize: 'large',
   numPlayers: 2,
   playerNames: [...DEFAULT_NAMES],
-
-  // Game defaults
   phase: 'setup',
   cards: [],
   players: [],
@@ -67,7 +98,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
   turnMessage: '',
   quizSymbol: null,
   rulesOpen: false,
+  isOnline: false,
+  roomId: null,
+  myPlayerId: '',
+  myPlayerIndex: 0,
+  isHost: false,
+  lobbyPlayers: [],
 
+  // Setup actions
   setLanguage: (lang) => set({ language: lang, playerNames: [...TRANSLATIONS[lang].defaultPlayerNames] }),
   toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
   selectDeck: (id) => set({ selectedDeckId: id }),
@@ -83,23 +121,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { selectedDeckId, selectedSize, numPlayers, playerNames } = get()
     const deck = DECKS.find(d => d.id === selectedDeckId)!
     const size = SIZE_CONFIG[selectedSize]
-
     const symbols = shuffle(Object.keys(deck.pool)).slice(0, size.pairs)
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
-
     const players: Player[] = Array.from({ length: numPlayers }, (_, i) => ({
       name: playerNames[i]?.trim() || TRANSLATIONS[get().language].defaultPlayerNames[i],
       color: PLAYER_COLORS[i],
-      score: 0,
-      pairs: 0,
-      quizzes: 0,
+      score: 0, pairs: 0, quizzes: 0,
     }))
-
     set({ phase: 'playing', cards, players, currentPlayer: 0, flipped: [], locked: false, turnMessage: '', quizSymbol: null })
   },
 
-  flipCard: (index) => {
+  // Internal: pure game logic without broadcasting
+  _flipCard: (index) => {
     const { locked, cards, flipped, players, currentPlayer } = get()
     if (locked || cards[index].state !== 'hidden') return
 
@@ -113,7 +147,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const [a, b] = newFlipped
 
     if (newCards[a].symbol === newCards[b].symbol) {
-      // Match!
       setTimeout(() => {
         const matchedCards = get().cards.map((c, i) =>
           i === a || i === b ? { ...c, state: 'matched' as const } : c
@@ -124,7 +157,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
         set({ cards: matchedCards, players: updatedPlayers, flipped: [], quizSymbol: newCards[a].symbol, phase: 'quiz' })
       }, 500)
     } else {
-      // No match
       setTimeout(() => {
         const resetCards = get().cards.map((c, i) =>
           i === a || i === b ? { ...c, state: 'hidden' as const } : c
@@ -135,7 +167,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
-  answerQuiz: (correct) => {
+  _answerQuiz: (correct) => {
     const { players, currentPlayer, cards } = get()
     const updatedPlayers = players.map((p, i) =>
       i === currentPlayer && correct ? { ...p, score: p.score + 1, quizzes: p.quizzes + 1 } : p
@@ -146,7 +178,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const msg = correct
       ? tr.turnCorrect.replace('{name}', playerName)
       : tr.turnWrong.replace('{name}', playerName)
-
     set({
       players: updatedPlayers,
       quizSymbol: null,
@@ -156,20 +187,74 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })
   },
 
+  _applyGameStart: (cards, playerNames, deckId, size) => {
+    const { language } = get()
+    const players: Player[] = playerNames.map((name, i) => ({
+      name: name.trim() || TRANSLATIONS[language].defaultPlayerNames[i],
+      color: PLAYER_COLORS[i],
+      score: 0, pairs: 0, quizzes: 0,
+    }))
+    set({
+      selectedDeckId: deckId as DeckId,
+      selectedSize: size as BoardSize,
+      phase: 'playing',
+      cards,
+      players,
+      currentPlayer: 0,
+      flipped: [],
+      locked: false,
+      turnMessage: '',
+      quizSymbol: null,
+    })
+  },
+
+  _applyAction: (action) => {
+    switch (action.type) {
+      case 'flip_card':    get()._flipCard(action.index);   break
+      case 'answer_quiz': get()._answerQuiz(action.correct); break
+      case 'game_start':  get()._applyGameStart(action.cards, action.playerNames, action.deckId, action.size); break
+    }
+  },
+
+  // Public game interface
+  flipCard: (index) => {
+    const { isOnline, myPlayerIndex, currentPlayer } = get()
+    if (isOnline && myPlayerIndex !== currentPlayer) return
+    if (isOnline) broadcastGameAction({ type: 'flip_card', index })
+    get()._flipCard(index)
+  },
+
+  answerQuiz: (correct) => {
+    if (get().isOnline) broadcastGameAction({ type: 'answer_quiz', correct })
+    get()._answerQuiz(correct)
+  },
+
   playAgain: () => {
-    const { players, selectedDeckId, selectedSize } = get()
+    const { isOnline, isHost, players, selectedDeckId, selectedSize } = get()
+    if (isOnline && !isHost) return
     const deck = DECKS.find(d => d.id === selectedDeckId)!
     const size = SIZE_CONFIG[selectedSize]
-
     const symbols = shuffle(Object.keys(deck.pool)).slice(0, size.pairs)
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
-    const resetPlayers = players.map(p => ({ ...p, score: 0, pairs: 0, quizzes: 0 }))
 
-    set({ phase: 'playing', cards, players: resetPlayers, currentPlayer: 0, flipped: [], locked: false, turnMessage: '', quizSymbol: null })
+    if (isOnline) {
+      const playerNames = players.map(p => p.name)
+      broadcastGameAction({ type: 'game_start', cards, playerNames, deckId: selectedDeckId, size: selectedSize })
+      get()._applyGameStart(cards, playerNames, selectedDeckId, selectedSize)
+    } else {
+      const resetPlayers = players.map(p => ({ ...p, score: 0, pairs: 0, quizzes: 0 }))
+      set({ phase: 'playing', cards, players: resetPlayers, currentPlayer: 0, flipped: [], locked: false, turnMessage: '', quizSymbol: null })
+    }
   },
 
-  resetToSetup: () => set({ phase: 'setup', cards: [], players: [], quizSymbol: null }),
+  resetToSetup: () => {
+    if (get().isOnline) {
+      get().leaveRoom()
+    } else {
+      set({ phase: 'setup', cards: [], players: [], quizSymbol: null })
+    }
+  },
 
   openRules: () => set({ rulesOpen: true }),
   closeRules: () => set({ rulesOpen: false }),
@@ -183,4 +268,71 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })).map(p => ({ ...p, score: p.pairs + p.quizzes }))
     set({ players, phase: 'win' })
   },
+
+  // Multiplayer
+  goToLobby: () => set({ phase: 'lobby' }),
+
+  createRoom: async (myName) => {
+    const { selectedDeckId, selectedSize, language } = get()
+    const code = generateRoomCode()
+    const playerId = getPlayerId()
+    await createRoomInDb(code, playerId, { deckId: selectedDeckId, size: selectedSize, language })
+    const myPresence: LobbyPlayer = { id: playerId, name: myName, index: 0, isHost: true }
+    await joinRealtimeChannel(
+      code,
+      myPresence,
+      (action) => get()._applyAction(action),
+      (players) => get()._setLobbyPlayers(players),
+    )
+    set({ isOnline: true, roomId: code, myPlayerId: playerId, myPlayerIndex: 0, isHost: true })
+  },
+
+  joinRoom: async (code, myName) => {
+    const upperCode = code.toUpperCase()
+    const room = await fetchRoomFromDb(upperCode)
+    const playerId = getPlayerId()
+    const myPresence: LobbyPlayer = { id: playerId, name: myName, index: 1, isHost: false }
+    await joinRealtimeChannel(
+      upperCode,
+      myPresence,
+      (action) => get()._applyAction(action),
+      (players) => get()._setLobbyPlayers(players),
+    )
+    set({
+      isOnline: true,
+      roomId: upperCode,
+      myPlayerId: playerId,
+      myPlayerIndex: 1,
+      isHost: false,
+      selectedDeckId: room.settings.deckId as DeckId,
+      selectedSize: room.settings.size as BoardSize,
+      language: room.settings.language as Language,
+    })
+  },
+
+  leaveRoom: () => {
+    const { isHost, roomId } = get()
+    leaveRealtimeChannel()
+    if (isHost && roomId) deleteRoomFromDb(roomId)
+    set({
+      isOnline: false, roomId: null, myPlayerId: '', myPlayerIndex: 0,
+      isHost: false, lobbyPlayers: [],
+      phase: 'setup', cards: [], players: [], quizSymbol: null,
+    })
+  },
+
+  startOnlineGame: () => {
+    const { lobbyPlayers, selectedDeckId, selectedSize } = get()
+    const sortedPlayers = [...lobbyPlayers].sort((a, b) => a.index - b.index)
+    const playerNames = sortedPlayers.map(p => p.name)
+    const deck = DECKS.find(d => d.id === selectedDeckId)!
+    const size = SIZE_CONFIG[selectedSize]
+    const symbols = shuffle(Object.keys(deck.pool)).slice(0, size.pairs)
+    const cardSymbols = shuffle([...symbols, ...symbols])
+    const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
+    broadcastGameAction({ type: 'game_start', cards, playerNames, deckId: selectedDeckId, size: selectedSize })
+    get()._applyGameStart(cards, playerNames, selectedDeckId, selectedSize)
+  },
+
+  _setLobbyPlayers: (players) => set({ lobbyPlayers: players }),
 }))

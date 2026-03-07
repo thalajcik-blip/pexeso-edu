@@ -1,6 +1,6 @@
 export type DeckId = 'animals' | 'flags' | 'fruits' | 'jobs'
 export type BoardSize = 'large' | 'medium' | 'small'
-export type GamePhase = 'setup' | 'playing' | 'quiz' | 'win'
+export type GamePhase = 'setup' | 'lobby' | 'playing' | 'quiz' | 'win'
 
 export interface DeckItem {
   hint: string | null
