@@ -21,6 +21,7 @@ export default function QuizModal() {
   const quizCountdownEnd  = useGameStore(s => s.quizCountdownEnd)
   const quizRevealCorrect = useGameStore(s => s.quizRevealCorrect)
   const voteQuiz          = useGameStore(s => s.voteQuiz)
+  const triggerReveal     = useGameStore(s => s._triggerReveal)
   const tc                = THEMES[theme]
 
   const [answered, setAnswered] = useState<string | null>(null)
@@ -34,6 +35,22 @@ export default function QuizModal() {
     const id = setInterval(update, 200)
     return () => clearInterval(id)
   }, [quizCountdownEnd])
+
+  // Each client independently triggers reveal when all voted OR countdown expires
+  useEffect(() => {
+    if (!isOnline || !quizCountdownEnd || quizRevealCorrect) return
+    const totalPlayers = playerIds.length > 0 ? playerIds.length : players.length
+    const allVoted = Object.keys(quizVotes).length >= totalPlayers && totalPlayers > 0
+    if (allVoted) {
+      triggerReveal()
+      return
+    }
+    const remaining = quizCountdownEnd - Date.now()
+    if (remaining <= 0) { triggerReveal(); return }
+    const timer = setTimeout(triggerReveal, remaining)
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quizVotes, quizCountdownEnd])
 
   // Stable quiz data — computed once per quizSymbol, never reshuffled on re-render
   const { correct, options, hint } = useMemo(() => {
