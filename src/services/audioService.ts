@@ -94,6 +94,12 @@ export function soundTurnTimeout(): void {
   tone(230, 0.35, 0.2,  0.35, 'triangle')
 }
 
+// Quiz countdown expired
+export function soundQuizTimeout(): void {
+  tone(320, 0.18, 0.05, 0.3, 'triangle')
+  tone(210, 0.3,  0.18, 0.3, 'triangle')
+}
+
 // Quiz option selected — neutral soft tap
 export function soundQuizSelect(): void {
   tone(480, 0.08, 0, 0.18, 'sine')

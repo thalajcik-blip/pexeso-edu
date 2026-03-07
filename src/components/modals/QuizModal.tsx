@@ -5,7 +5,7 @@ import { TRANSLATIONS, t } from '../../data/translations'
 import { EN_QUIZ } from '../../data/enQuiz'
 import { THEMES } from '../../data/themes'
 import { shuffle } from '../../utils/shuffle'
-import { soundQuizSelect, soundQuizWrong, soundTick } from '../../services/audioService'
+import { soundQuizSelect, soundQuizWrong, soundQuizTimeout, soundTick } from '../../services/audioService'
 
 export default function QuizModal() {
   const quizSymbol        = useGameStore(s => s.quizSymbol)
@@ -57,8 +57,9 @@ export default function QuizModal() {
       return
     }
     const remaining = quizCountdownEnd - Date.now()
-    if (remaining <= 0) { triggerReveal(); return }
-    const timer = setTimeout(triggerReveal, remaining)
+    const onTimeout = () => { soundQuizTimeout(); triggerReveal() }
+    if (remaining <= 0) { onTimeout(); return }
+    const timer = setTimeout(onTimeout, remaining)
     return () => clearTimeout(timer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizVotes, quizCountdownEnd])
