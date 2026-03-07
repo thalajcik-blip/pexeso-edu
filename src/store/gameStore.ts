@@ -8,6 +8,9 @@ import type { Language } from '../data/translations'
 import { TRANSLATIONS } from '../data/translations'
 import type { Theme } from '../data/themes'
 import {
+  soundFlip, soundMatch, soundWrong, soundQuizCorrect, soundWin,
+} from '../services/audioService'
+import {
   broadcastGameAction,
   joinRealtimeChannel,
   leaveRealtimeChannel,
@@ -179,6 +182,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { locked, cards, flipped, players, currentPlayer } = get()
     if (locked || cards[index].state !== 'hidden') return
 
+    soundFlip()
     const newCards = cards.map((c, i) => i === index ? { ...c, state: 'flipped' as const } : c)
     const newFlipped = [...flipped, index]
     set({ cards: newCards, flipped: newFlipped })
@@ -189,6 +193,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const [a, b] = newFlipped
 
     if (newCards[a].symbol === newCards[b].symbol) {
+      soundMatch()
       setTimeout(() => {
         const matchedCards = get().cards.map((c, i) =>
           i === a || i === b ? { ...c, state: 'matched' as const } : c
@@ -203,6 +208,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }, 500)
     } else {
       setTimeout(() => {
+        soundWrong()
         const wrongCards = get().cards.map((c, i) =>
           i === a || i === b ? { ...c, state: 'wrong' as const } : c
         )
@@ -224,6 +230,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       i === currentPlayer && correct ? { ...p, score: p.score + 1, quizzes: p.quizzes + 1 } : p
     )
     const allMatched = cards.every(c => c.state === 'matched')
+    if (correct) soundQuizCorrect()
+    if (allMatched) soundWin()
     const playerName = players[currentPlayer].name
     const tr = TRANSLATIONS[get().language]
     const msg = correct
@@ -499,6 +507,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return vote === correct ? { ...p, score: p.score + 1, quizzes: p.quizzes + 1 } : p
     })
     const allMatched = cards.every(c => c.state === 'matched')
+    const myVote = quizVotes[get().myPlayerId]
+    if (myVote === correct) soundQuizCorrect()
+    if (allMatched) soundWin()
     const tr = TRANSLATIONS[get().language]
     const playerName = players[currentPlayer].name
     const activeCorrect = quizVotes[playerIds[currentPlayer]] === correct

@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS } from '../../data/translations'
 import { SIZE_CONFIG } from '../../types/game'
 import { THEMES } from '../../data/themes'
+import { isMuted, toggleMuted } from '../../services/audioService'
 import GameCard from './GameCard'
 import ScoreBoard from './ScoreBoard'
 
@@ -17,6 +19,7 @@ export default function GameBoard() {
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
   const cols = SIZE_CONFIG[selectedSize].cols
+  const [muted, setMuted] = useState(isMuted)
 
   return (
     <div className="px-4 pt-3 pb-16">
@@ -36,6 +39,13 @@ export default function GameBoard() {
           style={{ background: tc.newGameBg, border: `1px solid ${tc.newGameBorder}`, color: tc.newGameText }}
         >
           {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+        <button
+          onClick={() => setMuted(toggleMuted())}
+          className="text-xs px-2 py-1 rounded-md transition-colors"
+          style={{ background: tc.newGameBg, border: `1px solid ${tc.newGameBorder}`, color: tc.newGameText }}
+        >
+          {muted ? '🔇' : '🔊'}
         </button>
         {import.meta.env.DEV && (
           <button
