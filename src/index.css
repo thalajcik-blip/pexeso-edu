@@ -87,6 +87,12 @@ button, a { cursor: pointer; }
   animation: score-pop 0.45s cubic-bezier(.34,1.56,.64,1);
 }
 
+/* Turn timer bar — smooth CSS-driven shrink */
+@keyframes timer-shrink {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
 /* Quiz/Win overlay animations */
 @keyframes pop-in {
   from { transform: scale(0.7); opacity: 0; }

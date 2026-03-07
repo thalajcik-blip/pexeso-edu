@@ -79,7 +79,6 @@ export default function ScoreBoard() {
     prevTurnTime.current = displayTime
   }, [displayTime, isOnline, phase, turnTime])
   const showTimer = isOnline && phase === 'playing' && turnTime > 0
-  const timerFraction = turnTime > 0 ? displayTime / turnTime : 1
   const timerColor = displayTime <= 5 ? tc.errorColor : displayTime <= 10 ? '#f97316' : tc.accent
 
   return (
@@ -130,8 +129,13 @@ export default function ScoreBoard() {
         <div className="flex items-center gap-2 justify-center mb-2 px-4">
           <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: tc.scorePillBg }}>
             <div
-              className="h-full rounded-full transition-all duration-200"
-              style={{ width: `${timerFraction * 100}%`, background: timerColor }}
+              key={`timer-${currentPlayer}-${phase}`}
+              className="h-full rounded-full"
+              style={{
+                width: '100%',
+                background: timerColor,
+                animation: `timer-shrink ${turnTime}s linear forwards`,
+              }}
             />
           </div>
           <span className="text-xs font-bold tabular-nums w-6 text-right" style={{ color: timerColor }}>
