@@ -7,16 +7,25 @@ import { THEMES } from '../../data/themes'
 import { shuffle } from '../../utils/shuffle'
 
 export default function QuizModal() {
-  const quizSymbol    = useGameStore(s => s.quizSymbol)
-  const selectedDeckId = useGameStore(s => s.selectedDeckId)
-  const language      = useGameStore(s => s.language)
-  const theme         = useGameStore(s => s.theme)
-  const players       = useGameStore(s => s.players)
-  const currentPlayer = useGameStore(s => s.currentPlayer)
-  const answerQuiz    = useGameStore(s => s.answerQuiz)
-  const tc            = THEMES[theme]
+  const quizSymbol        = useGameStore(s => s.quizSymbol)
+  const selectedDeckId    = useGameStore(s => s.selectedDeckId)
+  const language          = useGameStore(s => s.language)
+  const theme             = useGameStore(s => s.theme)
+  const players           = useGameStore(s => s.players)
+  const currentPlayer     = useGameStore(s => s.currentPlayer)
+  const answerQuiz        = useGameStore(s => s.answerQuiz)
+  const isOnline          = useGameStore(s => s.isOnline)
+  const myPlayerIndex     = useGameStore(s => s.myPlayerIndex)
+  const quizRemoteAnswer  = useGameStore(s => s.quizRemoteAnswer)
+  const quizShowResult    = useGameStore(s => s.quizShowResult)
+  const broadcastQuizPick = useGameStore(s => s.broadcastQuizPick)
+  const tc                = THEMES[theme]
 
   const [answered, setAnswered] = useState<string | null>(null)
+
+  const isSpectator = isOnline && myPlayerIndex !== currentPlayer
+  // What answer is visually highlighted
+  const displayAnswered = isSpectator ? quizRemoteAnswer : answered
 
   if (!quizSymbol) return null
 
@@ -48,7 +57,12 @@ export default function QuizModal() {
     hint    = (language === 'sk' ? item.hintSk : undefined) ?? item.hint ?? ''
   }
 
-  const handleAnswer = (opt: string) => { if (!answered) setAnswered(opt) }
+  const handleAnswer = (opt: string) => {
+    if (!answered && !isSpectator) {
+      setAnswered(opt)
+      if (isOnline) broadcastQuizPick(opt)
+    }
+  }
 
   const handleContinue = () => {
     const isCorrect = answered === correct
@@ -56,7 +70,7 @@ export default function QuizModal() {
     answerQuiz(isCorrect)
   }
 
-  const isCorrect = answered === correct
+  const isCorrect = displayAnswered === correct
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.overlayBg }}>
@@ -72,19 +86,28 @@ export default function QuizModal() {
           {tr.deckQuestions[selectedDeckId]}
         </div>
 
+        {/* Spectator waiting hint */}
+        {isSpectator && !displayAnswered && (
+          <div className="text-xs text-center" style={{ color: tc.textFaint }}>
+            ⏳ {player.name}...
+          </div>
+        )}
+
         {/* Options — 1 col for EN facts (long text), 2 col for CS/SK translations */}
         <div className={`grid gap-2 ${isEn ? 'grid-cols-1' : 'grid-cols-2'}`}>
           {options.map(opt => {
             let style: React.CSSProperties = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.text }
-            if (answered) {
-              if (opt === correct)       style = { background: tc.successBg, border: `2px solid ${tc.successColor}`, color: tc.successColor }
-              else if (opt === answered) style = { background: tc.errorBg,   border: `2px solid ${tc.errorColor}`,   color: tc.errorColor }
-              else                       style = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.textFaint }
+            const showResult = isSpectator ? quizShowResult : !!answered
+            if (displayAnswered) {
+              if (showResult && opt === correct)            style = { background: tc.successBg, border: `2px solid ${tc.successColor}`, color: tc.successColor }
+              else if (showResult && opt === displayAnswered) style = { background: tc.errorBg,   border: `2px solid ${tc.errorColor}`,   color: tc.errorColor }
+              else if (opt === displayAnswered)             style = { background: tc.accentBgActive, border: `2px solid ${tc.accentBorderActive}`, color: tc.accent }
+              else                                          style = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.textFaint }
             }
             return (
               <button
                 key={opt}
-                disabled={!!answered}
+                disabled={!!displayAnswered || isSpectator}
                 onClick={() => handleAnswer(opt)}
                 className={`py-2.5 px-3 rounded-xl font-medium transition-all text-left ${isEn ? 'text-xs' : 'text-sm text-center'}`}
                 style={style}
@@ -95,20 +118,22 @@ export default function QuizModal() {
           })}
         </div>
 
-        {answered && (
+        {/* Result message — shown after answer (local) or after quiz_result arrives (spectator) */}
+        {displayAnswered && (isSpectator ? quizShowResult : true) && (
           <div className="text-sm font-medium" style={{ color: isCorrect ? tc.successColor : tc.errorColor }}>
             {isCorrect ? t(tr, 'correct', { answer: correct }) : t(tr, 'wrong', { answer: correct })}
           </div>
         )}
 
-        {/* Show fact in CS/SK mode, and also in EN flags fallback (no enData) */}
-        {answered && (!isEn || !enData) && item.fact && (
+        {/* Fun fact — shown after answer (CS/SK/EN flags); for spectators shown during quizShowResult */}
+        {displayAnswered && (isSpectator ? quizShowResult : true) && (!isEn || !enData) && item.fact && (
           <div className="text-xs px-4 py-2.5 rounded-xl" style={{ background: tc.factBg, color: tc.factText }}>
             💡 {isEn ? (item.factEn || item.fact) : language === 'sk' ? (item.factSk || item.fact) : item.fact}
           </div>
         )}
 
-        {answered && (
+        {/* Continue button — only for active player */}
+        {!isSpectator && answered && (
           <button
             onClick={handleContinue}
             className="w-full py-3 rounded-xl font-bold transition-all hover:opacity-90"

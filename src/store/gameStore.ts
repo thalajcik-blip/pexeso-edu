@@ -52,6 +52,8 @@ interface GameStore {
   myPlayerIndex: number
   isHost: boolean
   lobbyPlayers: LobbyPlayer[]
+  quizRemoteAnswer: string | null   // spectator: active player's pick (live)
+  quizShowResult: boolean           // spectator: show result+fact before modal closes
 
   // Setup actions
   setLanguage: (lang: Language) => void
@@ -83,6 +85,7 @@ interface GameStore {
   _answerQuiz: (correct: boolean) => void
   _applyGameStart: (cards: CardData[], playerIds: string[], playerNames: string[], deckId: string, size: string) => void
   _broadcastStateIfHost: () => void
+  broadcastQuizPick: (answer: string) => void
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -109,6 +112,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   myPlayerIndex: 0,
   isHost: false,
   lobbyPlayers: [],
+  quizRemoteAnswer: null,
+  quizShowResult: false,
 
   setLanguage: (lang) => set({ language: lang, playerNames: [...TRANSLATIONS[lang].defaultPlayerNames] }),
   toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
@@ -189,6 +194,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       phase: allMatched ? 'win' : 'playing',
       locked: false,
       turnMessage: allMatched ? '' : msg,
+      quizRemoteAnswer: null,
+      quizShowResult: false,
     })
   },
 
@@ -222,8 +229,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       case 'flip_card':
         get()._flipCard(action.index)
         break
+      case 'quiz_pick':
+        set({ quizRemoteAnswer: action.answer })
+        break
       case 'answer_quiz':
-        get()._answerQuiz(action.correct)
+        // Spectators: show result + fact briefly before closing
+        set({ quizShowResult: true })
+        setTimeout(() => {
+          get()._answerQuiz(action.correct)
+        }, 1800)
         break
       case 'game_start':
         get()._applyGameStart(action.cards, action.playerIds, action.playerNames, action.deckId, action.size)
@@ -384,6 +398,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   _setLobbyPlayers: (players) => set({ lobbyPlayers: players }),
+
+  broadcastQuizPick: (answer) => {
+    broadcastGameAction({ type: 'quiz_pick', answer })
+  },
 }))
 
 // Helper to read saved session for reconnect pre-fill
