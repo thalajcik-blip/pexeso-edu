@@ -59,6 +59,7 @@ export interface Translations {
   you: string
   lobbyHost: string
   backBtn: string
+  waitingForTurn: string  // contains {name}
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -127,6 +128,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     you: '(ty)',
     lobbyHost: 'Hostitel',
     backBtn: 'Zpět',
+    waitingForTurn: 'Čekáš na tah hráče {name}...',
   },
 
   sk: {
@@ -194,6 +196,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     you: '(ty)',
     lobbyHost: 'Hostiteľ',
     backBtn: 'Späť',
+    waitingForTurn: 'Čakáš na ťah hráča {name}...',
   },
 
   en: {
@@ -261,6 +264,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     you: '(you)',
     lobbyHost: 'Host',
     backBtn: 'Back',
+    waitingForTurn: 'Waiting for {name}...',
   },
 }
 

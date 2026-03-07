@@ -3,13 +3,16 @@ import { TRANSLATIONS, t } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 
 export default function ScoreBoard() {
-  const players = useGameStore(s => s.players)
-  const currentPlayer = useGameStore(s => s.currentPlayer)
-  const turnMessage = useGameStore(s => s.turnMessage)
-  const language = useGameStore(s => s.language)
-  const theme = useGameStore(s => s.theme)
+  const players        = useGameStore(s => s.players)
+  const currentPlayer  = useGameStore(s => s.currentPlayer)
+  const turnMessage    = useGameStore(s => s.turnMessage)
+  const language       = useGameStore(s => s.language)
+  const theme          = useGameStore(s => s.theme)
+  const isOnline       = useGameStore(s => s.isOnline)
+  const myPlayerIndex  = useGameStore(s => s.myPlayerIndex)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
+  const isMyTurn = !isOnline || myPlayerIndex === currentPlayer
 
   return (
     <>
@@ -33,7 +36,9 @@ export default function ScoreBoard() {
       <div className="text-center mb-2 text-sm min-h-[1.4em]" style={{ color: tc.textDim }}>
         {turnMessage
           ? <span dangerouslySetInnerHTML={{ __html: turnMessage }} />
-          : <span dangerouslySetInnerHTML={{ __html: t(tr, 'onTurn', { name: `<strong style="color:${players[currentPlayer]?.color}">${players[currentPlayer]?.name}</strong>` }) }} />
+          : isMyTurn
+            ? <span dangerouslySetInnerHTML={{ __html: t(tr, 'onTurn', { name: `<strong style="color:${players[currentPlayer]?.color}">${players[currentPlayer]?.name}</strong>` }) }} />
+            : <span style={{ color: tc.textFaint }}>{tr.waitingForTurn.replace('{name}', players[currentPlayer]?.name ?? '')}</span>
         }
       </div>
     </>

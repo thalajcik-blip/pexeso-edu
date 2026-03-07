@@ -15,13 +15,14 @@
 
 import { supabase } from './supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
-import type { CardData } from '../types/game'
+import type { CardData, GamePhase } from '../types/game'
+import type { Player } from '../types/game'
 
 export type LobbyPlayer = {
   id: string
   name: string
-  index: number
   isHost: boolean
+  joinedAt: number
 }
 
 export type RoomSettings = {
@@ -33,7 +34,8 @@ export type RoomSettings = {
 export type GameAction =
   | { type: 'flip_card'; index: number }
   | { type: 'answer_quiz'; correct: boolean }
-  | { type: 'game_start'; cards: CardData[]; playerNames: string[]; deckId: string; size: string }
+  | { type: 'game_start'; cards: CardData[]; playerIds: string[]; playerNames: string[]; deckId: string; size: string }
+  | { type: 'state_snapshot'; phase: GamePhase; cards: CardData[]; players: Player[]; currentPlayer: number; quizSymbol: string | null; playerIds: string[] }
 
 let channel: RealtimeChannel | null = null
 
@@ -75,6 +77,7 @@ export function joinRealtimeChannel(
   myPresence: LobbyPlayer,
   onAction: (action: GameAction) => void,
   onPresenceChange: (players: LobbyPlayer[]) => void,
+  onPresenceJoin: () => void,
 ): Promise<void> {
   channel = supabase.channel(`room:${code}`, {
     config: { presence: { key: myPresence.id } },
@@ -89,6 +92,9 @@ export function joinRealtimeChannel(
       const state = channel.presenceState<LobbyPlayer>()
       const players = Object.values(state).flat() as LobbyPlayer[]
       onPresenceChange(players)
+    })
+    .on('presence', { event: 'join' }, () => {
+      onPresenceJoin()
     })
 
   return new Promise((resolve, reject) => {

@@ -1,42 +1,60 @@
-import { useState } from 'react'
-import { useGameStore } from '../../store/gameStore'
+import { useState, useEffect } from 'react'
+import { useGameStore, getSavedSession } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
 import { TRANSLATIONS } from '../../data/translations'
 import { PLAYER_COLORS } from '../../types/game'
 
 export default function LobbyScreen() {
-  const theme         = useGameStore(s => s.theme)
-  const language      = useGameStore(s => s.language)
-  const roomId        = useGameStore(s => s.roomId)
-  const isHost        = useGameStore(s => s.isHost)
-  const lobbyPlayers  = useGameStore(s => s.lobbyPlayers)
-  const myPlayerIndex = useGameStore(s => s.myPlayerIndex)
-  const playerNames   = useGameStore(s => s.playerNames)
-  const createRoom    = useGameStore(s => s.createRoom)
-  const joinRoom      = useGameStore(s => s.joinRoom)
-  const leaveRoom     = useGameStore(s => s.leaveRoom)
+  const theme           = useGameStore(s => s.theme)
+  const language        = useGameStore(s => s.language)
+  const roomId          = useGameStore(s => s.roomId)
+  const isHost          = useGameStore(s => s.isHost)
+  const lobbyPlayers    = useGameStore(s => s.lobbyPlayers)
+  const myPlayerId      = useGameStore(s => s.myPlayerId)
+  const playerNames     = useGameStore(s => s.playerNames)
+  const createRoom      = useGameStore(s => s.createRoom)
+  const joinRoom        = useGameStore(s => s.joinRoom)
+  const leaveRoom       = useGameStore(s => s.leaveRoom)
   const startOnlineGame = useGameStore(s => s.startOnlineGame)
-  const resetToSetup  = useGameStore(s => s.resetToSetup)
+  const resetToSetup    = useGameStore(s => s.resetToSetup)
 
   const tc = THEMES[theme]
   const tr = TRANSLATIONS[language]
 
-  const [view, setView]         = useState<'choice' | 'join-code'>('choice')
-  const [myName, setMyName]     = useState(playerNames[0] || '')
+  const [view, setView]       = useState<'choice' | 'join-code'>('choice')
+  const [myName, setMyName]   = useState(playerNames[0] || '')
   const [codeInput, setCodeInput] = useState('')
-  const [error, setError]       = useState<string | null>(null)
-  const [loading, setLoading]   = useState(false)
-  const [copied, setCopied]     = useState(false)
+  const [error, setError]     = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [copied, setCopied]   = useState(false)
+  const [copiedUrl, setCopiedUrl] = useState(false)
 
-  const inRoom  = roomId !== null
+  // Pre-fill from URL param ?room=CODE or sessionStorage
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const urlRoom = params.get('room')
+    if (urlRoom) {
+      setCodeInput(urlRoom.toUpperCase())
+      setView('join-code')
+    } else {
+      const saved = getSavedSession()
+      if (saved) {
+        setCodeInput(saved.roomId)
+        setMyName(saved.myName)
+        setView('join-code')
+      }
+    }
+  }, [])
+
+  const inRoom   = roomId !== null
   const canStart = isHost && lobbyPlayers.length >= 2
+  const shareUrl = roomId ? `${window.location.origin}${window.location.pathname}?room=${roomId}` : ''
 
   const inactiveBtn = { background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }
 
   const handleCreate = async () => {
     if (!myName.trim()) return
-    setLoading(true)
-    setError(null)
+    setLoading(true); setError(null)
     try {
       await createRoom(myName.trim())
     } catch {
@@ -49,8 +67,7 @@ export default function LobbyScreen() {
   const handleJoin = async () => {
     const code = codeInput.trim().toUpperCase()
     if (code.length < 6 || !myName.trim()) return
-    setLoading(true)
-    setError(null)
+    setLoading(true); setError(null)
     try {
       await joinRoom(code, myName.trim())
     } catch {
@@ -60,12 +77,23 @@ export default function LobbyScreen() {
     }
   }
 
-  const handleCopy = async () => {
+  const handleCopyCode = async () => {
     if (!roomId) return
     await navigator.clipboard.writeText(roomId)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setCopied(true); setTimeout(() => setCopied(false), 2000)
   }
+
+  const handleCopyUrl = async () => {
+    await navigator.clipboard.writeText(shareUrl)
+    setCopiedUrl(true); setTimeout(() => setCopiedUrl(false), 2000)
+  }
+
+  // Sort: host first, then by joinedAt
+  const sortedPlayers = [...lobbyPlayers].sort((a, b) => {
+    if (a.isHost && !b.isHost) return -1
+    if (!a.isHost && b.isHost) return 1
+    return a.joinedAt - b.joinedAt
+  })
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-28 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
@@ -79,7 +107,7 @@ export default function LobbyScreen() {
 
       <div className="w-full max-w-md rounded-2xl p-6 space-y-5" style={{ background: tc.surface, border: `1px solid ${tc.surfaceBorder}` }}>
 
-        {/* ── NAME INPUT (pre-room views only) ── */}
+        {/* ── NAME INPUT ── */}
         {!inRoom && (
           <div>
             <div className="text-xs uppercase tracking-widest mb-2" style={{ color: tc.textMuted }}>{tr.namesLabel}</div>
@@ -93,7 +121,7 @@ export default function LobbyScreen() {
           </div>
         )}
 
-        {/* ── CHOICE: Create / Join ── */}
+        {/* ── CHOICE ── */}
         {!inRoom && view === 'choice' && (
           <div className="flex flex-col gap-3">
             <button
@@ -115,7 +143,7 @@ export default function LobbyScreen() {
           </div>
         )}
 
-        {/* ── JOIN: Code input ── */}
+        {/* ── JOIN CODE ── */}
         {!inRoom && view === 'join-code' && (
           <div className="space-y-3">
             <div className="text-xs uppercase tracking-widest mb-2" style={{ color: tc.textMuted }}>{tr.roomCode}</div>
@@ -152,69 +180,72 @@ export default function LobbyScreen() {
         {/* ── WAITING ROOM ── */}
         {inRoom && (
           <div className="space-y-4">
-            {/* Room code (host sees, to share) */}
+            {/* Room code + share */}
             {isHost && (
               <div>
                 <div className="text-xs uppercase tracking-widest mb-2" style={{ color: tc.textMuted }}>{tr.roomCode}</div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-2">
                   <div
                     className="flex-1 rounded-lg px-4 py-2.5 text-center text-2xl font-bold tracking-widest"
                     style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}`, color: tc.accent }}
                   >
                     {roomId}
                   </div>
-                  <button
-                    onClick={handleCopy}
-                    className="px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition-all"
-                    style={inactiveBtn}
-                  >
+                  <button onClick={handleCopyCode} className="px-3 py-2.5 rounded-lg border-2 text-sm transition-all" style={inactiveBtn}>
                     {copied ? tr.copied : '📋'}
                   </button>
                 </div>
+                {/* Share URL */}
+                <button
+                  onClick={handleCopyUrl}
+                  className="w-full py-2 rounded-lg text-xs font-medium transition-all"
+                  style={{ background: tc.accentBgActive, color: tc.accent, border: `1px solid ${tc.accentBorderActive}` }}
+                >
+                  {copiedUrl ? tr.copied : `🔗 ${shareUrl}`}
+                </button>
               </div>
             )}
 
-            {/* Player slots */}
+            {/* Players list */}
             <div>
               <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>
-                {tr.connectedPlayers} ({lobbyPlayers.length}/2)
+                {tr.connectedPlayers} ({sortedPlayers.length})
               </div>
               <div className="space-y-2">
-                {[0, 1].map(idx => {
-                  const p = lobbyPlayers.find(pl => pl.index === idx)
-                  const isMe = idx === myPlayerIndex
-                  return (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                      style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }}
-                    >
-                      <div
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ background: p ? PLAYER_COLORS[idx] : tc.textFaint }}
-                      />
-                      <span className="font-medium flex-1" style={{ color: p ? tc.text : tc.textFaint }}>
-                        {p ? p.name : '...'}
+                {sortedPlayers.map((p, displayIdx) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl"
+                    style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }}
+                  >
+                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[displayIdx] }} />
+                    <span className="font-medium flex-1" style={{ color: tc.text }}>{p.name}</span>
+                    {p.isHost && (
+                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: tc.accentBgActive, color: tc.accent }}>
+                        {tr.lobbyHost}
                       </span>
-                      {p?.isHost && (
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: tc.accentBgActive, color: tc.accent }}>
-                          {tr.lobbyHost}
-                        </span>
-                      )}
-                      {isMe && p && (
-                        <span className="text-xs" style={{ color: tc.textFaint }}>{tr.you}</span>
-                      )}
-                    </div>
-                  )
-                })}
+                    )}
+                    {p.id === myPlayerId && (
+                      <span className="text-xs" style={{ color: tc.textFaint }}>{tr.you}</span>
+                    )}
+                  </div>
+                ))}
+                {/* Empty slot if < 4 players */}
+                {sortedPlayers.length < 4 && (
+                  <div
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl"
+                    style={{ background: tc.inputBg, border: `1px dashed ${tc.inputBorder}`, opacity: 0.5 }}
+                  >
+                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: tc.textFaint }} />
+                    <span className="text-sm" style={{ color: tc.textFaint }}>...</span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Status */}
             <div className="text-sm text-center" style={{ color: tc.textDim }}>
-              {isHost
-                ? (canStart ? '' : tr.waitingForPlayers)
-                : tr.waitingForHost}
+              {isHost ? (canStart ? '' : tr.waitingForPlayers) : tr.waitingForHost}
             </div>
 
             {/* Start (host only) */}
@@ -248,7 +279,6 @@ export default function LobbyScreen() {
         )}
       </div>
 
-      {/* Back to setup (pre-room only) */}
       {!inRoom && (
         <button onClick={resetToSetup} className="text-sm opacity-35 hover:opacity-70 transition-opacity">
           ← {tr.backBtn}
