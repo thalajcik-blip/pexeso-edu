@@ -11,6 +11,7 @@ export default function GameBoard() {
   const language = useGameStore(s => s.language)
   const theme = useGameStore(s => s.theme)
   const resetToSetup = useGameStore(s => s.resetToSetup)
+  const toggleTheme = useGameStore(s => s.toggleTheme)
   const openRules = useGameStore(s => s.openRules)
   const debugEndGame = useGameStore(s => s.debugEndGame)
   const tr = TRANSLATIONS[language]
@@ -28,6 +29,13 @@ export default function GameBoard() {
           style={{ background: tc.newGameBg, border: `1px solid ${tc.newGameBorder}`, color: tc.newGameText }}
         >
           {tr.newGame}
+        </button>
+        <button
+          onClick={toggleTheme}
+          className="text-xs px-2 py-1 rounded-md transition-colors"
+          style={{ background: tc.newGameBg, border: `1px solid ${tc.newGameBorder}`, color: tc.newGameText }}
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
         </button>
         {import.meta.env.DEV && (
           <button
