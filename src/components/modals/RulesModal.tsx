@@ -1,8 +1,11 @@
 import { useGameStore } from '../../store/gameStore'
+import { TRANSLATIONS } from '../../data/translations'
 
 export default function RulesModal() {
   const rulesOpen = useGameStore(s => s.rulesOpen)
   const closeRules = useGameStore(s => s.closeRules)
+  const language = useGameStore(s => s.language)
+  const tr = TRANSLATIONS[language]
 
   if (!rulesOpen) return null
 
@@ -17,21 +20,18 @@ export default function RulesModal() {
         style={{ background: '#111f2e', border: '1px solid rgba(255,255,255,0.15)' }}
         onClick={e => e.stopPropagation()}
       >
-        <h2 className="text-xl font-bold">📖 Pravidla hry</h2>
+        <h2 className="text-xl font-bold">{tr.rulesTitle}</h2>
         <ol className="space-y-2 text-sm list-decimal list-inside" style={{ color: 'rgba(255,255,255,0.75)' }}>
-          <li>Hráči se střídají. Na svém tahu hráč otočí <strong className="text-white">dvě kartičky</strong>.</li>
-          <li>Pokud se kartičky <strong className="text-white">shodují</strong>, hráč získá <strong className="text-white">1 bod</strong> za pár a zobrazí se kvízová otázka.</li>
-          <li>Za <strong className="text-white">správnou odpověď</strong> v kvízu hráč získá další <strong className="text-white">1 bod</strong>.</li>
-          <li>Po nalezeném páru (bez ohledu na kvíz) <strong className="text-white">hráč hraje znovu</strong>.</li>
-          <li>Pokud se kartičky <strong className="text-white">neshodují</strong>, jsou otočeny zpět a přichází další hráč.</li>
-          <li>Hra končí, když jsou nalezeny <strong className="text-white">všechny páry</strong>. Vítězí hráč s nejvíce body.</li>
+          {tr.rules.map((rule, i) => (
+            <li key={i} dangerouslySetInnerHTML={{ __html: rule }} />
+          ))}
         </ol>
         <button
           onClick={closeRules}
           className="w-full py-2.5 rounded-xl font-bold mt-2 transition-opacity hover:opacity-90"
           style={{ background: '#f9d74e', color: '#0d1b2a' }}
         >
-          Zavřít
+          {tr.rulesClose}
         </button>
       </div>
     </div>

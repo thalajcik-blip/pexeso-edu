@@ -1,9 +1,12 @@
 import { useGameStore } from '../../store/gameStore'
+import { TRANSLATIONS, t } from '../../data/translations'
 
 export default function ScoreBoard() {
   const players = useGameStore(s => s.players)
   const currentPlayer = useGameStore(s => s.currentPlayer)
   const turnMessage = useGameStore(s => s.turnMessage)
+  const language = useGameStore(s => s.language)
+  const tr = TRANSLATIONS[language]
 
   return (
     <>
@@ -27,7 +30,7 @@ export default function ScoreBoard() {
       <div className="text-center mb-2 text-sm min-h-[1.4em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
         {turnMessage
           ? <span dangerouslySetInnerHTML={{ __html: turnMessage }} />
-          : <>Na tahu: <strong style={{ color: players[currentPlayer]?.color }}>{players[currentPlayer]?.name}</strong></>
+          : <span dangerouslySetInnerHTML={{ __html: t(tr, 'onTurn', { name: `<strong style="color:${players[currentPlayer]?.color}">${players[currentPlayer]?.name}</strong>` }) }} />
         }
       </div>
     </>

@@ -1,4 +1,5 @@
 import { useGameStore } from '../../store/gameStore'
+import { TRANSLATIONS } from '../../data/translations'
 import { SIZE_CONFIG } from '../../types/game'
 import GameCard from './GameCard'
 import ScoreBoard from './ScoreBoard'
@@ -6,9 +7,11 @@ import ScoreBoard from './ScoreBoard'
 export default function GameBoard() {
   const cards = useGameStore(s => s.cards)
   const selectedSize = useGameStore(s => s.selectedSize)
+  const language = useGameStore(s => s.language)
   const resetToSetup = useGameStore(s => s.resetToSetup)
   const openRules = useGameStore(s => s.openRules)
   const debugEndGame = useGameStore(s => s.debugEndGame)
+  const tr = TRANSLATIONS[language]
   const cols = SIZE_CONFIG[selectedSize].cols
 
   return (
@@ -21,7 +24,7 @@ export default function GameBoard() {
           className="text-xs px-3 py-1 rounded-md transition-colors"
           style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.45)' }}
         >
-          ↺ Nová hra
+          {tr.newGame}
         </button>
         {import.meta.env.DEV && (
           <button
@@ -34,10 +37,7 @@ export default function GameBoard() {
         )}
       </div>
 
-      <div
-        className="overflow-auto"
-        style={{ maxHeight: 'calc(100vh - 155px)', scrollbarGutter: 'stable' }}
-      >
+      <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 155px)', scrollbarGutter: 'stable' }}>
         <div
           className="grid w-full mx-auto"
           style={{
@@ -56,11 +56,8 @@ export default function GameBoard() {
         className="fixed bottom-0 left-0 right-0 flex flex-col items-center gap-0.5 pb-2 pt-1 pointer-events-none"
         style={{ background: 'linear-gradient(to top, rgba(13,27,42,0.95) 60%, transparent)' }}
       >
-        <button
-          onClick={openRules}
-          className="text-sm pointer-events-auto transition-opacity opacity-35 hover:opacity-70"
-        >
-          📖 Pravidla hry
+        <button onClick={openRules} className="text-sm pointer-events-auto transition-opacity opacity-35 hover:opacity-70">
+          {tr.rulesLink}
         </button>
         <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
           © {new Date().getFullYear()} teamplayer.cz

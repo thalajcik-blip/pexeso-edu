@@ -3,9 +3,11 @@ import type { DeckId, BoardSize, GamePhase, CardData, Player } from '../types/ga
 import { SIZE_CONFIG, PLAYER_COLORS, DEFAULT_NAMES } from '../types/game'
 import { DECKS } from '../data/decks'
 import { shuffle } from '../utils/shuffle'
+import type { Language } from '../data/translations'
 
 interface GameStore {
   // Setup
+  language: Language
   selectedDeckId: DeckId
   selectedSize: BoardSize
   numPlayers: number
@@ -27,6 +29,7 @@ interface GameStore {
   rulesOpen: boolean
 
   // Actions
+  setLanguage: (lang: Language) => void
   selectDeck: (id: DeckId) => void
   selectSize: (size: BoardSize) => void
   setNumPlayers: (n: number) => void
@@ -43,6 +46,7 @@ interface GameStore {
 
 export const useGameStore = create<GameStore>((set, get) => ({
   // Setup defaults
+  language: 'cs',
   selectedDeckId: 'animals',
   selectedSize: 'large',
   numPlayers: 2,
@@ -59,6 +63,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   quizSymbol: null,
   rulesOpen: false,
 
+  setLanguage: (lang) => set({ language: lang, playerNames: [...DEFAULT_NAMES] }),
   selectDeck: (id) => set({ selectedDeckId: id }),
   selectSize: (size) => set({ selectedSize: size }),
   setNumPlayers: (n) => set({ numPlayers: n }),
