@@ -90,8 +90,8 @@ export function soundTick(urgent = false): void {
 
 // Turn timer expired
 export function soundTurnTimeout(): void {
-  slide(380, 160, 0.15, 0,    0.22)
-  slide(300, 120, 0.18, 0.12, 0.18)
+  tone(350, 0.2,  0.05, 0.35, 'triangle')
+  tone(230, 0.35, 0.2,  0.35, 'triangle')
 }
 
 // Quiz option selected — neutral soft tap
