@@ -5,8 +5,15 @@ interface Props {
   card: CardData
 }
 
+const EMOJI_SIZE: Record<string, string> = {
+  large:  'clamp(1.4rem, 8vw,  3rem)',
+  medium: 'clamp(1.8rem, 10vw, 3.8rem)',
+  small:  'clamp(2.4rem, 15vw, 4.5rem)',
+}
+
 export default function GameCard({ card }: Props) {
   const flipCard = useGameStore(s => s.flipCard)
+  const selectedSize = useGameStore(s => s.selectedSize)
 
   const isFlipped  = card.state === 'flipped'
   const isMatched  = card.state === 'matched'
@@ -45,7 +52,7 @@ export default function GameCard({ card }: Props) {
           className="card-front absolute inset-0 flex items-center justify-center rounded-[6px]"
           style={{
             background: isMatched ? '#e8f5e9' : '#f0f4ff',
-            fontSize: 'clamp(1.4rem, 8vw, 3rem)',
+            fontSize: EMOJI_SIZE[selectedSize],
             opacity: isMatched ? 0.65 : 1,
           }}
         >
