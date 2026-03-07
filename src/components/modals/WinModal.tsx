@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS, pluralize } from '../../data/translations'
 import { THEMES } from '../../data/themes'
@@ -14,6 +16,16 @@ export default function WinModal() {
   const resetToSetup = useGameStore(s => s.resetToSetup)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
+
+  useEffect(() => {
+    const end = Date.now() + 2500
+    const frame = () => {
+      confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#f9d74e', '#ffffff', '#1a237e'] })
+      confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#f9d74e', '#ffffff', '#1a237e'] })
+      if (Date.now() < end) requestAnimationFrame(frame)
+    }
+    frame()
+  }, [])
 
   const sorted = [...players].sort((a, b) => b.score - a.score)
   const maxScore = sorted[0]?.score ?? 0
