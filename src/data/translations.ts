@@ -36,6 +36,8 @@ export interface Translations {
   rulesTitle: string
   rulesClose: string
   rules: string[]
+  rulesOnlineTitle: string
+  rulesOnline: string[]
   // Deck questions (used for CS + SK quiz mode)
   deckQuestions: Record<DeckId, string>
   // Deck names (shown in setup)
@@ -103,6 +105,14 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       'Po nalezeném páru (bez ohledu na kvíz) <b>hráč hraje znovu</b>.',
       'Pokud se kartičky <b>neshodují</b>, jsou otočeny zpět a přichází další hráč.',
       'Hra končí, když jsou nalezeny <b>všechny páry</b>. Vítězí hráč s nejvíce body.',
+    ],
+    rulesOnlineTitle: '🌐 Online hra',
+    rulesOnline: [
+      'Hostitel vytvoří místnost a sdílí <b>kód</b> nebo <b>odkaz</b>. Ostatní se připojí a hostitel spustí hru.',
+      'Pořadí hráčů: <b>hostitel jde první</b>, pak ostatní podle pořadí připojení.',
+      'Na tahu je vždy <b>jen jeden hráč</b> — ostatní čekají. Pokud je nastaven časový limit tahu, musí hráč otočit pár do vypršení času, jinak přichází další.',
+      'V kvízu <b>hlasují všichni hráči</b> — každý může získat bod za správnou odpověď. Hlasování se uzavře, jakmile odpoví všichni, nebo vyprší limit.',
+      'Pokud hráč opustí hru, ostatní jsou <b>upozorněni</b>. Zůstaneš-li sám v místnosti, hra se pozastaví a můžeš odejít.',
     ],
     deckQuestions: {
       animals: 'Jak se toto zvířátko řekne anglicky?',
@@ -177,6 +187,14 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       'Ak sa kartičky <b>nezhodujú</b>, sú otočené späť a prichádza ďalší hráč.',
       'Hra končí, keď sú nájdené <b>všetky páry</b>. Víťazí hráč s najviac bodmi.',
     ],
+    rulesOnlineTitle: '🌐 Online hra',
+    rulesOnline: [
+      'Hostiteľ vytvorí miestnosť a zdieľa <b>kód</b> alebo <b>odkaz</b>. Ostatní sa pripoja a hostiteľ spustí hru.',
+      'Poradie hráčov: <b>hostiteľ ide prvý</b>, potom ostatní podľa poradia pripojenia.',
+      'Na rade je vždy <b>len jeden hráč</b> — ostatní čakajú. Ak je nastavený časový limit, musí hráč otočiť pár pred vypršaním, inak prichádza ďalší.',
+      'V kvíze <b>hlasujú všetci hráči</b> — každý môže získať bod za správnu odpoveď. Hlasovanie sa uzavrie, keď odpovedajú všetci, alebo vyprší limit.',
+      'Ak hráč opustí hru, ostatní sú <b>upozornení</b>. Ak zostaneš sám v miestnosti, hra sa pozastaví a môžeš odísť.',
+    ],
     deckQuestions: {
       animals: 'Ako sa toto zvieratko povie po anglicky?',
       flags:   'Čia je to vlajka?',
@@ -249,6 +267,14 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       'After finding a pair (regardless of the quiz) <b>you play again</b>.',
       'If the cards <b>don\'t match</b>, they are flipped back and the next player goes.',
       'The game ends when <b>all pairs</b> are found. The player with the most points wins.',
+    ],
+    rulesOnlineTitle: '🌐 Online game',
+    rulesOnline: [
+      'The host creates a room and shares the <b>code</b> or <b>link</b>. Others join, then the host starts the game.',
+      'Turn order: <b>host goes first</b>, then others in the order they joined.',
+      'Only <b>one player is on turn</b> at a time — others wait. If a turn timer is set, the active player must find a pair before time runs out, or the turn passes.',
+      'In the quiz, <b>all players vote</b> — everyone can earn a point for a correct answer. Voting closes when all have answered or the timer expires.',
+      'If a player leaves, others are <b>notified</b>. If you\'re left alone in the room, the game pauses and you can leave.',
     ],
     deckQuestions: {
       animals: 'Which fact is true about this animal?',

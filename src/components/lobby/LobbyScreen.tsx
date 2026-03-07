@@ -50,6 +50,7 @@ export default function LobbyScreen() {
   const quizTime        = useGameStore(s => s.quizTime)
   const setTurnTime     = useGameStore(s => s.setTurnTime)
   const setQuizTime     = useGameStore(s => s.setQuizTime)
+  const openRules       = useGameStore(s => s.openRules)
   const createRoom      = useGameStore(s => s.createRoom)
   const joinRoom        = useGameStore(s => s.joinRoom)
   const leaveRoom       = useGameStore(s => s.leaveRoom)
@@ -343,11 +344,16 @@ export default function LobbyScreen() {
         )}
       </div>
 
-      {!inRoom && (
-        <button onClick={resetToSetup} className="text-sm opacity-35 hover:opacity-70 transition-opacity">
-          ← {tr.backBtn}
+      <div className="flex gap-4">
+        {!inRoom && (
+          <button onClick={resetToSetup} className="text-sm opacity-35 hover:opacity-70 transition-opacity">
+            ← {tr.backBtn}
+          </button>
+        )}
+        <button onClick={openRules} className="text-sm opacity-35 hover:opacity-70 transition-opacity">
+          {tr.rulesLink}
         </button>
-      )}
+      </div>
     </div>
   )
 }
