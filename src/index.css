@@ -58,6 +58,22 @@ button, a { cursor: pointer; }
   transition: none;
 }
 
+/* Bright green flash overlay during bounce — fades out, leaving base cardMatched color */
+@keyframes card-match-flash {
+  0%   { opacity: 0; }
+  35%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.card-matched .card-front::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: rgba(46, 204, 113, 0.6);
+  pointer-events: none;
+  animation: card-match-flash 0.5s ease forwards;
+}
+
 /* Quiz/Win overlay animations */
 @keyframes pop-in {
   from { transform: scale(0.7); opacity: 0; }
