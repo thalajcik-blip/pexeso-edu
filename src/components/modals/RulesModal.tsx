@@ -32,7 +32,7 @@ export default function RulesModal() {
         <button
           onClick={closeRules}
           className="w-full py-2.5 rounded-xl font-bold mt-2 transition-opacity hover:opacity-90"
-          style={{ background: '#f9d74e', color: '#0d1b2a' }}
+          style={{ background: tc.accent, color: tc.accentText }}
         >
           {tr.rulesClose}
         </button>

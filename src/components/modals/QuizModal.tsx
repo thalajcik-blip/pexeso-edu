@@ -109,7 +109,7 @@ export default function QuizModal() {
           <button
             onClick={handleContinue}
             className="w-full py-3 rounded-xl font-bold transition-all hover:opacity-90"
-            style={{ background: '#f9d74e', color: '#0d1b2a' }}
+            style={{ background: tc.accent, color: tc.accentText }}
           >
             {tr.continueBtn}
           </button>

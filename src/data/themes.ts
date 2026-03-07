@@ -28,6 +28,12 @@ export interface ThemeColors {
   factText: string
   cardFront: string
   cardMatched: string
+  // Accent (yellow in dark, blue in light)
+  accent: string
+  accentText: string
+  accentGlow: string
+  accentBorderActive: string
+  accentBgActive: string
 }
 
 export const THEMES: Record<Theme, ThemeColors> = {
@@ -59,6 +65,11 @@ export const THEMES: Record<Theme, ThemeColors> = {
     factText:           'rgba(255,255,255,0.6)',
     cardFront:          '#f0f4ff',
     cardMatched:        '#e8f5e9',
+    accent:             '#f9d74e',
+    accentText:         '#0d1b2a',
+    accentGlow:         'rgba(249,215,78,0.3)',
+    accentBorderActive: 'rgba(249,215,78,0.7)',
+    accentBgActive:     'rgba(249,215,78,0.1)',
   },
   light: {
     bg:                 '#eef1f9',
@@ -88,5 +99,10 @@ export const THEMES: Record<Theme, ThemeColors> = {
     factText:           'rgba(13,27,42,0.6)',
     cardFront:          '#ffffff',
     cardMatched:        '#d4f0d8',
+    accent:             '#2563eb',
+    accentText:         '#ffffff',
+    accentGlow:         'rgba(37,99,235,0.25)',
+    accentBorderActive: 'rgba(37,99,235,0.7)',
+    accentBgActive:     'rgba(37,99,235,0.1)',
   },
 }

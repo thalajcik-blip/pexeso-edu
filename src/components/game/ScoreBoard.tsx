@@ -19,13 +19,13 @@ export default function ScoreBoard() {
             key={i}
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 text-sm transition-all"
             style={i === currentPlayer
-              ? { borderColor: 'rgba(249,215,78,0.7)', background: 'rgba(249,215,78,0.1)' }
+              ? { borderColor: tc.accentBorderActive, background: tc.accentBgActive }
               : { borderColor: 'transparent', background: tc.scorePillBg }
             }
           >
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
             <span className="font-medium">{p.name}</span>
-            <span className="font-bold" style={{ color: '#f9d74e', marginLeft: '0.25rem' }}>{p.score} b.</span>
+            <span className="font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>{p.score} b.</span>
           </div>
         ))}
       </div>

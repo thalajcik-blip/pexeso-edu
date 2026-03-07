@@ -33,13 +33,13 @@ export default function SetupScreen() {
   const tc = THEMES[theme]
 
   const inactiveBtn = { background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }
-  const activeBtn   = { background: '#f9d74e', borderColor: '#f9d74e', color: '#0d1b2a' }
+  const activeBtn   = { background: tc.accent, borderColor: tc.accent, color: tc.accentText }
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-28 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
       <div className="flex items-center gap-3">
-        <img src="/logo.svg" alt="QuizMatch logo" className="w-14 h-14 drop-shadow-lg" />
-        <h1 className="text-5xl font-bold tracking-tight" style={{ color: '#f9d74e', textShadow: '0 0 40px rgba(249,215,78,0.4)' }}>
+        <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="QuizMatch logo" className="w-14 h-14 drop-shadow-lg" />
+        <h1 className="text-5xl font-bold tracking-tight" style={{ color: tc.accent, textShadow: `0 0 40px ${tc.accentGlow}` }}>
           QuizMatch
         </h1>
       </div>
@@ -145,7 +145,7 @@ export default function SetupScreen() {
         <button
           onClick={startGame}
           className="w-full py-3.5 rounded-xl text-lg font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
-          style={{ background: '#f9d74e', color: '#0d1b2a', boxShadow: '0 4px 20px rgba(249,215,78,0.3)' }}
+          style={{ background: tc.accent, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
         >
           {tr.startBtn}
         </button>
