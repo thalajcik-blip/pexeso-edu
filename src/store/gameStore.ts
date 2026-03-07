@@ -4,6 +4,7 @@ import { SIZE_CONFIG, PLAYER_COLORS, DEFAULT_NAMES } from '../types/game'
 import { DECKS } from '../data/decks'
 import { shuffle } from '../utils/shuffle'
 import type { Language } from '../data/translations'
+import { TRANSLATIONS } from '../data/translations'
 
 interface GameStore {
   // Setup
@@ -63,7 +64,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   quizSymbol: null,
   rulesOpen: false,
 
-  setLanguage: (lang) => set({ language: lang, playerNames: [...DEFAULT_NAMES] }),
+  setLanguage: (lang) => set({ language: lang, playerNames: [...TRANSLATIONS[lang].defaultPlayerNames] }),
   selectDeck: (id) => set({ selectedDeckId: id }),
   selectSize: (size) => set({ selectedSize: size }),
   setNumPlayers: (n) => set({ numPlayers: n }),
@@ -83,7 +84,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
 
     const players: Player[] = Array.from({ length: numPlayers }, (_, i) => ({
-      name: playerNames[i]?.trim() || DEFAULT_NAMES[i],
+      name: playerNames[i]?.trim() || TRANSLATIONS[get().language].defaultPlayerNames[i],
       color: PLAYER_COLORS[i],
       score: 0,
       pairs: 0,

@@ -69,7 +69,7 @@ export default function SetupScreen() {
                 }
               >
                 <span className="text-3xl leading-none">{deck.icon}</span>
-                <span className="text-xs">{deck.label}</span>
+                <span className="text-xs">{tr.deckNames[deck.id as DeckId]}</span>
               </button>
             ))}
           </div>

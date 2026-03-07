@@ -36,6 +36,10 @@ export interface Translations {
   rules: string[]
   // Deck questions (used for CS + SK quiz mode)
   deckQuestions: Record<DeckId, string>
+  // Deck names (shown in setup)
+  deckNames: Record<DeckId, string>
+  // Default player names
+  defaultPlayerNames: string[]
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -79,6 +83,13 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       fruits:  'Jak se tato potravina řekne anglicky?',
       jobs:    'Jak se toto povolání řekne anglicky?',
     },
+    deckNames: {
+      animals: 'Zvířátka',
+      flags:   'Vlajky',
+      fruits:  'Ovoce & zelenina',
+      jobs:    'Povolání',
+    },
+    defaultPlayerNames: ['Hráč 1', 'Hráč 2', 'Hráč 3', 'Hráč 4'],
   },
 
   sk: {
@@ -121,6 +132,13 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       fruits:  'Ako sa táto potravina povie po anglicky?',
       jobs:    'Ako sa toto povolanie povie po anglicky?',
     },
+    deckNames: {
+      animals: 'Zvieratká',
+      flags:   'Vlajky',
+      fruits:  'Ovocie & zelenina',
+      jobs:    'Povolania',
+    },
+    defaultPlayerNames: ['Hráč 1', 'Hráč 2', 'Hráč 3', 'Hráč 4'],
   },
 
   en: {
@@ -163,6 +181,13 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       fruits:  'Which fact is true about this food?',
       jobs:    'Which fact is true about this profession?',
     },
+    deckNames: {
+      animals: 'Animals',
+      flags:   'Flags',
+      fruits:  'Fruits & Vegetables',
+      jobs:    'Professions',
+    },
+    defaultPlayerNames: ['Player 1', 'Player 2', 'Player 3', 'Player 4'],
   },
 }
 
