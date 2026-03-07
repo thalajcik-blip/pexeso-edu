@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { DECKS } from '../../data/decks'
 import { TRANSLATIONS, t } from '../../data/translations'
@@ -23,8 +23,8 @@ export default function QuizModal() {
   const voteQuiz          = useGameStore(s => s.voteQuiz)
   const tc                = THEMES[theme]
 
-  const [answered, setAnswered]   = useState<string | null>(null)
-  const [timeLeft, setTimeLeft]   = useState(5)
+  const [answered, setAnswered] = useState<string | null>(null)
+  const [timeLeft, setTimeLeft] = useState(5)
 
   // Countdown tick
   useEffect(() => {
@@ -35,33 +35,37 @@ export default function QuizModal() {
     return () => clearInterval(id)
   }, [quizCountdownEnd])
 
+  // Stable quiz data — computed once per quizSymbol, never reshuffled on re-render
+  const { correct, options, hint } = useMemo(() => {
+    if (!quizSymbol) return { correct: '', options: [] as string[], hint: '' }
+    const deck   = DECKS.find(d => d.id === selectedDeckId)!
+    const item   = deck.pool[quizSymbol]
+    const isEn   = language === 'en'
+    const enData = isEn ? EN_QUIZ[quizSymbol] : null
+    if (isEn && enData) {
+      return { correct: enData.correct, options: shuffle([enData.correct, ...enData.wrong]), hint: item.answer }
+    }
+    const useEn   = isEn && !enData
+    const correct = useEn ? (item.answerEn ?? item.answer) : item.answer
+    const others  = Object.values(deck.pool)
+      .map(d => useEn ? (d.answerEn ?? d.answer) : d.answer)
+      .filter(a => a !== correct)
+    return {
+      correct,
+      options: shuffle([correct, ...shuffle(others).slice(0, 3)]),
+      hint: (language === 'sk' ? item.hintSk : undefined) ?? item.hint ?? '',
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quizSymbol])
+
   if (!quizSymbol) return null
 
   const deck   = DECKS.find(d => d.id === selectedDeckId)!
   const item   = deck.pool[quizSymbol]
   const player = players[currentPlayer]
   const tr     = TRANSLATIONS[language]
-
   const isEn   = language === 'en'
   const enData = isEn ? EN_QUIZ[quizSymbol] : null
-
-  let correct: string
-  let options: string[]
-  let hint: string
-
-  if (isEn && enData) {
-    correct = enData.correct
-    options = shuffle([correct, ...enData.wrong])
-    hint    = item.answer
-  } else {
-    const useEn = isEn && !enData
-    correct = useEn ? (item.answerEn ?? item.answer) : item.answer
-    const others = Object.values(deck.pool)
-      .map(d => useEn ? (d.answerEn ?? d.answer) : d.answer)
-      .filter(a => a !== correct)
-    options = shuffle([correct, ...shuffle(others).slice(0, 3)])
-    hint    = (language === 'sk' ? item.hintSk : undefined) ?? item.hint ?? ''
-  }
 
   // Online: my vote from store; local: local state
   const myVote        = isOnline ? (quizVotes[myPlayerId] ?? null) : answered
@@ -122,7 +126,7 @@ export default function QuizModal() {
 
         {/* Options */}
         <div className={`grid gap-2 ${isEn ? 'grid-cols-1' : 'grid-cols-2'}`}>
-          {options.map(opt => {
+          {options.map((opt: string) => {
             let style: React.CSSProperties = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.text }
             if (myVote) {
               if (revealed && opt === resultCorrect)   style = { background: tc.successBg, border: `2px solid ${tc.successColor}`, color: tc.successColor }
