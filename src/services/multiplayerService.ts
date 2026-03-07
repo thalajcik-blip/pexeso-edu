@@ -38,6 +38,7 @@ export type GameAction =
   | { type: 'turn_timeout' }
   | { type: 'quiz_vote'; playerId: string; answer: string }
   | { type: 'answer_quiz'; correct: boolean }
+  | { type: 'emoji_react'; playerId: string; emoji: string }
   | { type: 'game_start'; cards: CardData[]; playerIds: string[]; playerNames: string[]; deckId: string; size: string; turnTime: number; quizTime: number }
   | { type: 'state_snapshot'; phase: GamePhase; cards: CardData[]; players: Player[]; currentPlayer: number; quizSymbol: string | null; playerIds: string[] }
 
