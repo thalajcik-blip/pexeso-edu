@@ -45,7 +45,7 @@ export default function QuizModal() {
       .map(d => useEn ? (d.answerEn ?? d.answer) : d.answer)
       .filter(a => a !== correct)
     options = shuffle([correct, ...shuffle(others).slice(0, 3)])
-    hint    = item.hint ?? ''
+    hint    = (language === 'sk' ? item.hintSk : undefined) ?? item.hint ?? ''
   }
 
   const handleAnswer = (opt: string) => { if (!answered) setAnswered(opt) }
@@ -101,10 +101,10 @@ export default function QuizModal() {
           </div>
         )}
 
-        {/* Show fact in CS/SK mode */}
-        {answered && !isEn && (language === 'sk' ? item.factSk : item.fact) && (
+        {/* Show fact in CS/SK mode, and also in EN flags fallback (no enData) */}
+        {answered && (!isEn || !enData) && item.fact && (
           <div className="text-xs px-4 py-2.5 rounded-xl" style={{ background: tc.factBg, color: tc.factText }}>
-            💡 {language === 'sk' ? item.factSk : item.fact}
+            💡 {language === 'sk' ? (item.factSk || item.fact) : item.fact}
           </div>
         )}
 

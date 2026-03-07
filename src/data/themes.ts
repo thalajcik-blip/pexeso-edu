@@ -112,7 +112,7 @@ export const THEMES: Record<Theme, ThemeColors> = {
     factBg:             'rgba(13,27,42,0.05)',
     factText:           'rgba(13,27,42,0.6)',
     cardFront:          '#ffffff',
-    cardMatched:        '#d4f0d8',
+    cardMatched:        '#c2cad8',
     cardBackGradient:   'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%)',
     cardBackSymbol:     'rgba(255,255,255,0.55)',
     cardGridBg:         'rgba(13,27,42,0.06)',
