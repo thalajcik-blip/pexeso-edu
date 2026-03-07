@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS, t } from '../../data/translations'
 import { THEMES } from '../../data/themes'
+import { soundTick } from '../../services/audioService'
 
 export default function ScoreBoard() {
   const players        = useGameStore(s => s.players)
@@ -19,6 +20,7 @@ export default function ScoreBoard() {
   const isMyTurn = !isOnline || myPlayerIndex === currentPlayer
 
   const [timeLeft, setTimeLeft] = useState(turnTime)
+  const prevTurnTime = useRef<number | null>(null)
 
   // Reset + run countdown on new turn
   useEffect(() => {
@@ -60,6 +62,15 @@ export default function ScoreBoard() {
   }, [currentPlayer, phase])
 
   const displayTime = isMyTurn ? timeLeft : otherTimeLeft
+
+  // Tick sound in last 5 seconds of turn
+  useEffect(() => {
+    if (!isOnline || phase !== 'playing' || turnTime === 0) return
+    if (displayTime > 0 && displayTime <= 5 && prevTurnTime.current !== null && displayTime < prevTurnTime.current) {
+      soundTick(displayTime <= 2)
+    }
+    prevTurnTime.current = displayTime
+  }, [displayTime, isOnline, phase, turnTime])
   const showTimer = isOnline && phase === 'playing' && turnTime > 0
   const timerFraction = turnTime > 0 ? displayTime / turnTime : 1
   const timerColor = displayTime <= 5 ? tc.errorColor : displayTime <= 10 ? '#f97316' : tc.accent

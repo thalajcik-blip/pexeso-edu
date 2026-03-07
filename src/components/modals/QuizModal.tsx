@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { DECKS } from '../../data/decks'
 import { TRANSLATIONS, t } from '../../data/translations'
 import { EN_QUIZ } from '../../data/enQuiz'
 import { THEMES } from '../../data/themes'
 import { shuffle } from '../../utils/shuffle'
-import { soundQuizSelect, soundQuizWrong } from '../../services/audioService'
+import { soundQuizSelect, soundQuizWrong, soundTick } from '../../services/audioService'
 
 export default function QuizModal() {
   const quizSymbol        = useGameStore(s => s.quizSymbol)
@@ -27,6 +27,7 @@ export default function QuizModal() {
 
   const [answered, setAnswered] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState(5)
+  const prevQuizTime = useRef<number | null>(null)
 
   // Countdown tick
   useEffect(() => {
@@ -36,6 +37,15 @@ export default function QuizModal() {
     const id = setInterval(update, 200)
     return () => clearInterval(id)
   }, [quizCountdownEnd])
+
+  // Tick sound each second of quiz countdown
+  useEffect(() => {
+    if (!quizCountdownEnd || quizRevealCorrect) return
+    if (timeLeft > 0 && prevQuizTime.current !== null && timeLeft < prevQuizTime.current) {
+      soundTick(timeLeft <= 2)
+    }
+    prevQuizTime.current = timeLeft
+  }, [timeLeft, quizCountdownEnd, quizRevealCorrect])
 
   // Each client independently triggers reveal when all voted OR countdown expires
   useEffect(() => {

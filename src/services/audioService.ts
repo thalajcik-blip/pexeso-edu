@@ -83,6 +83,11 @@ export function soundWrong(): void {
   slide(360, 160, 0.22, 0, 0.18)
 }
 
+// Countdown tick — short click, slightly higher when urgent
+export function soundTick(urgent = false): void {
+  tone(urgent ? 920 : 660, 0.045, 0, urgent ? 0.18 : 0.12, 'sine')
+}
+
 // Quiz option selected — neutral soft tap
 export function soundQuizSelect(): void {
   tone(480, 0.08, 0, 0.18, 'sine')
