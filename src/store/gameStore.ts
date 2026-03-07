@@ -196,7 +196,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
         const updatedPlayers = get().players.map((p, i) =>
           i === currentPlayer ? { ...p, score: p.score + 1, pairs: p.pairs + 1 } : p
         )
-        set({ cards: matchedCards, players: updatedPlayers, flipped: [], quizSymbol: newCards[a].symbol, phase: 'quiz' })
+        set({ cards: matchedCards, players: updatedPlayers, flipped: [] })
+        setTimeout(() => {
+          set({ quizSymbol: newCards[a].symbol, phase: 'quiz' })
+        }, 600)
       }, 500)
     } else {
       setTimeout(() => {
