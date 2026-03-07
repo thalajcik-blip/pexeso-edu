@@ -45,11 +45,6 @@ export default function GameCard({ card }: Props) {
             border: '1px solid rgba(255,255,255,0.08)',
           }}
         >
-          <img
-            src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'}
-            alt=""
-            style={{ width: '45%', height: '45%', opacity: 0.85 }}
-          />
           <span className="absolute inset-[3px] rounded-[4px]" style={{ border: '1px solid rgba(255,255,255,0.07)' }} />
         </div>
         {/* Front */}
