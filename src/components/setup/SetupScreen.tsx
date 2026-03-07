@@ -31,9 +31,12 @@ export default function SetupScreen() {
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-28 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
-      <h1 className="text-5xl font-bold tracking-tight" style={{ color: '#f9d74e', textShadow: '0 0 40px rgba(249,215,78,0.4)' }}>
-        QuizMatch
-      </h1>
+      <div className="flex items-center gap-3">
+        <img src="/logo.svg" alt="QuizMatch logo" className="w-14 h-14 drop-shadow-lg" />
+        <h1 className="text-5xl font-bold tracking-tight" style={{ color: '#f9d74e', textShadow: '0 0 40px rgba(249,215,78,0.4)' }}>
+          QuizMatch
+        </h1>
+      </div>
 
       {/* Language selector */}
       <div className="flex gap-2">
