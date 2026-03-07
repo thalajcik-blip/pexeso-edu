@@ -83,6 +83,16 @@ export function soundWrong(): void {
   slide(360, 160, 0.22, 0, 0.18)
 }
 
+// Quiz option selected — neutral soft tap
+export function soundQuizSelect(): void {
+  tone(480, 0.08, 0, 0.18, 'sine')
+}
+
+// Quiz answer revealed as wrong
+export function soundQuizWrong(): void {
+  slide(310, 140, 0.28, 0, 0.2)
+}
+
 // Quiz answered correctly — C E G arpeggio
 export function soundQuizCorrect(): void {
   tone(523, 0.12, 0,    0.22)       // C5

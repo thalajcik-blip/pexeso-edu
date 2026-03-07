@@ -5,6 +5,7 @@ import { TRANSLATIONS, t } from '../../data/translations'
 import { EN_QUIZ } from '../../data/enQuiz'
 import { THEMES } from '../../data/themes'
 import { shuffle } from '../../utils/shuffle'
+import { soundQuizSelect, soundQuizWrong } from '../../services/audioService'
 
 export default function QuizModal() {
   const quizSymbol        = useGameStore(s => s.quizSymbol)
@@ -90,7 +91,14 @@ export default function QuizModal() {
   const resultCorrect = isOnline ? (quizRevealCorrect ?? correct) : correct
   const isCorrect     = myVote === resultCorrect
 
+  // Play wrong sound when result is revealed and player answered incorrectly
+  useEffect(() => {
+    if (revealed && myVote && !isCorrect) soundQuizWrong()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealed])
+
   const handleAnswer = (opt: string) => {
+    soundQuizSelect()
     if (isOnline) {
       if (!myVote && !quizRevealCorrect) voteQuiz(opt)
     } else {
