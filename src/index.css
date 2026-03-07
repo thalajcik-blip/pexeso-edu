@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+@theme {
+  --font-readex: 'Readex Pro', sans-serif;
+  --color-bg: #0d1b2a;
+  --color-yellow: #f9d74e;
+  --color-navy: #1a237e;
+}
+
+/* Card flip animation */
+.card-inner {
+  transform-style: preserve-3d;
+  transition: transform 0.32s cubic-bezier(.4,0,.2,1);
+}
+.card-flipped .card-inner,
+.card-matched .card-inner {
+  transform: rotateY(180deg);
+}
+.card-front,
+.card-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.card-front {
+  transform: rotateY(180deg);
+}
+.card-hoverable:not(.card-flipped):not(.card-matched):hover .card-inner {
+  transform: rotateY(10deg) scale(1.04);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* Quiz/Win overlay animations */
+@keyframes pop-in {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.pop-in { animation: pop-in 0.4s cubic-bezier(.34,1.56,.64,1); }
