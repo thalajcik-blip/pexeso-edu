@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS, t } from '../../data/translations'
 import { THEMES } from '../../data/themes'
-import { soundTick, soundTurnTimeout } from '../../services/audioService'
+import { soundTick } from '../../services/audioService'
 
 export default function ScoreBoard() {
   const players        = useGameStore(s => s.players)
@@ -63,15 +63,11 @@ export default function ScoreBoard() {
 
   const displayTime = isMyTurn ? timeLeft : otherTimeLeft
 
-  // Tick + timeout sounds
+  // Tick sound in last 5 seconds of turn
   useEffect(() => {
     if (!isOnline || phase !== 'playing' || turnTime === 0) return
-    if (prevTurnTime.current !== null && prevTurnTime.current > 0) {
-      if (displayTime === 0) {
-        soundTurnTimeout()
-      } else if (displayTime <= 5 && displayTime < prevTurnTime.current) {
-        soundTick(displayTime <= 2)
-      }
+    if (displayTime > 0 && displayTime <= 5 && prevTurnTime.current !== null && displayTime < prevTurnTime.current) {
+      soundTick(displayTime <= 2)
     }
     prevTurnTime.current = displayTime
   }, [displayTime, isOnline, phase, turnTime])

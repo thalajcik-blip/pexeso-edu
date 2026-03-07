@@ -8,7 +8,7 @@ import type { Language } from '../data/translations'
 import { TRANSLATIONS } from '../data/translations'
 import type { Theme } from '../data/themes'
 import {
-  soundFlip, soundMatch, soundWrong, soundQuizCorrect, soundWin,
+  soundFlip, soundMatch, soundWrong, soundQuizCorrect, soundWin, soundTurnTimeout,
 } from '../services/audioService'
 import {
   broadcastGameAction,
@@ -247,6 +247,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   _applyTurnTimeout: () => {
+    soundTurnTimeout()
     const { players, currentPlayer, cards } = get()
     const resetCards = cards.map(c => (c.state === 'flipped' || c.state === 'wrong') ? { ...c, state: 'hidden' as const } : c)
     const nextPlayer = (currentPlayer + 1) % players.length
