@@ -138,9 +138,9 @@ export default function LobbyScreen() {
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-28 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
       {/* Logo */}
       <div className="flex items-center gap-3">
-        <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="QuizMatch" className="w-14 h-14 drop-shadow-lg" />
+        <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="Pexedu" className="w-14 h-14 drop-shadow-lg" />
         <h1 className="text-5xl font-bold tracking-tight" style={{ color: tc.accent, textShadow: `0 0 40px ${tc.accentGlow}` }}>
-          QuizMatch
+          Pexedu
         </h1>
       </div>
 
