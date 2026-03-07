@@ -185,7 +185,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     ],
     deckQuestions: {
       animals: 'Which fact is true about this animal?',
-      flags:   'Which fact is true about this country?',
+      flags:   'Which country does this flag represent?',
       fruits:  'Which fact is true about this food?',
       jobs:    'Which fact is true about this profession?',
     },
