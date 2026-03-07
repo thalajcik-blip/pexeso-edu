@@ -31,7 +31,7 @@ export interface Player {
 export interface CardData {
   id: number
   symbol: string
-  state: 'hidden' | 'flipped' | 'matched'
+  state: 'hidden' | 'flipped' | 'matched' | 'wrong'
 }
 
 export const SIZE_CONFIG: Record<BoardSize, { cols: number; pairs: number }> = {

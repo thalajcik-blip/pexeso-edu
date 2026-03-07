@@ -20,13 +20,15 @@ export default function GameCard({ card }: Props) {
 
   const isFlipped  = card.state === 'flipped'
   const isMatched  = card.state === 'matched'
+  const isWrong    = card.state === 'wrong'
   const isHidden   = card.state === 'hidden'
 
   const outerClass = [
-    'aspect-square overflow-hidden',
+    'aspect-square',
     isHidden && 'card-hoverable',
     isFlipped && 'card-flipped',
     isMatched && 'card-matched',
+    isWrong   && 'card-wrong',
     !isMatched && 'cursor-pointer',
   ].filter(Boolean).join(' ')
 
@@ -51,7 +53,7 @@ export default function GameCard({ card }: Props) {
         <div
           className="card-front absolute inset-0 flex items-center justify-center rounded-[6px]"
           style={{
-            background: isMatched ? tc.cardMatched : tc.cardFront,
+            background: isMatched ? tc.cardMatched : isWrong ? tc.errorBg : tc.cardFront,
             fontSize: EMOJI_SIZE[selectedSize],
             opacity: isMatched ? 0.65 : 1,
           }}

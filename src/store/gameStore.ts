@@ -200,12 +200,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }, 500)
     } else {
       setTimeout(() => {
-        const resetCards = get().cards.map((c, i) =>
-          i === a || i === b ? { ...c, state: 'hidden' as const } : c
+        const wrongCards = get().cards.map((c, i) =>
+          i === a || i === b ? { ...c, state: 'wrong' as const } : c
         )
-        const nextPlayer = (currentPlayer + 1) % players.length
-        set({ cards: resetCards, flipped: [], locked: false, currentPlayer: nextPlayer, turnMessage: '' })
-      }, 950)
+        set({ cards: wrongCards })
+        setTimeout(() => {
+          const resetCards = get().cards.map((c, i) =>
+            i === a || i === b ? { ...c, state: 'hidden' as const } : c
+          )
+          const nextPlayer = (currentPlayer + 1) % players.length
+          set({ cards: resetCards, flipped: [], locked: false, currentPlayer: nextPlayer, turnMessage: '' })
+        }, 600)
+      }, 350)
     }
   },
 
@@ -231,7 +237,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   _applyTurnTimeout: () => {
     const { players, currentPlayer, cards } = get()
-    const resetCards = cards.map(c => c.state === 'flipped' ? { ...c, state: 'hidden' as const } : c)
+    const resetCards = cards.map(c => (c.state === 'flipped' || c.state === 'wrong') ? { ...c, state: 'hidden' as const } : c)
     const nextPlayer = (currentPlayer + 1) % players.length
     set({ cards: resetCards, flipped: [], locked: false, currentPlayer: nextPlayer, turnMessage: '' })
   },
