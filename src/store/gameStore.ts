@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { DeckId, BoardSize, GamePhase, CardData, Player } from '../types/game'
 import { SIZE_CONFIG, PLAYER_COLORS, DEFAULT_NAMES } from '../types/game'
 import { DECKS } from '../data/decks'
+import { EN_QUIZ } from '../data/enQuiz'
 import { shuffle } from '../utils/shuffle'
 import type { Language } from '../data/translations'
 import { TRANSLATIONS } from '../data/translations'
@@ -19,6 +20,16 @@ import {
 import type { LobbyPlayer, GameAction } from '../services/multiplayerService'
 
 const SESSION_ROOM_KEY = 'qm_last_room'
+
+function computeCorrectAnswer(quizSymbol: string, selectedDeckId: string, language: string): string {
+  const deck = DECKS.find(d => d.id === selectedDeckId)!
+  const item = deck.pool[quizSymbol]
+  const isEn = language === 'en'
+  const enData = isEn ? EN_QUIZ[quizSymbol] : null
+  if (isEn && enData) return enData.correct
+  const useEn = isEn && !enData
+  return useEn ? (item.answerEn ?? item.answer) : item.answer
+}
 
 interface GameStore {
   // Setup
@@ -52,8 +63,9 @@ interface GameStore {
   myPlayerIndex: number
   isHost: boolean
   lobbyPlayers: LobbyPlayer[]
-  quizRemoteAnswer: string | null   // spectator: active player's pick (live)
-  quizShowResult: boolean           // spectator: show result+fact before modal closes
+  quizVotes: Record<string, string>  // playerId → answer (online voting)
+  quizCountdownEnd: number | null   // timestamp when voting closes
+  quizRevealCorrect: string | null  // set briefly to show results before closing
 
   // Setup actions
   setLanguage: (lang: Language) => void
@@ -85,7 +97,9 @@ interface GameStore {
   _answerQuiz: (correct: boolean) => void
   _applyGameStart: (cards: CardData[], playerIds: string[], playerNames: string[], deckId: string, size: string) => void
   _broadcastStateIfHost: () => void
-  broadcastQuizPick: (answer: string) => void
+  _applyQuizVote: (playerId: string, answer: string) => void
+  _resolveQuizVotes: (correct: string) => void
+  voteQuiz: (answer: string) => void
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -112,8 +126,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   myPlayerIndex: 0,
   isHost: false,
   lobbyPlayers: [],
-  quizRemoteAnswer: null,
-  quizShowResult: false,
+  quizVotes: {},
+  quizCountdownEnd: null,
+  quizRevealCorrect: null,
 
   setLanguage: (lang) => set({ language: lang, playerNames: [...TRANSLATIONS[lang].defaultPlayerNames] }),
   toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
@@ -194,8 +209,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       phase: allMatched ? 'win' : 'playing',
       locked: false,
       turnMessage: allMatched ? '' : msg,
-      quizRemoteAnswer: null,
-      quizShowResult: false,
     })
   },
 
@@ -229,15 +242,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       case 'flip_card':
         get()._flipCard(action.index)
         break
-      case 'quiz_pick':
-        set({ quizRemoteAnswer: action.answer })
+      case 'quiz_vote':
+        get()._applyQuizVote(action.playerId, action.answer)
+        break
+      case 'quiz_reveal':
+        set({ quizRevealCorrect: action.correct })
+        setTimeout(() => get()._resolveQuizVotes(action.correct), 1500)
         break
       case 'answer_quiz':
-        // Spectators: show result + fact briefly before closing
-        set({ quizShowResult: true })
-        setTimeout(() => {
-          get()._answerQuiz(action.correct)
-        }, 1800)
+        get()._answerQuiz(action.correct)
         break
       case 'game_start':
         get()._applyGameStart(action.cards, action.playerIds, action.playerNames, action.deckId, action.size)
@@ -373,6 +386,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isOnline: false, roomId: null, myPlayerId: '', myPlayerIndex: 0,
       isHost: false, lobbyPlayers: [], playerIds: [],
       phase: 'setup', cards: [], players: [], quizSymbol: null,
+      quizVotes: {}, quizCountdownEnd: null, quizRevealCorrect: null,
     })
   },
 
@@ -399,8 +413,54 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   _setLobbyPlayers: (players) => set({ lobbyPlayers: players }),
 
-  broadcastQuizPick: (answer) => {
-    broadcastGameAction({ type: 'quiz_pick', answer })
+  voteQuiz: (answer) => {
+    const { myPlayerId } = get()
+    broadcastGameAction({ type: 'quiz_vote', playerId: myPlayerId, answer })
+    get()._applyQuizVote(myPlayerId, answer)
+  },
+
+  _applyQuizVote: (playerId, answer) => {
+    const { quizVotes, isHost, quizCountdownEnd, quizSymbol } = get()
+    if (!quizSymbol) return
+    const isFirstVote = Object.keys(quizVotes).length === 0
+    const newCountdownEnd = isFirstVote ? Date.now() + 5000 : quizCountdownEnd
+    set({ quizVotes: { ...quizVotes, [playerId]: answer }, quizCountdownEnd: newCountdownEnd })
+    if (isFirstVote && isHost) {
+      setTimeout(() => {
+        const { quizSymbol: sym, selectedDeckId: deckId, language: lang } = get()
+        if (!sym) return
+        const correct = computeCorrectAnswer(sym, deckId, lang)
+        broadcastGameAction({ type: 'quiz_reveal', correct })
+        set({ quizRevealCorrect: correct })
+        setTimeout(() => get()._resolveQuizVotes(correct), 1500)
+      }, 5000)
+    }
+  },
+
+  _resolveQuizVotes: (correct) => {
+    const { players, playerIds, quizVotes, currentPlayer, cards } = get()
+    if (!get().quizSymbol) return
+    const updatedPlayers = players.map((p, i) => {
+      const vote = quizVotes[playerIds[i]]
+      return vote === correct ? { ...p, score: p.score + 1, quizzes: p.quizzes + 1 } : p
+    })
+    const allMatched = cards.every(c => c.state === 'matched')
+    const tr = TRANSLATIONS[get().language]
+    const playerName = players[currentPlayer].name
+    const activeCorrect = quizVotes[playerIds[currentPlayer]] === correct
+    const msg = activeCorrect
+      ? tr.turnCorrect.replace('{name}', playerName)
+      : tr.turnWrong.replace('{name}', playerName)
+    set({
+      players: updatedPlayers,
+      quizSymbol: null,
+      phase: allMatched ? 'win' : 'playing',
+      locked: false,
+      turnMessage: allMatched ? '' : msg,
+      quizVotes: {},
+      quizCountdownEnd: null,
+      quizRevealCorrect: null,
+    })
   },
 }))
 

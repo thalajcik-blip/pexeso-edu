@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { DECKS } from '../../data/decks'
 import { TRANSLATIONS, t } from '../../data/translations'
@@ -15,17 +15,25 @@ export default function QuizModal() {
   const currentPlayer     = useGameStore(s => s.currentPlayer)
   const answerQuiz        = useGameStore(s => s.answerQuiz)
   const isOnline          = useGameStore(s => s.isOnline)
-  const myPlayerIndex     = useGameStore(s => s.myPlayerIndex)
-  const quizRemoteAnswer  = useGameStore(s => s.quizRemoteAnswer)
-  const quizShowResult    = useGameStore(s => s.quizShowResult)
-  const broadcastQuizPick = useGameStore(s => s.broadcastQuizPick)
+  const myPlayerId        = useGameStore(s => s.myPlayerId)
+  const playerIds         = useGameStore(s => s.playerIds)
+  const quizVotes         = useGameStore(s => s.quizVotes)
+  const quizCountdownEnd  = useGameStore(s => s.quizCountdownEnd)
+  const quizRevealCorrect = useGameStore(s => s.quizRevealCorrect)
+  const voteQuiz          = useGameStore(s => s.voteQuiz)
   const tc                = THEMES[theme]
 
-  const [answered, setAnswered] = useState<string | null>(null)
+  const [answered, setAnswered]   = useState<string | null>(null)
+  const [timeLeft, setTimeLeft]   = useState(5)
 
-  const isSpectator = isOnline && myPlayerIndex !== currentPlayer
-  // What answer is visually highlighted
-  const displayAnswered = isSpectator ? quizRemoteAnswer : answered
+  // Countdown tick
+  useEffect(() => {
+    if (!quizCountdownEnd) return
+    const update = () => setTimeLeft(Math.max(0, Math.ceil((quizCountdownEnd - Date.now()) / 1000)))
+    update()
+    const id = setInterval(update, 200)
+    return () => clearInterval(id)
+  }, [quizCountdownEnd])
 
   if (!quizSymbol) return null
 
@@ -34,8 +42,7 @@ export default function QuizModal() {
   const player = players[currentPlayer]
   const tr     = TRANSLATIONS[language]
 
-  // EN mode: use dedicated EN quiz data if available, else fall back to fact-based
-  const isEn = language === 'en'
+  const isEn   = language === 'en'
   const enData = isEn ? EN_QUIZ[quizSymbol] : null
 
   let correct: string
@@ -45,9 +52,8 @@ export default function QuizModal() {
   if (isEn && enData) {
     correct = enData.correct
     options = shuffle([correct, ...enData.wrong])
-    hint    = item.answer  // English name (e.g. "Fox")
+    hint    = item.answer
   } else {
-    // CS/SK translation quiz, or EN flags fallback (answerEn)
     const useEn = isEn && !enData
     correct = useEn ? (item.answerEn ?? item.answer) : item.answer
     const others = Object.values(deck.pool)
@@ -57,20 +63,24 @@ export default function QuizModal() {
     hint    = (language === 'sk' ? item.hintSk : undefined) ?? item.hint ?? ''
   }
 
+  // Online: my vote from store; local: local state
+  const myVote        = isOnline ? (quizVotes[myPlayerId] ?? null) : answered
+  const revealed      = isOnline ? quizRevealCorrect !== null : !!answered
+  const resultCorrect = isOnline ? (quizRevealCorrect ?? correct) : correct
+  const isCorrect     = myVote === resultCorrect
+
   const handleAnswer = (opt: string) => {
-    if (!answered && !isSpectator) {
-      setAnswered(opt)
-      if (isOnline) broadcastQuizPick(opt)
+    if (isOnline) {
+      if (!myVote && !quizRevealCorrect) voteQuiz(opt)
+    } else {
+      if (!answered) setAnswered(opt)
     }
   }
 
   const handleContinue = () => {
-    const isCorrect = answered === correct
     setAnswered(null)
-    answerQuiz(isCorrect)
+    answerQuiz(answered === correct)
   }
-
-  const isCorrect = displayAnswered === correct
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.overlayBg }}>
@@ -86,28 +96,44 @@ export default function QuizModal() {
           {tr.deckQuestions[selectedDeckId]}
         </div>
 
-        {/* Spectator waiting hint */}
-        {isSpectator && !displayAnswered && (
-          <div className="text-xs text-center" style={{ color: tc.textFaint }}>
-            ⏳ {player.name}...
+        {/* Online: vote status row + countdown */}
+        {isOnline && (
+          <div className="flex items-center justify-center gap-3">
+            {/* Per-player vote dot */}
+            <div className="flex gap-1.5">
+              {players.map((p, i) => {
+                const voted = !!quizVotes[playerIds[i]]
+                return (
+                  <div key={i} title={p.name}
+                    className="w-2.5 h-2.5 rounded-full transition-all duration-300"
+                    style={{ background: voted ? p.color : tc.textFaint, opacity: voted ? 1 : 0.25 }}
+                  />
+                )
+              })}
+            </div>
+            {/* Countdown */}
+            {quizCountdownEnd && !quizRevealCorrect && (
+              <span className="text-sm font-bold tabular-nums" style={{ color: timeLeft <= 2 ? tc.errorColor : tc.accent }}>
+                {timeLeft}s
+              </span>
+            )}
           </div>
         )}
 
-        {/* Options — 1 col for EN facts (long text), 2 col for CS/SK translations */}
+        {/* Options */}
         <div className={`grid gap-2 ${isEn ? 'grid-cols-1' : 'grid-cols-2'}`}>
           {options.map(opt => {
             let style: React.CSSProperties = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.text }
-            const showResult = isSpectator ? quizShowResult : !!answered
-            if (displayAnswered) {
-              if (showResult && opt === correct)            style = { background: tc.successBg, border: `2px solid ${tc.successColor}`, color: tc.successColor }
-              else if (showResult && opt === displayAnswered) style = { background: tc.errorBg,   border: `2px solid ${tc.errorColor}`,   color: tc.errorColor }
-              else if (opt === displayAnswered)             style = { background: tc.accentBgActive, border: `2px solid ${tc.accentBorderActive}`, color: tc.accent }
-              else                                          style = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.textFaint }
+            if (myVote) {
+              if (revealed && opt === resultCorrect)   style = { background: tc.successBg, border: `2px solid ${tc.successColor}`, color: tc.successColor }
+              else if (revealed && opt === myVote)     style = { background: tc.errorBg,   border: `2px solid ${tc.errorColor}`,   color: tc.errorColor }
+              else if (opt === myVote)                 style = { background: tc.accentBgActive, border: `2px solid ${tc.accentBorderActive}`, color: tc.accent }
+              else                                     style = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.textFaint }
             }
             return (
               <button
                 key={opt}
-                disabled={!!displayAnswered || isSpectator}
+                disabled={!!myVote || !!quizRevealCorrect}
                 onClick={() => handleAnswer(opt)}
                 className={`py-2.5 px-3 rounded-xl font-medium transition-all text-left ${isEn ? 'text-xs' : 'text-sm text-center'}`}
                 style={style}
@@ -118,22 +144,22 @@ export default function QuizModal() {
           })}
         </div>
 
-        {/* Result message — shown after answer (local) or after quiz_result arrives (spectator) */}
-        {displayAnswered && (isSpectator ? quizShowResult : true) && (
+        {/* Result message */}
+        {myVote && revealed && (
           <div className="text-sm font-medium" style={{ color: isCorrect ? tc.successColor : tc.errorColor }}>
-            {isCorrect ? t(tr, 'correct', { answer: correct }) : t(tr, 'wrong', { answer: correct })}
+            {isCorrect ? t(tr, 'correct', { answer: resultCorrect }) : t(tr, 'wrong', { answer: resultCorrect })}
           </div>
         )}
 
-        {/* Fun fact — shown after answer (CS/SK/EN flags); for spectators shown during quizShowResult */}
-        {displayAnswered && (isSpectator ? quizShowResult : true) && (!isEn || !enData) && item.fact && (
+        {/* Fun fact */}
+        {myVote && revealed && (!isEn || !enData) && item.fact && (
           <div className="text-xs px-4 py-2.5 rounded-xl" style={{ background: tc.factBg, color: tc.factText }}>
             💡 {isEn ? (item.factEn || item.fact) : language === 'sk' ? (item.factSk || item.fact) : item.fact}
           </div>
         )}
 
-        {/* Continue button — only for active player */}
-        {!isSpectator && answered && (
+        {/* Continue — local game only */}
+        {!isOnline && answered && (
           <button
             onClick={handleContinue}
             className="w-full py-3 rounded-xl font-bold transition-all hover:opacity-90"
