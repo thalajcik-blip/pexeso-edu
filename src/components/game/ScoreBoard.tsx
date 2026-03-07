@@ -126,7 +126,7 @@ export default function ScoreBoard() {
               style={{
                 width: '100%',
                 background: timerColor,
-                animation: `timer-shrink ${turnTime}s linear forwards`,
+                animation: `timer-fill ${turnTime}s linear forwards`,
               }}
             />
           </div>
