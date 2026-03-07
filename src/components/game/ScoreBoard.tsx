@@ -4,6 +4,8 @@ import { TRANSLATIONS, t } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { soundTick } from '../../services/audioService'
 
+const EMOJI_OPTS = ['👍', '😱', '🎉', '😂', '🔥', '😅']
+
 export default function ScoreBoard() {
   const players        = useGameStore(s => s.players)
   const currentPlayer  = useGameStore(s => s.currentPlayer)
@@ -17,7 +19,12 @@ export default function ScoreBoard() {
   const timeoutTurn    = useGameStore(s => s.timeoutTurn)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
+  const emojiReactions  = useGameStore(s => s.emojiReactions)
+  const playerIds       = useGameStore(s => s.playerIds)
+  const sendEmojiReact  = useGameStore(s => s.sendEmojiReact)
   const isMyTurn = !isOnline || myPlayerIndex === currentPlayer
+
+  const [emojiCooldown, setEmojiCooldown] = useState(false)
 
   const [timeLeft, setTimeLeft] = useState(turnTime)
   const prevTurnTime = useRef<number | null>(null)
@@ -78,22 +85,35 @@ export default function ScoreBoard() {
   return (
     <>
       <div className="flex gap-2 justify-center flex-wrap mb-2">
-        {players.map((p, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 text-sm transition-all"
-            style={i === currentPlayer
-              ? { borderColor: tc.accentBorderActive, background: tc.accentBgActive }
-              : { borderColor: 'transparent', background: tc.scorePillBg }
-            }
-          >
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
-            <span className="font-medium">{p.name}</span>
-            <span key={`${i}-${p.score}`} className="score-pop font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>
-              {p.score} b.
-            </span>
-          </div>
-        ))}
+        {players.map((p, i) => {
+          const pid = playerIds[i]
+          const emoji = pid ? emojiReactions[pid] : undefined
+          return (
+            <div key={i} className="relative flex flex-col items-center">
+              {emoji && (
+                <div
+                  className="pop-in absolute -top-7 text-xl pointer-events-none select-none"
+                  style={{ zIndex: 10 }}
+                >
+                  {emoji}
+                </div>
+              )}
+              <div
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 text-sm transition-all"
+                style={i === currentPlayer
+                  ? { borderColor: tc.accentBorderActive, background: tc.accentBgActive }
+                  : { borderColor: 'transparent', background: tc.scorePillBg }
+                }
+              >
+                <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
+                <span className="font-medium">{p.name}</span>
+                <span key={`${i}-${p.score}`} className="score-pop font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>
+                  {p.score} b.
+                </span>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       <div className="text-center mb-1 text-sm min-h-[1.4em]" style={{ color: tc.textDim }}>
@@ -117,6 +137,27 @@ export default function ScoreBoard() {
           <span className="text-xs font-bold tabular-nums w-6 text-right" style={{ color: timerColor }}>
             {displayTime}
           </span>
+        </div>
+      )}
+
+      {/* Emoji reactions picker — online only, during game */}
+      {isOnline && (phase === 'playing' || phase === 'quiz') && (
+        <div className="flex justify-center gap-1.5 mb-2">
+          {EMOJI_OPTS.map(e => (
+            <button
+              key={e}
+              onClick={() => {
+                if (emojiCooldown) return
+                setEmojiCooldown(true)
+                sendEmojiReact(e)
+                setTimeout(() => setEmojiCooldown(false), 2000)
+              }}
+              className="text-lg leading-none px-1.5 py-0.5 rounded-lg transition-opacity"
+              style={{ background: tc.scorePillBg, opacity: emojiCooldown ? 0.4 : 1 }}
+            >
+              {e}
+            </button>
+          ))}
         </div>
       )}
     </>

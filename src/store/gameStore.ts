@@ -73,6 +73,7 @@ interface GameStore {
   disconnectedPlayer: string | null // name of player who just left (shown briefly)
   turnTime: number   // seconds; 0 = unlimited
   quizTime: number   // seconds
+  emojiReactions: Record<string, string> // playerId → emoji
 
   // Setup actions
   setLanguage: (lang: Language) => void
@@ -93,6 +94,7 @@ interface GameStore {
   // Timer settings (host only, before game)
   setTurnTime: (t: number) => void
   setQuizTime: (t: number) => void
+  sendEmojiReact: (emoji: string) => void
 
   // Multiplayer actions
   goToLobby: () => void
@@ -109,6 +111,7 @@ interface GameStore {
   _answerQuiz: (correct: boolean) => void
   _applyGameStart: (cards: CardData[], playerIds: string[], playerNames: string[], deckId: string, size: string, turnTime: number, quizTime: number) => void
   _applyTurnTimeout: () => void
+  _applyEmojiReact: (playerId: string, emoji: string) => void
   _broadcastStateIfHost: () => void
   _applyQuizVote: (playerId: string, answer: string) => void
   _resolveQuizVotes: (correct: string) => void
@@ -146,6 +149,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   disconnectedPlayer: null,
   turnTime: 20,
   quizTime: 5,
+  emojiReactions: {},
 
   setLanguage: (lang) => set({ language: lang, playerNames: [...TRANSLATIONS[lang].defaultPlayerNames] }),
   toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
@@ -160,6 +164,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setTurnTime: (t) => set({ turnTime: t }),
   setQuizTime: (t) => set({ quizTime: t }),
+
+  sendEmojiReact: (emoji) => {
+    const { myPlayerId } = get()
+    broadcastGameAction({ type: 'emoji_react', playerId: myPlayerId, emoji })
+    get()._applyEmojiReact(myPlayerId, emoji)
+  },
+
+  _applyEmojiReact: (playerId, emoji) => {
+    set(s => ({ emojiReactions: { ...s.emojiReactions, [playerId]: emoji } }))
+    setTimeout(() => {
+      if (get().emojiReactions[playerId] === emoji) {
+        set(s => { const r = { ...s.emojiReactions }; delete r[playerId]; return { emojiReactions: r } })
+      }
+    }, 2500)
+  },
 
   startGame: () => {
     const { selectedDeckId, selectedSize, numPlayers, playerNames } = get()
@@ -294,6 +313,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         break
       case 'answer_quiz':
         get()._answerQuiz(action.correct)
+        break
+      case 'emoji_react':
+        get()._applyEmojiReact(action.playerId, action.emoji)
         break
       case 'game_start':
         get()._applyGameStart(action.cards, action.playerIds, action.playerNames, action.deckId, action.size, action.turnTime, action.quizTime)
@@ -437,7 +459,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isOnline: false, roomId: null, myPlayerId: '', myPlayerIndex: 0,
       isHost: false, lobbyPlayers: [], playerIds: [],
       phase: 'setup', cards: [], players: [], quizSymbol: null,
-      quizVotes: {}, quizCountdownEnd: null, quizRevealCorrect: null, disconnectedPlayer: null,
+      quizVotes: {}, quizCountdownEnd: null, quizRevealCorrect: null, disconnectedPlayer: null, emojiReactions: {},
     })
   },
 
