@@ -7,9 +7,9 @@ import type { Language } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 
 const SIZES: { id: BoardSize; labelKey: 'sizeLarge' | 'sizeMedium' | 'sizeSmall'; grid: string }[] = [
-  { id: 'large',  labelKey: 'sizeLarge',  grid: '8×8' },
-  { id: 'medium', labelKey: 'sizeMedium', grid: '6×6' },
   { id: 'small',  labelKey: 'sizeSmall',  grid: '4×4' },
+  { id: 'medium', labelKey: 'sizeMedium', grid: '6×6' },
+  { id: 'large',  labelKey: 'sizeLarge',  grid: '8×8' },
 ]
 
 const LANGUAGES: { id: Language; label: string; flag: string }[] = [
