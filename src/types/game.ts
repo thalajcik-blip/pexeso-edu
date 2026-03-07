@@ -6,6 +6,7 @@ export interface DeckItem {
   hint: string | null
   answer: string
   fact: string
+  factSk?: string
 }
 
 export interface Deck {

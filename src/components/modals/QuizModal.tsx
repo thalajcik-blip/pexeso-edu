@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { DECKS } from '../../data/decks'
-import { TRANSLATIONS } from '../../data/translations'
+import { TRANSLATIONS, t } from '../../data/translations'
 import { EN_QUIZ } from '../../data/enQuiz'
 import { THEMES } from '../../data/themes'
 import { shuffle } from '../../utils/shuffle'
@@ -94,14 +94,14 @@ export default function QuizModal() {
 
         {answered && (
           <div className="text-sm font-medium" style={{ color: isCorrect ? tc.successColor : tc.errorColor }}>
-            {isCorrect ? tr.correct : tr.wrong}
+            {isCorrect ? t(tr, 'correct', { answer: correct }) : t(tr, 'wrong', { answer: correct })}
           </div>
         )}
 
         {/* Show fact in CS/SK mode */}
-        {answered && !isEn && item.fact && (
+        {answered && !isEn && (language === 'sk' ? item.factSk : item.fact) && (
           <div className="text-xs px-4 py-2.5 rounded-xl" style={{ background: tc.factBg, color: tc.factText }}>
-            💡 {item.fact}
+            💡 {language === 'sk' ? item.factSk : item.fact}
           </div>
         )}
 
