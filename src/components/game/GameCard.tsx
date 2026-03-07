@@ -12,20 +12,21 @@ export default function GameCard({ card }: Props) {
   const isMatched  = card.state === 'matched'
   const isHidden   = card.state === 'hidden'
 
-  const className = [
-    'card-inner',
-    isFlipped  && 'card-flipped',
-    isMatched  && 'card-matched',
-    isHidden   && 'card-hoverable',
+  const outerClass = [
+    'aspect-square overflow-hidden',
+    isHidden && 'card-hoverable',
+    isFlipped && 'card-flipped',
+    isMatched && 'card-matched',
+    !isMatched && 'cursor-pointer',
   ].filter(Boolean).join(' ')
 
   return (
     <div
-      className="aspect-square cursor-pointer overflow-hidden"
+      className={outerClass}
       style={{ perspective: '700px' }}
       onClick={() => flipCard(card.id)}
     >
-      <div className={className} style={{ width: '100%', height: '100%', position: 'relative', borderRadius: '6px' }}>
+      <div className="card-inner" style={{ width: '100%', height: '100%', position: 'relative', borderRadius: '6px' }}>
         {/* Back */}
         <div
           className="card-back absolute inset-0 flex items-center justify-center rounded-[6px]"
