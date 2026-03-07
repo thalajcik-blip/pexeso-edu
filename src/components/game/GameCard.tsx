@@ -41,10 +41,10 @@ export default function GameCard({ card }: Props) {
         <div
           className="card-back absolute inset-0 flex items-center justify-center rounded-[6px]"
           style={{
-            background: 'linear-gradient(135deg, #1a237e 0%, #283593 50%, #1a237e 100%)',
+            background: tc.cardBackGradient,
             border: '1px solid rgba(255,255,255,0.08)',
             fontSize: '1.1rem',
-            color: 'rgba(255,255,255,0.15)',
+            color: tc.cardBackSymbol,
           }}
         >
           🎴

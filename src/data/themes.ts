@@ -28,6 +28,9 @@ export interface ThemeColors {
   factText: string
   cardFront: string
   cardMatched: string
+  cardBackGradient: string
+  cardBackSymbol: string
+  cardGridBg: string
   // Accent (yellow in dark, blue in light)
   accent: string
   accentText: string
@@ -65,6 +68,9 @@ export const THEMES: Record<Theme, ThemeColors> = {
     factText:           'rgba(255,255,255,0.6)',
     cardFront:          '#f0f4ff',
     cardMatched:        '#e8f5e9',
+    cardBackGradient:   'linear-gradient(135deg, #1a237e 0%, #283593 50%, #1a237e 100%)',
+    cardBackSymbol:     'rgba(255,255,255,0.15)',
+    cardGridBg:         'transparent',
     accent:             '#f9d74e',
     accentText:         '#0d1b2a',
     accentGlow:         'rgba(249,215,78,0.3)',
@@ -99,6 +105,9 @@ export const THEMES: Record<Theme, ThemeColors> = {
     factText:           'rgba(13,27,42,0.6)',
     cardFront:          '#ffffff',
     cardMatched:        '#d4f0d8',
+    cardBackGradient:   'linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #f59e0b 100%)',
+    cardBackSymbol:     'rgba(255,255,255,0.5)',
+    cardGridBg:         'rgba(13,27,42,0.06)',
     accent:             '#2563eb',
     accentText:         '#ffffff',
     accentGlow:         'rgba(37,99,235,0.25)',

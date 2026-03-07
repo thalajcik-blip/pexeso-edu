@@ -40,7 +40,7 @@ export default function GameBoard() {
         )}
       </div>
 
-      <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 155px)', scrollbarGutter: 'stable' }}>
+      <div className="overflow-auto rounded-xl" style={{ maxHeight: 'calc(100vh - 155px)', scrollbarGutter: 'stable', background: tc.cardGridBg }}>
         <div
           className="grid w-full mx-auto"
           style={{
