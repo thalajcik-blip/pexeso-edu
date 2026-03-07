@@ -9,6 +9,7 @@ export interface DeckItem {
   answerEn?: string
   fact: string
   factSk?: string
+  factEn?: string
 }
 
 export interface Deck {

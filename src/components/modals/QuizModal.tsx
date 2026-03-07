@@ -104,7 +104,7 @@ export default function QuizModal() {
         {/* Show fact in CS/SK mode, and also in EN flags fallback (no enData) */}
         {answered && (!isEn || !enData) && item.fact && (
           <div className="text-xs px-4 py-2.5 rounded-xl" style={{ background: tc.factBg, color: tc.factText }}>
-            💡 {language === 'sk' ? (item.factSk || item.fact) : item.fact}
+            💡 {isEn ? (item.factEn || item.fact) : language === 'sk' ? (item.factSk || item.fact) : item.fact}
           </div>
         )}
 
