@@ -67,6 +67,7 @@ interface GameStore {
   quizVotes: Record<string, string>  // playerId → answer (online voting)
   quizCountdownEnd: number | null   // timestamp when voting closes
   quizRevealCorrect: string | null  // set briefly to show results before closing
+  disconnectedPlayer: string | null // name of player who just left (shown briefly)
 
   // Setup actions
   setLanguage: (lang: Language) => void
@@ -131,6 +132,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   quizVotes: {},
   quizCountdownEnd: null,
   quizRevealCorrect: null,
+  disconnectedPlayer: null,
 
   setLanguage: (lang) => set({ language: lang, playerNames: [...TRANSLATIONS[lang].defaultPlayerNames] }),
   toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
@@ -384,7 +386,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isOnline: false, roomId: null, myPlayerId: '', myPlayerIndex: 0,
       isHost: false, lobbyPlayers: [], playerIds: [],
       phase: 'setup', cards: [], players: [], quizSymbol: null,
-      quizVotes: {}, quizCountdownEnd: null, quizRevealCorrect: null,
+      quizVotes: {}, quizCountdownEnd: null, quizRevealCorrect: null, disconnectedPlayer: null,
     })
   },
 
@@ -409,7 +411,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (myIndex >= 0) set({ myPlayerIndex: myIndex })
   },
 
-  _setLobbyPlayers: (players) => set({ lobbyPlayers: players }),
+  _setLobbyPlayers: (incoming) => {
+    const { phase, playerIds, players: gamePlayers, disconnectedPlayer } = get()
+    set({ lobbyPlayers: incoming })
+    if (phase !== 'playing' && phase !== 'quiz') return
+    if (!playerIds.length) return
+    const connectedIds = new Set(incoming.map(p => p.id))
+    const leftId = playerIds.find(id => !connectedIds.has(id))
+    if (!leftId) return
+    const idx = playerIds.indexOf(leftId)
+    const name = gamePlayers[idx]?.name ?? '?'
+    if (disconnectedPlayer === name) return  // already notifying
+    set({ disconnectedPlayer: name })
+    setTimeout(() => set({ disconnectedPlayer: null }), 4000)
+  },
 
   voteQuiz: (answer) => {
     const { myPlayerId } = get()

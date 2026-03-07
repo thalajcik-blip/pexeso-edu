@@ -60,6 +60,8 @@ export interface Translations {
   lobbyHost: string
   backBtn: string
   waitingForTurn: string  // contains {name}
+  playerLeft: string      // contains {name}
+  youAreAlone: string
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -129,6 +131,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lobbyHost: 'Hostitel',
     backBtn: 'Zpět',
     waitingForTurn: 'Čekáš na tah hráče {name}...',
+    playerLeft: '{name} opustil hru.',
+    youAreAlone: 'Zůstal jsi sám v místnosti.',
   },
 
   sk: {
@@ -197,6 +201,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lobbyHost: 'Hostiteľ',
     backBtn: 'Späť',
     waitingForTurn: 'Čakáš na ťah hráča {name}...',
+    playerLeft: '{name} opustil hru.',
+    youAreAlone: 'Zostal si sám v miestnosti.',
   },
 
   en: {
@@ -265,6 +271,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lobbyHost: 'Host',
     backBtn: 'Back',
     waitingForTurn: 'Waiting for {name}...',
+    playerLeft: '{name} left the game.',
+    youAreAlone: 'You are alone in the room.',
   },
 }
 
