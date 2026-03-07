@@ -74,8 +74,8 @@ export default function QuizModal() {
           {options.map(opt => {
             let style: React.CSSProperties = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.text }
             if (answered) {
-              if (opt === correct)       style = { background: 'rgba(46,204,113,0.25)',  border: '2px solid #2ecc71', color: '#2ecc71' }
-              else if (opt === answered) style = { background: 'rgba(231,76,60,0.25)', border: '2px solid #e74c3c', color: '#e74c3c' }
+              if (opt === correct)       style = { background: tc.successBg, border: `2px solid ${tc.successColor}`, color: tc.successColor }
+              else if (opt === answered) style = { background: tc.errorBg,   border: `2px solid ${tc.errorColor}`,   color: tc.errorColor }
               else                       style = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.textFaint }
             }
             return (
@@ -93,7 +93,7 @@ export default function QuizModal() {
         </div>
 
         {answered && (
-          <div className="text-sm font-medium" style={{ color: isCorrect ? '#2ecc71' : '#e74c3c' }}>
+          <div className="text-sm font-medium" style={{ color: isCorrect ? tc.successColor : tc.errorColor }}>
             {isCorrect ? tr.correct : tr.wrong}
           </div>
         )}

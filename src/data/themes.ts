@@ -31,6 +31,10 @@ export interface ThemeColors {
   cardBackGradient: string
   cardBackSymbol: string
   cardGridBg: string
+  successColor: string
+  successBg: string
+  errorColor: string
+  errorBg: string
   // Accent (yellow in dark, blue in light)
   accent: string
   accentText: string
@@ -71,6 +75,10 @@ export const THEMES: Record<Theme, ThemeColors> = {
     cardBackGradient:   'linear-gradient(135deg, #1a237e 0%, #283593 50%, #1a237e 100%)',
     cardBackSymbol:     'rgba(255,255,255,0.15)',
     cardGridBg:         'transparent',
+    successColor:       '#2ecc71',
+    successBg:          'rgba(46,204,113,0.25)',
+    errorColor:         '#e74c3c',
+    errorBg:            'rgba(231,76,60,0.25)',
     accent:             '#f9d74e',
     accentText:         '#0d1b2a',
     accentGlow:         'rgba(249,215,78,0.3)',
@@ -105,9 +113,13 @@ export const THEMES: Record<Theme, ThemeColors> = {
     factText:           'rgba(13,27,42,0.6)',
     cardFront:          '#ffffff',
     cardMatched:        '#d4f0d8',
-    cardBackGradient:   'linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #f59e0b 100%)',
-    cardBackSymbol:     'rgba(255,255,255,0.5)',
+    cardBackGradient:   'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%)',
+    cardBackSymbol:     'rgba(255,255,255,0.55)',
     cardGridBg:         'rgba(13,27,42,0.06)',
+    successColor:       '#16a34a',
+    successBg:          'rgba(22,163,74,0.15)',
+    errorColor:         '#dc2626',
+    errorBg:            'rgba(220,38,38,0.12)',
     accent:             '#2563eb',
     accentText:         '#ffffff',
     accentGlow:         'rgba(37,99,235,0.25)',
