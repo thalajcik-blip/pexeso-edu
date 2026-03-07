@@ -93,11 +93,11 @@ export function soundQuizWrong(): void {
   slide(310, 140, 0.28, 0, 0.2)
 }
 
-// Quiz answered correctly — C E G arpeggio
+// Quiz answered correctly — snappy G5 C6 E6
 export function soundQuizCorrect(): void {
-  tone(523, 0.12, 0,    0.22)       // C5
-  tone(659, 0.12, 0.11, 0.22)       // E5
-  tone(784, 0.24, 0.22, 0.22)       // G5
+  tone(784,  0.1,  0,    0.28)      // G5
+  tone(1047, 0.1,  0.09, 0.28)      // C6
+  tone(1319, 0.3,  0.18, 0.32)      // E6
 }
 
 // Game won — fanfare
