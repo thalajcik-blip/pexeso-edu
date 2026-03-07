@@ -58,7 +58,7 @@ export default function GameBoard() {
         )}
       </div>
 
-      <div className="overflow-auto rounded-xl py-2 px-1" style={{ background: tc.cardGridBg }}>
+      <div className="rounded-xl py-2 px-1" style={{ background: tc.cardGridBg, overflow: 'clip' }}>
         <div
           className="grid w-full mx-auto"
           style={{
