@@ -43,11 +43,13 @@ export default function GameCard({ card }: Props) {
           style={{
             background: tc.cardBackGradient,
             border: '1px solid rgba(255,255,255,0.08)',
-            fontSize: '1.1rem',
-            color: tc.cardBackSymbol,
           }}
         >
-          🎴
+          <img
+            src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'}
+            alt=""
+            style={{ width: '45%', height: '45%', opacity: 0.85 }}
+          />
           <span className="absolute inset-[3px] rounded-[4px]" style={{ border: '1px solid rgba(255,255,255,0.07)' }} />
         </div>
         {/* Front */}
