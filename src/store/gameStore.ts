@@ -52,7 +52,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // Setup defaults
   language: 'cs',
   theme: 'dark',
-  selectedDeckId: 'animals',
+  selectedDeckId: 'flags',
   selectedSize: 'large',
   numPlayers: 2,
   playerNames: [...DEFAULT_NAMES],
