@@ -101,6 +101,7 @@ interface GameStore {
   _broadcastStateIfHost: () => void
   _applyQuizVote: (playerId: string, answer: string) => void
   _resolveQuizVotes: (correct: string) => void
+  _doReveal: () => void
   voteQuiz: (answer: string) => void
 }
 
@@ -421,8 +422,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get()._applyQuizVote(myPlayerId, answer)
   },
 
+  _doReveal: () => {
+    const { quizSymbol, selectedDeckId, language } = get()
+    if (!quizSymbol) return
+    if (revealTimer !== null) { clearTimeout(revealTimer); revealTimer = null }
+    const correct = computeCorrectAnswer(quizSymbol, selectedDeckId, language)
+    broadcastGameAction({ type: 'quiz_reveal', correct })
+    set({ quizRevealCorrect: correct })
+    setTimeout(() => get()._resolveQuizVotes(correct), 1500)
+  },
+
   _applyQuizVote: (playerId, answer) => {
-    const { quizVotes, isHost, quizCountdownEnd, quizSymbol, players } = get()
+    const { quizVotes, isHost, quizCountdownEnd, quizSymbol, playerIds, players } = get()
     if (!quizSymbol) return
     const isFirstVote = Object.keys(quizVotes).length === 0
     const newVotes = { ...quizVotes, [playerId]: answer }
@@ -431,21 +442,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     if (!isHost) return
 
-    const triggerReveal = () => {
-      const { quizSymbol: sym, selectedDeckId: deckId, language: lang } = get()
-      if (!sym) return
-      if (revealTimer) { clearTimeout(revealTimer); revealTimer = null }
-      const correct = computeCorrectAnswer(sym, deckId, lang)
-      broadcastGameAction({ type: 'quiz_reveal', correct })
-      set({ quizRevealCorrect: correct })
-      setTimeout(() => get()._resolveQuizVotes(correct), 1500)
-    }
+    const totalPlayers = playerIds.length > 0 ? playerIds.length : players.length
+    const allVoted = Object.keys(newVotes).length >= totalPlayers && totalPlayers > 0
 
-    const allVoted = Object.keys(newVotes).length >= players.length
     if (allVoted) {
-      triggerReveal()
+      get()._doReveal()
     } else if (isFirstVote) {
-      revealTimer = setTimeout(triggerReveal, 5000)
+      revealTimer = setTimeout(() => get()._doReveal(), 5000)
     }
   },
 
