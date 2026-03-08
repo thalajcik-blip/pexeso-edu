@@ -133,9 +133,13 @@ export default function SetupScreen() {
                   style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}`, color: tc.text }}
                   value={playerNames[i]}
                   placeholder={DEFAULT_NAMES[i]}
+                  maxLength={20}
                   onChange={e => setPlayerName(i, e.target.value)}
-                  onFocus={e => e.target.style.borderColor = '#f9d74e'}
-                  onBlur={e => e.target.style.borderColor = tc.inputBorder}
+                  onFocus={e => e.target.style.borderColor = tc.accent}
+                  onBlur={e => {
+                    e.target.style.borderColor = tc.inputBorder
+                    if (!playerNames[i].trim()) setPlayerName(i, DEFAULT_NAMES[i])
+                  }}
                 />
               </div>
             ))}
