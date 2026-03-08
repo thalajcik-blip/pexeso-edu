@@ -103,3 +103,18 @@ button, a { cursor: pointer; }
   to   { transform: scale(1);   opacity: 1; }
 }
 .pop-in { animation: pop-in 0.4s cubic-bezier(.34,1.56,.64,1); }
+
+@keyframes emoji-float {
+  0%   { opacity: 1;   transform: translateX(-50%) translateY(0)     scale(1);   }
+  15%  { opacity: 1;   transform: translateX(-50%) translateY(8px)   scale(1.7); }
+  100% { opacity: 0;   transform: translateX(-50%) translateY(48px)  scale(1.1); }
+}
+.emoji-float {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  pointer-events: none;
+  font-size: 1.6rem;
+  z-index: 20;
+  animation: emoji-float 1.4s ease-out forwards;
+}

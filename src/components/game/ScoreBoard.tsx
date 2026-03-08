@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS, t } from '../../data/translations'
 import { THEMES } from '../../data/themes'
@@ -25,6 +25,25 @@ export default function ScoreBoard() {
   const isMyTurn = !isOnline || myPlayerIndex === currentPlayer
 
   const [emojiCooldown, setEmojiCooldown] = useState(false)
+  const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; playerIndex: number }[]>([])
+  const floatIdRef = useRef(0)
+
+  const removeFloat = useCallback((id: number) => {
+    setFloatingEmojis(prev => prev.filter(e => e.id !== id))
+  }, [])
+
+  useEffect(() => {
+    const entries = Object.entries(emojiReactions)
+    if (entries.length === 0) return
+    entries.forEach(([pid, emoji]) => {
+      const playerIndex = playerIds.indexOf(pid)
+      if (playerIndex < 0) return
+      const id = floatIdRef.current++
+      setFloatingEmojis(prev => [...prev, { id, emoji, playerIndex }])
+      setTimeout(() => removeFloat(id), 1400)
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emojiReactions])
 
   const [timeLeft, setTimeLeft] = useState(turnTime)
   const prevTurnTime = useRef<number | null>(null)
@@ -86,11 +105,10 @@ export default function ScoreBoard() {
       <div className="flex gap-2 justify-center flex-wrap mb-2">
         {players.map((p, i) => {
           const pid = playerIds[i]
-          const emoji = pid ? emojiReactions[pid] : undefined
           return (
             <div
               key={i}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 text-sm transition-all"
+              className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 text-sm transition-all"
               style={i === currentPlayer
                 ? { borderColor: tc.accentBorderActive, background: tc.accentBgActive }
                 : { borderColor: 'transparent', background: tc.scorePillBg }
@@ -98,10 +116,12 @@ export default function ScoreBoard() {
             >
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
               <span className="font-medium">{p.name}</span>
-              {emoji && <span key={`${i}-emoji-${emoji}`} className="pop-in">{emoji}</span>}
               <span key={`${i}-${p.score}`} className="score-pop font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>
                 {p.score} b.
               </span>
+              {floatingEmojis.filter(fe => fe.playerIndex === i).map(fe => (
+                <span key={fe.id} className="emoji-float">{fe.emoji}</span>
+              ))}
             </div>
           )
         })}
