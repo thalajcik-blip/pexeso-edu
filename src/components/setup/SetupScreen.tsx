@@ -39,7 +39,7 @@ export default function SetupScreen() {
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-6 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
       <div className="flex items-center gap-2">
         <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="Pexedu logo" className="w-10 h-10" />
-        <h1 className="text-3xl font-semibold tracking-tight lowercase" style={{ color: tc.textMuted }}>
+        <h1 className="text-3xl font-semibold tracking-tight lowercase relative -top-0.5" style={{ color: tc.textMuted }}>
           Pexedu
         </h1>
       </div>
