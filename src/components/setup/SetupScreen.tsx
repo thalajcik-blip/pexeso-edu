@@ -37,7 +37,7 @@ export default function SetupScreen() {
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-6 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="Pexedu logo" className="w-10 h-10" />
         <h1 className="text-3xl font-semibold tracking-tight lowercase" style={{ color: tc.textMuted }}>
           Pexedu
@@ -126,7 +126,7 @@ export default function SetupScreen() {
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.namesLabel}</div>
           <div className="flex flex-col gap-2">
             {Array.from({ length: numPlayers }, (_, i) => (
-              <div key={i} className="flex items-center gap-3">
+              <div key={i} className="flex items-center gap-2">
                 <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[i] }} />
                 <input
                   className="flex-1 rounded-lg px-3 py-2 text-sm outline-none transition-colors"
