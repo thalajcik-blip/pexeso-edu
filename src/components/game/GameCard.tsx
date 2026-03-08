@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { CardData } from '../../types/game'
 import { useGameStore } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
@@ -12,7 +13,7 @@ const EMOJI_SIZE: Record<string, string> = {
   small:  'clamp(2.4rem, 15vw, 4.5rem)',
 }
 
-export default function GameCard({ card }: Props) {
+const GameCard = memo(function GameCard({ card }: Props) {
   const flipCard = useGameStore(s => s.flipCard)
   const selectedSize = useGameStore(s => s.selectedSize)
   const theme = useGameStore(s => s.theme)
@@ -75,4 +76,6 @@ export default function GameCard({ card }: Props) {
       </div>
     </div>
   )
-}
+})
+
+export default GameCard
