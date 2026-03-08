@@ -4,7 +4,7 @@ import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS, pluralize } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 
-const MEDALS = ['🥇', '🥈', '🥉', '4️⃣']
+const MEDALS = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣']
 
 export default function WinModal() {
   const players          = useGameStore(s => s.players)

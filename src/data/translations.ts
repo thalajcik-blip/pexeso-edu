@@ -8,6 +8,7 @@ export interface Translations {
   sizeLabel: string
   playersLabel: string
   namesLabel: string
+  yourName: string
   startBtn: string
   rulesLink: string
   sizeLarge: string
@@ -77,6 +78,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sizeLabel: 'Velikost hrací plochy',
     playersLabel: 'Počet hráčů',
     namesLabel: 'Jména hráčů',
+    yourName: 'Vaše jméno',
     startBtn: 'Začít hru →',
     rulesLink: '📖 Pravidla hry',
     sizeLarge: 'Velké',
@@ -128,7 +130,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       fruits:  'Ovoce & zelenina',
       jobs:    'Povolání',
     },
-    defaultPlayerNames: ['Hráč 1', 'Hráč 2', 'Hráč 3', 'Hráč 4'],
+    defaultPlayerNames: ['Hráč 1', 'Hráč 2', 'Hráč 3', 'Hráč 4', 'Hráč 5', 'Hráč 6'],
     localBtn: 'Místní hra →',
     onlineBtn: '🌐 Online hra',
     createRoom: 'Vytvořit místnost',
@@ -160,6 +162,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sizeLabel: 'Veľkosť hracej plochy',
     playersLabel: 'Počet hráčov',
     namesLabel: 'Mená hráčov',
+    yourName: 'Vaše meno',
     startBtn: 'Začať hru →',
     rulesLink: '📖 Pravidlá hry',
     sizeLarge: 'Veľké',
@@ -211,7 +214,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       fruits:  'Ovocie & zelenina',
       jobs:    'Povolania',
     },
-    defaultPlayerNames: ['Hráč 1', 'Hráč 2', 'Hráč 3', 'Hráč 4'],
+    defaultPlayerNames: ['Hráč 1', 'Hráč 2', 'Hráč 3', 'Hráč 4', 'Hráč 5', 'Hráč 6'],
     localBtn: 'Lokálna hra →',
     onlineBtn: '🌐 Online hra',
     createRoom: 'Vytvoriť miestnosť',
@@ -243,6 +246,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sizeLabel: 'Board size',
     playersLabel: 'Number of players',
     namesLabel: 'Player names',
+    yourName: 'Your name',
     startBtn: 'Start game →',
     rulesLink: '📖 Rules',
     sizeLarge: 'Large',
@@ -294,7 +298,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       fruits:  'Fruits & Vegetables',
       jobs:    'Professions',
     },
-    defaultPlayerNames: ['Player 1', 'Player 2', 'Player 3', 'Player 4'],
+    defaultPlayerNames: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5', 'Player 6'],
     localBtn: 'Local game →',
     onlineBtn: '🌐 Online game',
     createRoom: 'Create Room',

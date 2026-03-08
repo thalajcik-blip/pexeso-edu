@@ -108,7 +108,7 @@ export default function SetupScreen() {
         <div>
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.playersLabel}</div>
           <div className="flex gap-3">
-            {[2, 3, 4].map(n => (
+            {[2, 3, 4, 5, 6].map(n => (
               <button
                 key={n}
                 onClick={() => setNumPlayers(n)}

@@ -150,7 +150,7 @@ export default function LobbyScreen() {
         {/* ── NAME INPUT ── */}
         {!inRoom && (
           <div>
-            <div className="text-xs uppercase tracking-widest mb-2" style={{ color: tc.textMuted }}>{tr.namesLabel}</div>
+            <div className="text-xs uppercase tracking-widest mb-2" style={{ color: tc.textMuted }}>{tr.yourName}</div>
             <input
               className="w-full rounded-lg px-3 py-2.5 text-sm outline-none"
               style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}`, color: tc.text }}
@@ -276,8 +276,8 @@ export default function LobbyScreen() {
                     )}
                   </div>
                 ))}
-                {/* Empty slot if < 4 players */}
-                {sortedPlayers.length < 4 && (
+                {/* Empty slot if < 6 players */}
+                {sortedPlayers.length < 6 && (
                   <div
                     className="flex items-center gap-3 px-4 py-3 rounded-xl"
                     style={{ background: tc.inputBg, border: `1px dashed ${tc.inputBorder}`, opacity: 0.5 }}
