@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { DeckId, BoardSize, GamePhase, CardData, Player } from '../types/game'
 import { SIZE_CONFIG, PLAYER_COLORS, DEFAULT_NAMES } from '../types/game'
 import { DECKS } from '../data/decks'
@@ -121,7 +122,7 @@ interface GameStore {
   voteQuiz: (answer: string) => void
 }
 
-export const useGameStore = create<GameStore>((set, get) => ({
+export const useGameStore = create<GameStore>()(persist((set, get) => ({
   // Defaults
   language: 'cs',
   theme: 'dark',
@@ -572,6 +573,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       quizRevealCorrect: null,
     })
   },
+}), {
+  name: 'pexedu-settings',
+  partialize: (state) => ({
+    theme: state.theme,
+    language: state.language,
+    selectedDeckId: state.selectedDeckId,
+    selectedSize: state.selectedSize,
+    numPlayers: state.numPlayers,
+  }),
 }))
 
 // Helper to read saved session for reconnect pre-fill
