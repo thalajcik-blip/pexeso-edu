@@ -111,7 +111,7 @@ interface GameStore {
   _applyAction: (action: GameAction) => void
   _flipCard: (index: number) => void
   _answerQuiz: (correct: boolean) => void
-  _applyGameStart: (cards: CardData[], playerIds: string[], playerNames: string[], deckId: string, size: string, turnTime: number, quizTime: number) => void
+  _applyGameStart: (cards: CardData[], playerIds: string[], playerNames: string[], deckId: string, size: string, turnTime: number, quizTime: number, startingPlayer: number) => void
   _applyTurnTimeout: () => void
   _applyEmojiReact: (playerId: string, emoji: string) => void
   _broadcastStateIfHost: () => void
@@ -195,7 +195,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       color: PLAYER_COLORS[i],
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
-    set({ phase: 'playing', cards, players, playerIds: [], currentPlayer: 0, flipped: [], locked: false, turnMessage: '', quizSymbol: null })
+    set({ phase: 'playing', cards, players, playerIds: [], currentPlayer: Math.floor(Math.random() * players.length), flipped: [], locked: false, turnMessage: '', quizSymbol: null })
   },
 
   // ── Internal pure game logic ──
@@ -280,7 +280,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ cards: resetCards, flipped: [], locked: false, currentPlayer: nextPlayer, turnMessage: '' })
   },
 
-  _applyGameStart: (cards, playerIds, playerNames, deckId, size, turnTime, quizTime) => {
+  _applyGameStart: (cards, playerIds, playerNames, deckId, size, turnTime, quizTime, startingPlayer) => {
     const { language, myPlayerId } = get()
     const players: Player[] = playerNames.map((name, i) => ({
       name: name.trim() || TRANSLATIONS[language].defaultPlayerNames[i],
@@ -297,7 +297,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       cards,
       players,
       playerIds,
-      currentPlayer: 0,
+      currentPlayer: startingPlayer,
       flipped: [],
       locked: false,
       turnMessage: '',
@@ -328,7 +328,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         set({ rematchRequested: true })
         break
       case 'game_start':
-        get()._applyGameStart(action.cards, action.playerIds, action.playerNames, action.deckId, action.size, action.turnTime, action.quizTime)
+        get()._applyGameStart(action.cards, action.playerIds, action.playerNames, action.deckId, action.size, action.turnTime, action.quizTime, action.startingPlayer)
         break
       case 'state_snapshot': {
         const myIndex = action.playerIds.indexOf(myPlayerId)
@@ -386,11 +386,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     if (isOnline) {
       const playerNames = players.map(p => p.name)
-      broadcastGameAction({ type: 'game_start', cards, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize, turnTime, quizTime })
-      get()._applyGameStart(cards, playerIds, playerNames, selectedDeckId, selectedSize, turnTime, quizTime)
+      const startingPlayer = Math.floor(Math.random() * playerIds.length)
+      broadcastGameAction({ type: 'game_start', cards, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize, turnTime, quizTime, startingPlayer })
+      get()._applyGameStart(cards, playerIds, playerNames, selectedDeckId, selectedSize, turnTime, quizTime, startingPlayer)
     } else {
-      const resetPlayers = players.map(p => ({ ...p, score: 0, pairs: 0, quizzes: 0 }))
-      set({ phase: 'playing', cards, players: resetPlayers, currentPlayer: 0, flipped: [], locked: false, turnMessage: '', quizSymbol: null })
+      const resetPlayers = players.map(p => ({ ...p, score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0 }))
+      set({ phase: 'playing', cards, players: resetPlayers, currentPlayer: Math.floor(Math.random() * resetPlayers.length), flipped: [], locked: false, turnMessage: '', quizSymbol: null })
     }
     set({ rematchRequested: false })
   },
@@ -495,9 +496,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const symbols = shuffle(Object.keys(deck.pool)).slice(0, size.pairs)
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
-    broadcastGameAction({ type: 'game_start', cards, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize, turnTime, quizTime })
+    const startingPlayer = Math.floor(Math.random() * playerIds.length)
+    broadcastGameAction({ type: 'game_start', cards, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize, turnTime, quizTime, startingPlayer })
     const myIndex = playerIds.indexOf(myPlayerId)
-    get()._applyGameStart(cards, playerIds, playerNames, selectedDeckId, selectedSize, turnTime, quizTime)
+    get()._applyGameStart(cards, playerIds, playerNames, selectedDeckId, selectedSize, turnTime, quizTime, startingPlayer)
     if (myIndex >= 0) set({ myPlayerIndex: myIndex })
   },
 
