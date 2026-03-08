@@ -152,8 +152,8 @@ export default function SetupScreen() {
           </button>
           <button
             onClick={goToLobby}
-            className="flex-1 py-3.5 rounded-xl text-base font-bold border-2 transition-all hover:-translate-y-0.5 cursor-pointer"
-            style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
+            className="flex-1 py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
+            style={{ background: tc.accent, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
           >
             {tr.onlineBtn}
           </button>
