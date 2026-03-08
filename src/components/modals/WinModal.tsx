@@ -50,10 +50,11 @@ export default function WinModal() {
         }
 
         <div className="space-y-3 text-left">
-          {sorted.map((p, i) => (
-            <div key={i}>
+          {sorted.map((p, i) => {
+            const rank = sorted.filter(other => other.score > p.score).length
+            return (<div key={i}>
               <div className="text-base">
-                {MEDALS[i]} <span style={{ color: p.color }}>{p.name}</span>: <strong>{p.score} {language === 'en' ? 'pts' : 'bodů'}</strong>
+                {MEDALS[rank]} <span style={{ color: p.color }}>{p.name}</span>: <strong>{p.score} {language === 'en' ? 'pts' : 'bodů'}</strong>
               </div>
               <div className="text-xs pl-6 mt-0.5" style={{ color: tc.textFaint }}>
                 🃏 {pluralize(p.pairs, tr, 'pairOne', 'pairFew', 'pairMany')} &nbsp;+&nbsp; 🧠 {pluralize(p.quizzes, tr, 'quizOne', 'quizFew', 'quizMany')}
@@ -63,8 +64,8 @@ export default function WinModal() {
                   </span>
                 )}
               </div>
-            </div>
-          ))}
+            </div>)
+          })}
         </div>
 
         {/* Host: Play Again (highlighted if guest requested rematch) */}
