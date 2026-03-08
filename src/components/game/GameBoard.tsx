@@ -7,6 +7,8 @@ import { isMuted, toggleMuted } from '../../services/audioService'
 import GameCard from './GameCard'
 import ScoreBoard from './ScoreBoard'
 
+const EMOJI_OPTS = ['👍', '😱', '🎉', '😂', '🔥', '😅']
+
 export default function GameBoard() {
   const cards = useGameStore(s => s.cards)
   const selectedSize = useGameStore(s => s.selectedSize)
@@ -16,11 +18,15 @@ export default function GameBoard() {
   const toggleTheme = useGameStore(s => s.toggleTheme)
   const openRules = useGameStore(s => s.openRules)
   const debugEndGame = useGameStore(s => s.debugEndGame)
+  const isOnline = useGameStore(s => s.isOnline)
+  const phase = useGameStore(s => s.phase)
+  const sendEmojiReact = useGameStore(s => s.sendEmojiReact)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
   const cols = SIZE_CONFIG[selectedSize].cols
   const [muted, setMuted] = useState(isMuted)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [emojiCooldown, setEmojiCooldown] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close menu on outside click
@@ -97,6 +103,27 @@ export default function GameBoard() {
           ))}
         </div>
       </div>
+
+      {/* Emoji reactions — online only, below grid for easier mobile reach */}
+      {isOnline && (phase === 'playing' || phase === 'quiz') && (
+        <div className="flex justify-center gap-2 pt-3">
+          {EMOJI_OPTS.map(e => (
+            <button
+              key={e}
+              onClick={() => {
+                if (emojiCooldown) return
+                setEmojiCooldown(true)
+                sendEmojiReact(e)
+                setTimeout(() => setEmojiCooldown(false), 2000)
+              }}
+              className="text-xl leading-none px-2 py-1.5 rounded-xl transition-opacity"
+              style={{ background: tc.scorePillBg, opacity: emojiCooldown ? 0.4 : 1 }}
+            >
+              {e}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-col items-center gap-0.5 py-3">
         <button onClick={openRules} className="text-sm transition-opacity opacity-35 hover:opacity-70">

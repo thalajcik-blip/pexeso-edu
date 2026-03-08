@@ -5,8 +5,6 @@ import { THEMES } from '../../data/themes'
 import { soundTick } from '../../services/audioService'
 import { trunc } from '../../utils'
 
-const EMOJI_OPTS = ['👍', '😱', '🎉', '😂', '🔥', '😅']
-
 export default function ScoreBoard() {
   const players        = useGameStore(s => s.players)
   const currentPlayer  = useGameStore(s => s.currentPlayer)
@@ -22,10 +20,8 @@ export default function ScoreBoard() {
   const tc = THEMES[theme]
   const emojiReactions  = useGameStore(s => s.emojiReactions)
   const playerIds       = useGameStore(s => s.playerIds)
-  const sendEmojiReact  = useGameStore(s => s.sendEmojiReact)
   const isMyTurn = !isOnline || myPlayerIndex === currentPlayer
 
-  const [emojiCooldown, setEmojiCooldown] = useState(false)
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; playerIndex: number }[]>([])
   const floatIdRef = useRef(0)
 
@@ -156,26 +152,6 @@ export default function ScoreBoard() {
         </div>
       )}
 
-      {/* Emoji reactions picker — online only, during game */}
-      {isOnline && (phase === 'playing' || phase === 'quiz') && (
-        <div className="flex justify-center gap-1.5 mb-2">
-          {EMOJI_OPTS.map(e => (
-            <button
-              key={e}
-              onClick={() => {
-                if (emojiCooldown) return
-                setEmojiCooldown(true)
-                sendEmojiReact(e)
-                setTimeout(() => setEmojiCooldown(false), 2000)
-              }}
-              className="text-lg leading-none px-1.5 py-0.5 rounded-lg transition-opacity"
-              style={{ background: tc.scorePillBg, opacity: emojiCooldown ? 0.4 : 1 }}
-            >
-              {e}
-            </button>
-          ))}
-        </div>
-      )}
     </>
   )
 }
