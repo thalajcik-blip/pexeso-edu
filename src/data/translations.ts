@@ -153,7 +153,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     turnTimeLabel: 'Čas na tah',
     quizTimeLabel: 'Čas na kvíz',
     turnTimeOff: 'Bez limitu',
-    rematchRequest: 'Rematch?',
+    rematchRequest: 'Hrát znovu?',
     rematchWaiting: 'Čekám na soupeře...',
   },
 
@@ -237,7 +237,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     turnTimeLabel: 'Čas na ťah',
     quizTimeLabel: 'Čas na kvíz',
     turnTimeOff: 'Bez limitu',
-    rematchRequest: 'Rematch?',
+    rematchRequest: 'Hrať znovu?',
     rematchWaiting: 'Čakám na súpera...',
   },
 
