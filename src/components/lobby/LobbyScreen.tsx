@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import QRCode from 'react-qr-code'
 import { useGameStore, getSavedSession } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
 import type { ThemeColors } from '../../data/themes'
@@ -242,6 +243,12 @@ export default function LobbyScreen() {
                 >
                   {copiedUrl ? tr.copied : `🔗 ${shareUrl}`}
                 </button>
+                {/* QR Code */}
+                <div className="flex justify-center mt-3">
+                  <div className="p-3 rounded-xl bg-white">
+                    <QRCode value={shareUrl} size={140} />
+                  </div>
+                </div>
               </div>
             )}
 
