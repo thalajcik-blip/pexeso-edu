@@ -18,11 +18,19 @@ export default function App() {
   const lobbyPlayers       = useGameStore(s => s.lobbyPlayers)
   const disconnectedPlayer = useGameStore(s => s.disconnectedPlayer)
   const leaveRoom          = useGameStore(s => s.leaveRoom)
+  const goToLobby          = useGameStore(s => s.goToLobby)
   const tc = THEMES[theme]
   const tr = TRANSLATIONS[language]
 
   const inGame  = phase === 'playing' || phase === 'quiz'
   const isAlone = isOnline && inGame && lobbyPlayers.length < 2
+
+  // Auto-navigate to lobby if ?room= param is present
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('room')) goToLobby()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Debug shortcut
   useEffect(() => {

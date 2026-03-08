@@ -104,7 +104,6 @@ export default function ScoreBoard() {
     <>
       <div className="flex gap-2 justify-center flex-wrap mb-2">
         {players.map((p, i) => {
-          const pid = playerIds[i]
           return (
             <div
               key={i}
