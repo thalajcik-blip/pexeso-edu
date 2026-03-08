@@ -74,6 +74,7 @@ interface GameStore {
   turnTime: number   // seconds; 0 = unlimited
   quizTime: number   // seconds
   emojiReactions: Record<string, string> // playerId → emoji
+  rematchRequested: boolean
 
   // Setup actions
   setLanguage: (lang: Language) => void
@@ -87,6 +88,7 @@ interface GameStore {
   answerQuiz: (correct: boolean) => void
   playAgain: () => void
   resetToSetup: () => void
+  requestRematch: () => void
   openRules: () => void
   closeRules: () => void
   debugEndGame: () => void
@@ -150,6 +152,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   turnTime: 20,
   quizTime: 5,
   emojiReactions: {},
+  rematchRequested: false,
 
   setLanguage: (lang) => set({ language: lang, playerNames: [...TRANSLATIONS[lang].defaultPlayerNames] }),
   toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
@@ -317,6 +320,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       case 'emoji_react':
         get()._applyEmojiReact(action.playerId, action.emoji)
         break
+      case 'rematch_request':
+        set({ rematchRequested: true })
+        break
       case 'game_start':
         get()._applyGameStart(action.cards, action.playerIds, action.playerNames, action.deckId, action.size, action.turnTime, action.quizTime)
         break
@@ -382,11 +388,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const resetPlayers = players.map(p => ({ ...p, score: 0, pairs: 0, quizzes: 0 }))
       set({ phase: 'playing', cards, players: resetPlayers, currentPlayer: 0, flipped: [], locked: false, turnMessage: '', quizSymbol: null })
     }
+    set({ rematchRequested: false })
   },
 
   resetToSetup: () => {
     if (get().isOnline) get().leaveRoom()
     else set({ phase: 'setup', cards: [], players: [], quizSymbol: null })
+  },
+
+  requestRematch: () => {
+    broadcastGameAction({ type: 'rematch_request' })
+    set({ rematchRequested: true })
   },
 
   openRules: () => set({ rulesOpen: true }),

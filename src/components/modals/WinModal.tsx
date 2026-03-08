@@ -7,13 +7,15 @@ import { THEMES } from '../../data/themes'
 const MEDALS = ['🥇', '🥈', '🥉', '4️⃣']
 
 export default function WinModal() {
-  const players    = useGameStore(s => s.players)
-  const language   = useGameStore(s => s.language)
-  const theme      = useGameStore(s => s.theme)
-  const isOnline   = useGameStore(s => s.isOnline)
-  const isHost     = useGameStore(s => s.isHost)
-  const playAgain  = useGameStore(s => s.playAgain)
-  const resetToSetup = useGameStore(s => s.resetToSetup)
+  const players          = useGameStore(s => s.players)
+  const language         = useGameStore(s => s.language)
+  const theme            = useGameStore(s => s.theme)
+  const isOnline         = useGameStore(s => s.isOnline)
+  const isHost           = useGameStore(s => s.isHost)
+  const playAgain        = useGameStore(s => s.playAgain)
+  const resetToSetup     = useGameStore(s => s.resetToSetup)
+  const requestRematch   = useGameStore(s => s.requestRematch)
+  const rematchRequested = useGameStore(s => s.rematchRequested)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
@@ -60,15 +62,36 @@ export default function WinModal() {
           ))}
         </div>
 
+        {/* Host: Play Again (highlighted if guest requested rematch) */}
         {(!isOnline || isHost) && (
           <button
             onClick={playAgain}
             className="mt-8 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105"
-            style={{ background: '#f9d74e', color: '#0d1b2a' }}
+            style={{
+              background: rematchRequested ? '#ffffff' : '#f9d74e',
+              color: '#0d1b2a',
+              boxShadow: rematchRequested ? '0 0 16px rgba(255,255,255,0.6)' : undefined,
+            }}
           >
-            {tr.playAgain}
+            {rematchRequested ? '⚡ ' : ''}{tr.playAgain}
           </button>
         )}
+
+        {/* Guest: Rematch request button */}
+        {isOnline && !isHost && (
+          rematchRequested
+            ? <div className="mt-8 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                {tr.rematchWaiting}
+              </div>
+            : <button
+                onClick={requestRematch}
+                className="mt-8 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105"
+                style={{ background: '#f9d74e', color: '#0d1b2a' }}
+              >
+                {tr.rematchRequest}
+              </button>
+        )}
+
         <button
           onClick={resetToSetup}
           className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"

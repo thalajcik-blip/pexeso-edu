@@ -41,6 +41,7 @@ export type GameAction =
   | { type: 'emoji_react'; playerId: string; emoji: string }
   | { type: 'game_start'; cards: CardData[]; playerIds: string[]; playerNames: string[]; deckId: string; size: string; turnTime: number; quizTime: number }
   | { type: 'state_snapshot'; phase: GamePhase; cards: CardData[]; players: Player[]; currentPlayer: number; quizSymbol: string | null; playerIds: string[] }
+  | { type: 'rematch_request' }
 
 let channel: RealtimeChannel | null = null
 
