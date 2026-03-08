@@ -20,10 +20,13 @@ export default function WinModal() {
   const tc = THEMES[theme]
 
   useEffect(() => {
+    const colors = theme === 'light'
+      ? ['#6d41a1', '#ffffff', '#c4a8e8']
+      : ['#f9d74e', '#ffffff', '#1a237e']
     const end = Date.now() + 2500
     const frame = () => {
-      confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#f9d74e', '#ffffff', '#1a237e'] })
-      confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#f9d74e', '#ffffff', '#1a237e'] })
+      confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, colors })
+      confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, colors })
       if (Date.now() < end) requestAnimationFrame(frame)
     }
     frame()
