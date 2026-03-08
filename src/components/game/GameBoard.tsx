@@ -53,34 +53,28 @@ export default function GameBoard() {
             className="absolute top-10 right-0 rounded-xl py-1 min-w-[180px] shadow-xl"
             style={{ background: tc.modalSurface, border: `1px solid ${tc.surfaceBorder}` }}
           >
-            <button
-              onClick={() => { resetToSetup(); setMenuOpen(false) }}
-              className="w-full text-left px-4 py-2.5 text-sm transition-opacity hover:opacity-70"
-              style={{ color: tc.text }}
-            >
-              {tr.newGame}
-            </button>
-            <button
-              onClick={() => { toggleTheme(); setMenuOpen(false) }}
-              className="w-full text-left px-4 py-2.5 text-sm transition-opacity hover:opacity-70"
-              style={{ color: tc.text }}
-            >
-              {theme === 'dark' ? '☀️ ' : '🌙 '}{theme === 'dark' ? tr.lightMode : tr.darkMode}
-            </button>
-            <button
-              onClick={() => { setMuted(toggleMuted()); setMenuOpen(false) }}
-              className="w-full text-left px-4 py-2.5 text-sm transition-opacity hover:opacity-70"
-              style={{ color: tc.text }}
-            >
-              {muted ? '🔇 ' : '🔊 '}{muted ? tr.soundOn : tr.soundOff}
-            </button>
+            {[
+              { icon: '↺', label: tr.newGame, onClick: () => { resetToSetup(); setMenuOpen(false) } },
+              { icon: theme === 'dark' ? '☀️' : '🌙', label: theme === 'dark' ? tr.lightMode : tr.darkMode, onClick: () => { toggleTheme(); setMenuOpen(false) } },
+              { icon: muted ? '🔇' : '🔊', label: muted ? tr.soundOn : tr.soundOff, onClick: () => { setMuted(toggleMuted()); setMenuOpen(false) } },
+            ].map(({ icon, label, onClick }) => (
+              <button
+                key={label}
+                onClick={onClick}
+                className="w-full flex items-center px-4 py-2.5 text-sm transition-opacity hover:opacity-70"
+                style={{ color: tc.text }}
+              >
+                <span className="inline-block w-6 shrink-0">{icon}</span>
+                {label}
+              </button>
+            ))}
             {import.meta.env.DEV && (
               <button
                 onClick={() => { debugEndGame(); setMenuOpen(false) }}
-                className="w-full text-left px-4 py-2.5 text-sm"
+                className="w-full flex items-center px-4 py-2.5 text-sm"
                 style={{ color: 'rgba(255,100,100,0.8)' }}
               >
-                ⚡ Debug
+                <span className="inline-block w-6 shrink-0">⚡</span>Debug
               </button>
             )}
           </div>
