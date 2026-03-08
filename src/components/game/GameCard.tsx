@@ -16,6 +16,7 @@ export default function GameCard({ card }: Props) {
   const flipCard = useGameStore(s => s.flipCard)
   const selectedSize = useGameStore(s => s.selectedSize)
   const theme = useGameStore(s => s.theme)
+  const players = useGameStore(s => s.players)
   const tc = THEMES[theme]
 
   const isFlipped  = card.state === 'flipped'
@@ -59,6 +60,17 @@ export default function GameCard({ card }: Props) {
           }}
         >
           {card.symbol}
+          {isMatched && card.matchedBy !== undefined && players[card.matchedBy] && (
+            <span
+              className="absolute top-1 right-1 rounded-full"
+              style={{
+                width: 'clamp(6px, 1.2vw, 10px)',
+                height: 'clamp(6px, 1.2vw, 10px)',
+                background: players[card.matchedBy].color,
+                opacity: 0.9,
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

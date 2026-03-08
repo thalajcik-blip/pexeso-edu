@@ -218,7 +218,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       soundMatch()
       setTimeout(() => {
         const matchedCards = get().cards.map((c, i) =>
-          i === a || i === b ? { ...c, state: 'matched' as const } : c
+          i === a || i === b ? { ...c, state: 'matched' as const, matchedBy: currentPlayer } : c
         )
         const updatedPlayers = get().players.map((p, i) =>
           i === currentPlayer ? { ...p, score: p.score + 1, pairs: p.pairs + 1 } : p
