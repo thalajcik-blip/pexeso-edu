@@ -62,7 +62,10 @@ export default function LobbyScreen() {
   const tr = TRANSLATIONS[language]
 
   const [view, setView]       = useState<'choice' | 'join-code'>('choice')
-  const [myName, setMyName]   = useState(playerNames[0] || '')
+  const [myName, setMyName]   = useState(() => {
+    const base = (playerNames[0] || 'Hráč').replace(/\s*\d+$/, '')
+    return `${base} ${Math.floor(Math.random() * 900) + 100}`
+  })
   const [codeInput, setCodeInput] = useState('')
   const [error, setError]     = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
