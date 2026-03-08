@@ -22,7 +22,7 @@ export default function GameBoard() {
   const [muted, setMuted] = useState(isMuted)
 
   return (
-    <div className="px-4 pt-3 pb-16">
+    <div className="px-4 pt-3 pb-4">
       <ScoreBoard />
 
       <div className="flex justify-center items-center gap-4 mb-1.5">
@@ -64,7 +64,7 @@ export default function GameBoard() {
           style={{
             gridTemplateColumns: `repeat(${cols}, 1fr)`,
             gap: 'clamp(2px, 0.5vw, 4px)',
-            maxWidth: 'min(95vw, 600px)',
+            maxWidth: 'min(95vw, 600px, calc(100dvh - 220px))',
           }}
         >
           {cards.map(card => (
