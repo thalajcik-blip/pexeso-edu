@@ -26,6 +26,7 @@ export interface Player {
   score: number
   pairs: number
   quizzes: number
+  wrongQuizzes: number
 }
 
 export interface CardData {

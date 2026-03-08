@@ -57,6 +57,11 @@ export default function WinModal() {
               </div>
               <div className="text-xs pl-6 mt-0.5" style={{ color: tc.textFaint }}>
                 🃏 {pluralize(p.pairs, tr, 'pairOne', 'pairFew', 'pairMany')} &nbsp;+&nbsp; 🧠 {pluralize(p.quizzes, tr, 'quizOne', 'quizFew', 'quizMany')}
+                {(p.quizzes + p.wrongQuizzes) > 0 && (
+                  <span style={{ color: tc.textMuted }}>
+                    {' '}· {Math.round(p.quizzes / (p.quizzes + p.wrongQuizzes) * 100)}%
+                  </span>
+                )}
               </div>
             </div>
           ))}

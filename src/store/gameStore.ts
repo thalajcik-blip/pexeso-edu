@@ -193,7 +193,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const players: Player[] = Array.from({ length: numPlayers }, (_, i) => ({
       name: playerNames[i]?.trim() || TRANSLATIONS[get().language].defaultPlayerNames[i],
       color: PLAYER_COLORS[i],
-      score: 0, pairs: 0, quizzes: 0,
+      score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
     set({ phase: 'playing', cards, players, playerIds: [], currentPlayer: 0, flipped: [], locked: false, turnMessage: '', quizSymbol: null })
   },
@@ -249,7 +249,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   _answerQuiz: (correct) => {
     const { players, currentPlayer, cards } = get()
     const updatedPlayers = players.map((p, i) =>
-      i === currentPlayer && correct ? { ...p, score: p.score + 1, quizzes: p.quizzes + 1 } : p
+      i === currentPlayer
+        ? correct
+          ? { ...p, score: p.score + 1, quizzes: p.quizzes + 1 }
+          : { ...p, wrongQuizzes: p.wrongQuizzes + 1 }
+        : p
     )
     const allMatched = cards.every(c => c.state === 'matched')
     if (correct) soundQuizCorrect()
@@ -281,7 +285,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const players: Player[] = playerNames.map((name, i) => ({
       name: name.trim() || TRANSLATIONS[language].defaultPlayerNames[i],
       color: PLAYER_COLORS[i],
-      score: 0, pairs: 0, quizzes: 0,
+      score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
     const myIndex = playerIds.indexOf(myPlayerId)
     set({
@@ -409,6 +413,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       ...p,
       pairs: Math.floor(Math.random() * 10),
       quizzes: Math.floor(Math.random() * 5),
+      wrongQuizzes: Math.floor(Math.random() * 3),
       score: 0,
     })).map(p => ({ ...p, score: p.pairs + p.quizzes }))
     set({ players, phase: 'win' })
@@ -539,7 +544,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!get().quizSymbol) return
     const updatedPlayers = players.map((p, i) => {
       const vote = quizVotes[playerIds[i]]
-      return vote === correct ? { ...p, score: p.score + 1, quizzes: p.quizzes + 1 } : p
+      if (vote === undefined) return p
+      return vote === correct
+        ? { ...p, score: p.score + 1, quizzes: p.quizzes + 1 }
+        : { ...p, wrongQuizzes: p.wrongQuizzes + 1 }
     })
     const allMatched = cards.every(c => c.state === 'matched')
     const myVote = quizVotes[get().myPlayerId]
