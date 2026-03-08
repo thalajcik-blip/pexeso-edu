@@ -102,6 +102,30 @@ export default function QuizModal() {
   const resultCorrect = isOnline ? (quizRevealCorrect ?? correct) : correct
   const isCorrect     = myVote === resultCorrect
 
+  // Keyboard shortcuts: 1-4 to pick answer, Enter to continue
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!quizSymbol || !options.length) return
+      const idx = parseInt(e.key) - 1
+      if (idx >= 0 && idx < options.length) {
+        const opt = options[idx]
+        soundQuizSelect()
+        if (isOnline) {
+          if (!myVote && !quizRevealCorrect) voteQuiz(opt)
+        } else {
+          if (!answered) setAnswered(opt)
+        }
+      }
+      if (e.key === 'Enter' && !isOnline && answered) {
+        e.preventDefault()
+        setAnswered(null)
+        answerQuiz(answered === correct)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [quizSymbol, options, myVote, quizRevealCorrect, answered, isOnline, correct, voteQuiz, answerQuiz])
+
   // Play wrong sound when result is revealed and player answered incorrectly
   useEffect(() => {
     if (revealed && myVote && !isCorrect) soundQuizWrong()
