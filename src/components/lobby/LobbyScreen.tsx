@@ -140,7 +140,7 @@ export default function LobbyScreen() {
       {/* Logo */}
       <div className="flex items-center gap-3">
         <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="Pexedu" className="w-14 h-14 drop-shadow-lg" />
-        <h1 className="text-5xl font-bold tracking-tight" style={{ color: tc.accent, textShadow: `0 0 40px ${tc.accentGlow}` }}>
+        <h1 className="text-4xl font-bold tracking-tight" style={{ color: tc.accent, textShadow: `0 0 40px ${tc.accentGlow}` }}>
           Pexedu
         </h1>
       </div>
