@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS, pluralize } from '../../data/translations'
 import { THEMES } from '../../data/themes'
+import { trunc } from '../../utils'
 
 const MEDALS = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣']
 
@@ -48,7 +49,7 @@ export default function WinModal() {
         {winners.length > 1
           ? <div className="text-lg mb-4" style={{ color: tc.accent }}>{tr.tie}</div>
           : <div className="text-lg mb-4" style={{ color: tc.accent }}
-              dangerouslySetInnerHTML={{ __html: tr.winner.replace('{name}', `<strong>${winners[0].name}</strong>`) }}
+              dangerouslySetInnerHTML={{ __html: tr.winner.replace('{name}', `<strong>${trunc(winners[0].name)}</strong>`) }}
             />
         }
 
@@ -57,7 +58,7 @@ export default function WinModal() {
             const rank = sorted.filter(other => other.score > p.score).length
             return (<div key={i}>
               <div className="text-base">
-                {MEDALS[rank]} <span style={{ color: p.color }}>{p.name}</span>: <strong>{p.score} {language === 'en' ? 'pts' : 'bodů'}</strong>
+                {MEDALS[rank]} <span style={{ color: p.color }}>{trunc(p.name)}</span>: <strong>{p.score} {language === 'en' ? 'pts' : 'bodů'}</strong>
               </div>
               <div className="text-xs pl-6 mt-0.5" style={{ color: tc.textFaint }}>
                 🃏 {pluralize(p.pairs, tr, 'pairOne', 'pairFew', 'pairMany')} &nbsp;+&nbsp; 🧠 {pluralize(p.quizzes, tr, 'quizOne', 'quizFew', 'quizMany')}

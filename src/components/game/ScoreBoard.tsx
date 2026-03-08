@@ -3,6 +3,7 @@ import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS, t } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { soundTick } from '../../services/audioService'
+import { trunc } from '../../utils'
 
 const EMOJI_OPTS = ['👍', '😱', '🎉', '😂', '🔥', '😅']
 
@@ -114,7 +115,7 @@ export default function ScoreBoard() {
               }
             >
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
-              <span className="font-medium">{p.name}</span>
+              <span className="font-medium">{trunc(p.name)}</span>
               <span key={`${i}-${p.score}`} className="score-pop font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>
                 {p.score} b.
               </span>
@@ -130,8 +131,8 @@ export default function ScoreBoard() {
         {turnMessage
           ? <span dangerouslySetInnerHTML={{ __html: turnMessage }} />
           : isMyTurn
-            ? <span dangerouslySetInnerHTML={{ __html: t(tr, 'onTurn', { name: `<strong style="color:${players[currentPlayer]?.color}">${players[currentPlayer]?.name}</strong>` }) }} />
-            : <span style={{ color: tc.textFaint }}>{tr.waitingForTurn.replace('{name}', players[currentPlayer]?.name ?? '')}</span>
+            ? <span dangerouslySetInnerHTML={{ __html: t(tr, 'onTurn', { name: `<strong style="color:${players[currentPlayer]?.color}">${trunc(players[currentPlayer]?.name ?? '')}</strong>` }) }} />
+            : <span style={{ color: tc.textFaint }}>{tr.waitingForTurn.replace('{name}', trunc(players[currentPlayer]?.name ?? ''))}</span>
         }
       </div>
 
