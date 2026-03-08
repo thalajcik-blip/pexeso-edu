@@ -78,7 +78,7 @@ export default function GameBoard() {
           {tr.rulesLink}
         </button>
         <p className="text-xs" style={{ color: tc.textFaint }}>
-          © {new Date().getFullYear()} teamplayer.cz
+          © {new Date().getFullYear()} teamplayer.cz · v{__APP_VERSION__}
         </p>
       </div>
     </div>
