@@ -50,8 +50,8 @@ export default function GameBoard() {
 
         {menuOpen && (
           <div
-            className="absolute top-10 right-0 rounded-xl py-1 min-w-[140px] shadow-xl"
-            style={{ background: tc.surface, border: `1px solid ${tc.surfaceBorder}` }}
+            className="absolute top-10 right-0 rounded-xl py-1 min-w-[180px] shadow-xl"
+            style={{ background: tc.modalSurface, border: `1px solid ${tc.surfaceBorder}` }}
           >
             <button
               onClick={() => { resetToSetup(); setMenuOpen(false) }}
