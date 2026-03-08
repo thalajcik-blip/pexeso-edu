@@ -16,6 +16,10 @@ export interface Translations {
   sizeSmall: string
   // Game
   newGame: string
+  lightMode: string
+  darkMode: string
+  soundOn: string
+  soundOff: string
   onTurn: string          // contains {name}
   turnCorrect: string     // contains {name}
   turnWrong: string       // contains {name}
@@ -85,6 +89,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sizeMedium: 'Střední',
     sizeSmall: 'Malé',
     newGame: '↺ Nová hra',
+    lightMode: 'Světlý režim',
+    darkMode: 'Tmavý režim',
+    soundOn: 'Zapnout zvuk',
+    soundOff: 'Vypnout zvuk',
     onTurn: 'Na tahu: {name}',
     turnCorrect: '✓ Správně! {name} hraje znovu.',
     turnWrong: '✗ Tentokrát ne. {name} hraje znovu.',
@@ -169,6 +177,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sizeMedium: 'Stredné',
     sizeSmall: 'Malé',
     newGame: '↺ Nová hra',
+    lightMode: 'Svetlý režim',
+    darkMode: 'Tmavý režim',
+    soundOn: 'Zapnúť zvuk',
+    soundOff: 'Vypnúť zvuk',
     onTurn: 'Na rade: {name}',
     turnCorrect: '✓ Správne! {name} hrá znovu.',
     turnWrong: '✗ Tentokrát nie. {name} hrá znovu.',
@@ -253,6 +265,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sizeMedium: 'Medium',
     sizeSmall: 'Small',
     newGame: '↺ New game',
+    lightMode: 'Light mode',
+    darkMode: 'Dark mode',
+    soundOn: 'Sound on',
+    soundOff: 'Sound off',
     onTurn: 'Turn: {name}',
     turnCorrect: '✓ Correct! {name} plays again.',
     turnWrong: '✗ Not this time. {name} plays again.',

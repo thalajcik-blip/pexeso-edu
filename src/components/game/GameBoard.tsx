@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS } from '../../data/translations'
 import { SIZE_CONFIG } from '../../types/game'
@@ -20,43 +20,74 @@ export default function GameBoard() {
   const tc = THEMES[theme]
   const cols = SIZE_CONFIG[selectedSize].cols
   const [muted, setMuted] = useState(isMuted)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [menuOpen])
 
   return (
     <div className="px-4 pt-3 pb-4">
-      <ScoreBoard />
 
-      <div className="flex justify-center items-center gap-4 mb-1.5">
+      {/* Settings button — fixed top-right */}
+      <div ref={menuRef} className="fixed top-3 right-3 z-30">
         <button
-          onClick={resetToSetup}
-          className="text-xs px-3 py-1 rounded-md transition-colors"
-          style={{ background: tc.newGameBg, border: `1px solid ${tc.newGameBorder}`, color: tc.newGameText }}
+          onClick={() => setMenuOpen(o => !o)}
+          className="w-8 h-8 flex items-center justify-center rounded-full text-base transition-opacity"
+          style={{ background: tc.scorePillBg, opacity: menuOpen ? 1 : 0.5 }}
         >
-          {tr.newGame}
+          ⚙️
         </button>
-        <button
-          onClick={toggleTheme}
-          className="text-xs px-2 py-1 rounded-md transition-colors"
-          style={{ background: tc.newGameBg, border: `1px solid ${tc.newGameBorder}`, color: tc.newGameText }}
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
-        <button
-          onClick={() => setMuted(toggleMuted())}
-          className="text-xs px-2 py-1 rounded-md transition-colors"
-          style={{ background: tc.newGameBg, border: `1px solid ${tc.newGameBorder}`, color: tc.newGameText }}
-        >
-          {muted ? '🔇' : '🔊'}
-        </button>
-        {import.meta.env.DEV && (
-          <button
-            onClick={debugEndGame}
-            className="text-xs px-3 py-1 rounded-md"
-            style={{ background: 'rgba(255,0,0,0.15)', border: '1px solid rgba(255,0,0,0.3)', color: 'rgba(255,100,100,0.8)' }}
+
+        {menuOpen && (
+          <div
+            className="absolute top-10 right-0 rounded-xl py-1 min-w-[140px] shadow-xl"
+            style={{ background: tc.surface, border: `1px solid ${tc.surfaceBorder}` }}
           >
-            ⚡ Debug
-          </button>
+            <button
+              onClick={() => { resetToSetup(); setMenuOpen(false) }}
+              className="w-full text-left px-4 py-2.5 text-sm transition-opacity hover:opacity-70"
+              style={{ color: tc.text }}
+            >
+              {tr.newGame}
+            </button>
+            <button
+              onClick={() => { toggleTheme(); setMenuOpen(false) }}
+              className="w-full text-left px-4 py-2.5 text-sm transition-opacity hover:opacity-70"
+              style={{ color: tc.text }}
+            >
+              {theme === 'dark' ? '☀️ ' : '🌙 '}{theme === 'dark' ? tr.lightMode : tr.darkMode}
+            </button>
+            <button
+              onClick={() => { setMuted(toggleMuted()); setMenuOpen(false) }}
+              className="w-full text-left px-4 py-2.5 text-sm transition-opacity hover:opacity-70"
+              style={{ color: tc.text }}
+            >
+              {muted ? '🔇 ' : '🔊 '}{muted ? tr.soundOn : tr.soundOff}
+            </button>
+            {import.meta.env.DEV && (
+              <button
+                onClick={() => { debugEndGame(); setMenuOpen(false) }}
+                className="w-full text-left px-4 py-2.5 text-sm"
+                style={{ color: 'rgba(255,100,100,0.8)' }}
+              >
+                ⚡ Debug
+              </button>
+            )}
+          </div>
         )}
       </div>
+
+      <ScoreBoard />
 
       <div className="rounded-xl py-2 px-1" style={{ background: tc.cardGridBg, overflow: 'clip' }}>
         <div
