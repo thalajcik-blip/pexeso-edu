@@ -140,7 +140,7 @@ export default function LobbyScreen() {
       {/* Logo */}
       <div className="flex items-center gap-3">
         {/* logo hidden temporarily */}
-        <h1 className="text-4xl font-bold tracking-tight" style={{ color: tc.accent, textShadow: `0 0 40px ${tc.accentGlow}` }}>
+        <h1 className="text-3xl font-semibold tracking-tight lowercase" style={{ color: tc.accent, textShadow: `0 0 40px ${tc.accentGlow}` }}>
           Pexedu
         </h1>
       </div>
