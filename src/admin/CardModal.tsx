@@ -35,8 +35,28 @@ export default function CardModal({ deckId, card, sortOrder, onSave, onClose }: 
   const [funFact, setFunFact]           = useState(card?.fun_fact ?? '')
   const [uploading, setUploading]       = useState(false)
   const [saving, setSaving]             = useState(false)
+  const [generating, setGenerating]     = useState(false)
   const [error, setError]               = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+
+  async function handleGenerate() {
+    if (!label.trim()) { setError('Nejprve zadejte label/popis kartičky.'); return }
+    setGenerating(true)
+    setError('')
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('generate-quiz', {
+        body: { label: label.trim() },
+      })
+      if (fnError) throw fnError
+      setQuestion(data.question)
+      setOptions(data.options)
+      setCorrect(data.correct)
+      setFunFact(data.fun_fact)
+    } catch (e) {
+      setError('Chyba při generování: ' + String(e))
+    }
+    setGenerating(false)
+  }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -168,7 +188,17 @@ export default function CardModal({ deckId, card, sortOrder, onSave, onClose }: 
 
             {/* Quiz section */}
             <div className="border border-gray-100 rounded-xl p-4 mb-5 space-y-3">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Kvíz <span className="font-normal normal-case text-gray-300">(volitelné)</span></div>
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Kvíz <span className="font-normal normal-case text-gray-300">(volitelné)</span></div>
+                <button
+                  type="button"
+                  onClick={handleGenerate}
+                  disabled={generating || !label.trim()}
+                  className="text-xs px-3 py-1 rounded-lg bg-indigo-50 text-indigo-600 font-medium hover:bg-indigo-100 disabled:opacity-40 transition-colors"
+                >
+                  {generating ? '⏳ Generuji…' : '✨ Generovat AI'}
+                </button>
+              </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Otázka</label>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
 import CardModal, { type CardData } from './CardModal'
+import BulkUploadModal from './BulkUploadModal'
 
 type Deck = {
   id: string
@@ -28,7 +29,8 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [isPrivate, setIsPrivate] = useState(false)
   const [status, setStatus]     = useState<Deck['status']>('draft')
   const [cards, setCards]       = useState<CardData[]>([])
-  const [editCard, setEditCard] = useState<CardData | 'new' | null>(null)
+  const [editCard, setEditCard]   = useState<CardData | 'new' | null>(null)
+  const [bulkOpen, setBulkOpen]   = useState(false)
   const [saving, setSaving]     = useState(false)
   const [loading, setLoading]   = useState(!!deckId)
   const [saved, setSaved]       = useState(false)
@@ -180,12 +182,20 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             <h2 className="font-semibold text-gray-700">
               Kartičky <span className="text-gray-400 font-normal">({cards.length})</span>
             </h2>
-            <button
-              onClick={() => setEditCard('new')}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
-            >
-              + Přidat kartičku
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setBulkOpen(true)}
+                className="px-4 py-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition-colors"
+              >
+                + Hromadně
+              </button>
+              <button
+                onClick={() => setEditCard('new')}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
+              >
+                + Přidat kartičku
+              </button>
+            </div>
           </div>
 
           {cards.length === 0 ? (
@@ -229,6 +239,16 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         <div className="text-sm text-gray-400 text-center py-8">
           Nejprve vytvořte deck, pak budete moci přidávat kartičky.
         </div>
+      )}
+
+      {/* Bulk upload modal */}
+      {bulkOpen && currentDeckId && (
+        <BulkUploadModal
+          deckId={currentDeckId}
+          startIndex={cards.length}
+          onDone={() => { setBulkOpen(false); reloadCards() }}
+          onClose={() => setBulkOpen(false)}
+        />
       )}
 
       {/* Card modal */}
