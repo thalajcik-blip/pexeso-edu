@@ -2,9 +2,11 @@ import { useGameStore } from '../../store/gameStore'
 import { DECKS } from '../../data/decks'
 import { TRANSLATIONS } from "../../data/translations"
 import { DEFAULT_NAMES, PLAYER_COLORS } from '../../types/game'
-import type { DeckId, BoardSize } from '../../types/game'
+import type { DeckId, BoardSize, CustomDeckData } from '../../types/game'
 import type { Language } from '../../data/translations'
 import { THEMES } from '../../data/themes'
+import { useEffect, useState } from 'react'
+import { supabase } from '../../services/supabase'
 
 const SIZES: { id: BoardSize; labelKey: 'sizeLarge' | 'sizeMedium' | 'sizeSmall'; grid: string }[] = [
   { id: 'small',  labelKey: 'sizeSmall',  grid: '4×4' },
@@ -18,6 +20,34 @@ const LANGUAGES: { id: Language; label: string; flag: string }[] = [
   { id: 'en', label: 'English',   flag: '🇬🇧' },
 ]
 
+type CustomDeckMeta = {
+  id: string
+  title: string
+  thumbnail: string | null
+}
+
+async function loadCustomDeckFull(id: string): Promise<CustomDeckData | null> {
+  const { data: cards } = await supabase
+    .from('custom_cards')
+    .select('image_url, label, quiz_question, quiz_options, quiz_correct, fun_fact')
+    .eq('deck_id', id)
+    .order('sort_order')
+  if (!cards) return null
+  const pool: CustomDeckData['pool'] = {}
+  cards.forEach((c: { image_url: string; label: string; quiz_question: string | null; quiz_options: [string,string,string,string] | null; quiz_correct: string | null; fun_fact: string | null }) => {
+    pool[c.image_url] = {
+      image_url: c.image_url,
+      label: c.label,
+      quiz_question: c.quiz_question,
+      quiz_options: c.quiz_options,
+      quiz_correct: c.quiz_correct,
+      fun_fact: c.fun_fact,
+    }
+  })
+  const thumbnail = cards[0]?.image_url ?? null
+  return { id, title: '', thumbnail, pool }
+}
+
 export default function SetupScreen() {
   const {
     language, setLanguage,
@@ -28,6 +58,37 @@ export default function SetupScreen() {
     playerNames, setPlayerName,
     startGame, openRules, goToLobby,
   } = useGameStore()
+
+  const [customDecks, setCustomDecks] = useState<CustomDeckMeta[]>([])
+
+  useEffect(() => {
+    supabase
+      .from('custom_decks')
+      .select('id, title, status')
+      .eq('status', 'approved')
+      .then(({ data }) => {
+        if (!data) return
+        // Fetch first card thumbnail for each deck
+        Promise.all(
+          data.map(async (d: { id: string; title: string }) => {
+            const { data: cards } = await supabase
+              .from('custom_cards')
+              .select('image_url')
+              .eq('deck_id', d.id)
+              .order('sort_order')
+              .limit(1)
+            return { id: d.id, title: d.title, thumbnail: cards?.[0]?.image_url ?? null }
+          })
+        ).then(setCustomDecks)
+      })
+  }, [])
+
+  async function handleSelectCustomDeck(meta: CustomDeckMeta) {
+    const full = await loadCustomDeckFull(meta.id)
+    if (!full) return
+    full.title = meta.title
+    selectDeck(meta.id, full)
+  }
 
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
@@ -81,6 +142,21 @@ export default function SetupScreen() {
               >
                 <span className="text-3xl leading-none">{deck.icon}</span>
                 <span className="text-xs">{tr.deckNames[deck.id as DeckId]}</span>
+              </button>
+            ))}
+            {customDecks.map(cd => (
+              <button
+                key={cd.id}
+                onClick={() => handleSelectCustomDeck(cd)}
+                className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer overflow-hidden"
+                style={selectedDeckId === cd.id ? activeBtn : inactiveBtn}
+              >
+                {cd.thumbnail ? (
+                  <img src={cd.thumbnail} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                ) : (
+                  <span className="text-3xl leading-none">🃏</span>
+                )}
+                <span className="text-xs truncate w-full text-center">{cd.title}</span>
               </button>
             ))}
           </div>

@@ -6,10 +6,12 @@ import { EN_QUIZ } from '../../data/enQuiz'
 import { THEMES } from '../../data/themes'
 import { shuffle } from '../../utils/shuffle'
 import { soundQuizSelect, soundQuizWrong, soundQuizTimeout, soundTick } from '../../services/audioService'
+import type { DeckId } from '../../types/game'
 
 export default function QuizModal() {
   const quizSymbol        = useGameStore(s => s.quizSymbol)
   const selectedDeckId    = useGameStore(s => s.selectedDeckId)
+  const customDeck        = useGameStore(s => s.customDeck)
   const language          = useGameStore(s => s.language)
   const theme             = useGameStore(s => s.theme)
   const players           = useGameStore(s => s.players)
@@ -64,9 +66,25 @@ export default function QuizModal() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizVotes, quizCountdownEnd])
 
+  const isCustomDeck = !!(customDeck && customDeck.id === selectedDeckId)
+
   // Stable quiz data — computed once per quizSymbol, never reshuffled on re-render
   const { correct, options, hint } = useMemo(() => {
     if (!quizSymbol) return { correct: '', options: [] as string[], hint: '' }
+
+    // Custom deck: per-card quiz data
+    if (isCustomDeck && customDeck) {
+      const card = customDeck.pool[quizSymbol]
+      if (card?.quiz_options && card?.quiz_correct) {
+        return {
+          correct: card.quiz_correct,
+          options: shuffle([...card.quiz_options]),
+          hint: card.label ?? '',
+        }
+      }
+      return { correct: '', options: [] as string[], hint: card?.label ?? '' }
+    }
+
     const deck   = DECKS.find(d => d.id === selectedDeckId)!
     const item   = deck.pool[quizSymbol]
     const isEn   = language === 'en'
@@ -89,12 +107,17 @@ export default function QuizModal() {
 
   if (!quizSymbol) return null
 
-  const deck   = DECKS.find(d => d.id === selectedDeckId)!
-  const item   = deck.pool[quizSymbol]
   const player = players[currentPlayer]
   const tr     = TRANSLATIONS[language]
+
+  // Custom deck card lookup
+  const customCard = isCustomDeck && customDeck ? customDeck.pool[quizSymbol] : null
+
+  // Static deck data (only when not custom)
+  const deck   = !isCustomDeck ? DECKS.find(d => d.id === selectedDeckId) : null
+  const item   = deck?.pool[quizSymbol] ?? null
   const isEn   = language === 'en'
-  const enData = isEn ? EN_QUIZ[quizSymbol] : null
+  const enData = isEn && !isCustomDeck ? EN_QUIZ[quizSymbol] : null
 
   // Online: my vote from store; local: local state
   const myVote        = isOnline ? (quizVotes[myPlayerId] ?? null) : answered
@@ -153,11 +176,22 @@ export default function QuizModal() {
 
         <div className="text-sm font-semibold" style={{ color: player.color }}>{player.name}</div>
 
-        <div className="text-7xl leading-none">{quizSymbol}</div>
+        {isCustomDeck ? (
+          <img
+            src={quizSymbol}
+            alt={hint}
+            className="mx-auto rounded-xl object-cover"
+            style={{ width: 120, height: 120 }}
+          />
+        ) : (
+          <div className="text-7xl leading-none">{quizSymbol}</div>
+        )}
         {hint && <div className="text-xl font-bold">{hint}</div>}
 
         <div className="text-base font-medium" style={{ color: tc.textDim }}>
-          {tr.deckQuestions[selectedDeckId]}
+          {isCustomDeck
+            ? (customCard?.quiz_question ?? '')
+            : tr.deckQuestions[selectedDeckId as DeckId]}
         </div>
 
         {/* Online: vote status row + countdown */}
@@ -216,7 +250,12 @@ export default function QuizModal() {
         )}
 
         {/* Fun fact */}
-        {myVote && revealed && (!isEn || !enData) && item.fact && (
+        {myVote && revealed && isCustomDeck && customCard?.fun_fact && (
+          <div className="text-xs px-4 py-2.5 rounded-xl" style={{ background: tc.factBg, color: tc.factText }}>
+            💡 {customCard.fun_fact}
+          </div>
+        )}
+        {myVote && revealed && !isCustomDeck && (!isEn || !enData) && item?.fact && (
           <div className="text-xs px-4 py-2.5 rounded-xl" style={{ background: tc.factBg, color: tc.factText }}>
             💡 {isEn ? (item.factEn || item.fact) : language === 'sk' ? (item.factSk || item.fact) : item.fact}
           </div>

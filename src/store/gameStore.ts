@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { DeckId, BoardSize, GamePhase, CardData, Player } from '../types/game'
+import type { DeckId, BoardSize, GamePhase, CardData, Player, CustomDeckData } from '../types/game'
 import { SIZE_CONFIG, PLAYER_COLORS, DEFAULT_NAMES } from '../types/game'
 import { DECKS } from '../data/decks'
 import { EN_QUIZ } from '../data/enQuiz'
@@ -26,7 +26,10 @@ import type { LobbyPlayer, GameAction } from '../services/multiplayerService'
 const SESSION_ROOM_KEY = 'qm_last_room'
 
 
-function computeCorrectAnswer(quizSymbol: string, selectedDeckId: string, language: string): string {
+function computeCorrectAnswer(quizSymbol: string, selectedDeckId: string, language: string, customDeck: CustomDeckData | null): string {
+  if (customDeck && customDeck.id === selectedDeckId) {
+    return customDeck.pool[quizSymbol]?.quiz_correct ?? ''
+  }
   const deck = DECKS.find(d => d.id === selectedDeckId)!
   const item = deck.pool[quizSymbol]
   const isEn = language === 'en'
@@ -40,7 +43,8 @@ interface GameStore {
   // Setup
   language: Language
   theme: Theme
-  selectedDeckId: DeckId
+  selectedDeckId: string  // DeckId or custom deck UUID
+  customDeck: CustomDeckData | null
   selectedSize: BoardSize
   numPlayers: number
   playerNames: string[]
@@ -80,7 +84,7 @@ interface GameStore {
   // Setup actions
   setLanguage: (lang: Language) => void
   toggleTheme: () => void
-  selectDeck: (id: DeckId) => void
+  selectDeck: (id: string, customDeck?: CustomDeckData) => void
   selectSize: (size: BoardSize) => void
   setNumPlayers: (n: number) => void
   setPlayerName: (i: number, name: string) => void
@@ -127,6 +131,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   language: 'cs',
   theme: 'dark',
   selectedDeckId: 'flags',
+  customDeck: null,
   selectedSize: 'medium',
   numPlayers: 2,
   playerNames: [...DEFAULT_NAMES],
@@ -157,7 +162,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
 
   setLanguage: (lang) => set({ language: lang, playerNames: [...TRANSLATIONS[lang].defaultPlayerNames] }),
   toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
-  selectDeck: (id) => set({ selectedDeckId: id }),
+  selectDeck: (id, customDeck) => set({ selectedDeckId: id, customDeck: customDeck ?? null }),
   selectSize: (size) => set({ selectedSize: size }),
   setNumPlayers: (n) => set({ numPlayers: n }),
   setPlayerName: (i, name) => {
@@ -185,10 +190,12 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   startGame: () => {
-    const { selectedDeckId, selectedSize, numPlayers, playerNames } = get()
-    const deck = DECKS.find(d => d.id === selectedDeckId)!
+    const { selectedDeckId, selectedSize, numPlayers, playerNames, customDeck } = get()
     const size = SIZE_CONFIG[selectedSize]
-    const symbols = shuffle(Object.keys(deck.pool)).slice(0, size.pairs)
+    const poolKeys = customDeck && customDeck.id === selectedDeckId
+      ? Object.keys(customDeck.pool)
+      : Object.keys(DECKS.find(d => d.id === selectedDeckId)!.pool)
+    const symbols = shuffle(poolKeys).slice(0, size.pairs)
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
     const players: Player[] = Array.from({ length: numPlayers }, (_, i) => ({
@@ -377,11 +384,13 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   playAgain: () => {
-    const { isOnline, isHost, players, playerIds, selectedDeckId, selectedSize, turnTime, quizTime } = get()
+    const { isOnline, isHost, players, playerIds, selectedDeckId, selectedSize, turnTime, quizTime, customDeck } = get()
     if (isOnline && !isHost) return
-    const deck = DECKS.find(d => d.id === selectedDeckId)!
     const size = SIZE_CONFIG[selectedSize]
-    const symbols = shuffle(Object.keys(deck.pool)).slice(0, size.pairs)
+    const poolKeys = customDeck && customDeck.id === selectedDeckId
+      ? Object.keys(customDeck.pool)
+      : Object.keys(DECKS.find(d => d.id === selectedDeckId)!.pool)
+    const symbols = shuffle(poolKeys).slice(0, size.pairs)
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
 
@@ -483,7 +492,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   startOnlineGame: () => {
-    const { lobbyPlayers, selectedDeckId, selectedSize, myPlayerId, turnTime, quizTime } = get()
+    const { lobbyPlayers, selectedDeckId, selectedSize, myPlayerId, turnTime, quizTime, customDeck } = get()
     // Sort: host first, then by joinedAt
     const sorted = [...lobbyPlayers].sort((a, b) => {
       if (a.isHost && !b.isHost) return -1
@@ -492,9 +501,11 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     })
     const playerIds = sorted.map(p => p.id)
     const playerNames = sorted.map(p => p.name)
-    const deck = DECKS.find(d => d.id === selectedDeckId)!
     const size = SIZE_CONFIG[selectedSize]
-    const symbols = shuffle(Object.keys(deck.pool)).slice(0, size.pairs)
+    const poolKeys = customDeck && customDeck.id === selectedDeckId
+      ? Object.keys(customDeck.pool)
+      : Object.keys(DECKS.find(d => d.id === selectedDeckId)!.pool)
+    const symbols = shuffle(poolKeys).slice(0, size.pairs)
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
     const startingPlayer = Math.floor(Math.random() * playerIds.length)
@@ -526,9 +537,9 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   _triggerReveal: () => {
-    const { quizSymbol, selectedDeckId, language } = get()
+    const { quizSymbol, selectedDeckId, language, customDeck } = get()
     if (!quizSymbol) return
-    const correct = computeCorrectAnswer(quizSymbol, selectedDeckId, language)
+    const correct = computeCorrectAnswer(quizSymbol, selectedDeckId, language, customDeck)
     set({ quizRevealCorrect: correct })
     setTimeout(() => get()._resolveQuizVotes(correct), 1500)
   },

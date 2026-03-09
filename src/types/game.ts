@@ -2,6 +2,22 @@ export type DeckId = 'animals' | 'flags' | 'fruits' | 'jobs'
 export type BoardSize = 'large' | 'medium' | 'small'
 export type GamePhase = 'setup' | 'lobby' | 'playing' | 'quiz' | 'win'
 
+export interface CustomDeckCard {
+  image_url: string
+  label: string
+  quiz_question: string | null
+  quiz_options: [string, string, string, string] | null
+  quiz_correct: string | null
+  fun_fact: string | null
+}
+
+export interface CustomDeckData {
+  id: string
+  title: string
+  thumbnail: string | null  // first card image_url
+  pool: Record<string, CustomDeckCard>  // keyed by image_url
+}
+
 export interface DeckItem {
   hint: string | null
   hintSk?: string

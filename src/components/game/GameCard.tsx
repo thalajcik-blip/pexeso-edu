@@ -53,14 +53,16 @@ const GameCard = memo(function GameCard({ card }: Props) {
         </div>
         {/* Front */}
         <div
-          className="card-front absolute inset-0 flex items-center justify-center rounded-[6px]"
+          className="card-front absolute inset-0 flex items-center justify-center rounded-[6px] overflow-hidden"
           style={{
             background: isMatched ? tc.cardMatched : isWrong ? tc.errorBg : tc.cardFront,
             fontSize: EMOJI_SIZE[selectedSize],
             opacity: isMatched ? 0.65 : 1,
           }}
         >
-          {card.symbol}
+          {card.symbol.startsWith('http') ? (
+            <img src={card.symbol} alt="" className="w-full h-full object-cover" draggable={false} />
+          ) : card.symbol}
           {isMatched && card.matchedBy !== undefined && players[card.matchedBy] && (
             <span
               className="absolute top-1 right-1 rounded-full"
