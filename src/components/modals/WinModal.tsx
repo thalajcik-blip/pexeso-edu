@@ -60,7 +60,7 @@ export default function WinModal() {
               <div className="text-base">
                 {MEDALS[rank]} <span style={{ color: p.color }}>{trunc(p.name)}</span>: <strong>{p.score} {language === 'en' ? 'pts' : 'bodů'}</strong>
               </div>
-              <div className="text-xs pl-6 mt-0.5" style={{ color: tc.textMuted }}>
+              <div className="text-xs pl-6 mt-0.5" style={{ color: tc.textDim }}>
                 🃏 {pluralize(p.pairs, tr, 'pairOne', 'pairFew', 'pairMany')} &nbsp;+&nbsp; 🧠 {pluralize(p.quizzes, tr, 'quizOne', 'quizFew', 'quizMany')}
                 {(p.quizzes + p.wrongQuizzes) > 0 && (
                   <span style={{ color: tc.textMuted }}>
