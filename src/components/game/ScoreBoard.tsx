@@ -25,6 +25,26 @@ export default function ScoreBoard() {
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; playerIndex: number }[]>([])
   const floatIdRef = useRef(0)
 
+  // Flash "Je tvůj tah!" when turn switches to me
+  const [showYourTurnFlash, setShowYourTurnFlash] = useState(false)
+  const prevCurrentPlayer = useRef<number | null>(null)
+  useEffect(() => {
+    if (
+      isOnline &&
+      phase === 'playing' &&
+      isMyTurn &&
+      prevCurrentPlayer.current !== null &&
+      prevCurrentPlayer.current !== currentPlayer
+    ) {
+      setShowYourTurnFlash(true)
+      const timer = setTimeout(() => setShowYourTurnFlash(false), 2000)
+      prevCurrentPlayer.current = currentPlayer
+      return () => clearTimeout(timer)
+    }
+    prevCurrentPlayer.current = currentPlayer
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPlayer])
+
   const removeFloat = useCallback((id: number) => {
     setFloatingEmojis(prev => prev.filter(e => e.id !== id))
   }, [])
@@ -131,6 +151,16 @@ export default function ScoreBoard() {
             : <span style={{ color: tc.textFaint }}>{tr.waitingForTurn.replace('{name}', trunc(players[currentPlayer]?.name ?? ''))}</span>
         }
       </div>
+
+      {/* Your turn flash */}
+      {showYourTurnFlash && (
+        <div
+          className="your-turn-flash"
+          style={{ color: tc.accent, borderColor: tc.accentBorderActive, background: tc.accentBgActive }}
+        >
+          {tr.yourTurn}
+        </div>
+      )}
 
       {/* Turn timer bar */}
       {showTimer && (

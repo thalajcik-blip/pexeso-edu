@@ -118,3 +118,25 @@ button, a { cursor: pointer; }
   z-index: 20;
   animation: emoji-float 1.4s ease-out forwards;
 }
+
+@keyframes your-turn-flash {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(-12px) scale(0.9); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0)     scale(1.05); }
+  70%  { opacity: 1; transform: translateX(-50%) translateY(0)     scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-8px)  scale(0.95); }
+}
+.your-turn-flash {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  z-index: 100;
+  pointer-events: none;
+  padding: 0.6rem 1.6rem;
+  border-radius: 9999px;
+  border: 2px solid;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  animation: your-turn-flash 2s ease-in-out forwards;
+}

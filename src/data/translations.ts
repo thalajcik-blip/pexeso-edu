@@ -74,6 +74,7 @@ export interface Translations {
   turnTimeOff: string
   rematchRequest: string
   rematchWaiting: string
+  yourTurn: string
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -163,6 +164,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     turnTimeOff: 'Bez limitu',
     rematchRequest: 'Hrát znovu?',
     rematchWaiting: 'Čekám na soupeře...',
+    yourTurn: 'Je tvůj tah!',
   },
 
   sk: {
@@ -251,6 +253,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     turnTimeOff: 'Bez limitu',
     rematchRequest: 'Hrať znovu?',
     rematchWaiting: 'Čakám na súpera...',
+    yourTurn: 'Je tvoj rad!',
   },
 
   en: {
@@ -339,6 +342,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     turnTimeOff: 'Unlimited',
     rematchRequest: 'Rematch?',
     rematchWaiting: 'Waiting for opponent...',
+    yourTurn: 'Your turn!',
   },
 }
 
