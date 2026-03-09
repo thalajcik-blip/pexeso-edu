@@ -132,13 +132,13 @@ export default function SetupScreen() {
         {/* Deck */}
         <div>
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.deckLabel}</div>
-          <div className="grid grid-cols-4 gap-3">
+          <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
             {DECKS.map(deck => (
               <button
                 key={deck.id}
                 onClick={() => selectDeck(deck.id as DeckId)}
-                className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer"
-                style={selectedDeckId === deck.id ? activeBtn : inactiveBtn}
+                className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer flex-shrink-0"
+                style={{ ...( selectedDeckId === deck.id ? activeBtn : inactiveBtn), width: 72 }}
               >
                 <span className="text-3xl leading-none">{deck.icon}</span>
                 <span className="text-xs">{tr.deckNames[deck.id as DeckId]}</span>
@@ -148,8 +148,8 @@ export default function SetupScreen() {
               <button
                 key={cd.id}
                 onClick={() => handleSelectCustomDeck(cd)}
-                className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer overflow-hidden"
-                style={selectedDeckId === cd.id ? activeBtn : inactiveBtn}
+                className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer overflow-hidden flex-shrink-0"
+                style={{ ...(selectedDeckId === cd.id ? activeBtn : inactiveBtn), width: 72 }}
               >
                 {cd.thumbnail ? (
                   <img src={cd.thumbnail} alt="" className="w-8 h-8 rounded-lg object-cover" />
