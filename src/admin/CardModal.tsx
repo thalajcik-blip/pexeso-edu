@@ -44,13 +44,20 @@ export default function CardModal({ deckId, card, sortOrder, onSave, onClose }: 
     setGenerating(true)
     setError('')
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('generate-quiz', {
-        body: { label: label.trim() },
+      const session = await supabase.auth.getSession()
+      const token = session.data.session?.access_token
+      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`
+      const resp = await fetch(fnUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ label: label.trim() }),
       })
-      if (fnError) {
-        const details = await fnError.context?.json?.().catch(() => null)
-        throw new Error(details?.error ?? fnError.message)
-      }
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data?.error ?? `HTTP ${resp.status}`)
       setQuestion(data.question)
       setOptions(data.options)
       setCorrect(data.correct)
