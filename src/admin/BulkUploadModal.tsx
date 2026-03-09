@@ -20,12 +20,13 @@ type PendingCard = {
 
 type Props = {
   deckId: string
+  language: 'cs' | 'sk' | 'en'
   startIndex: number
   onDone: () => void
   onClose: () => void
 }
 
-export default function BulkUploadModal({ deckId, startIndex, onDone, onClose }: Props) {
+export default function BulkUploadModal({ deckId, language, startIndex, onDone, onClose }: Props) {
   const [cards, setCards]       = useState<PendingCard[]>([])
   const [cropIndex, setCropIndex] = useState<number | null>(null)
   const [savingAll, setSavingAll] = useState(false)
@@ -86,7 +87,7 @@ export default function BulkUploadModal({ deckId, startIndex, onDone, onClose }:
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({ label: card.label.trim() }),
+        body: JSON.stringify({ label: card.label.trim(), language }),
       })
       const data = await resp.json()
       if (!resp.ok) throw new Error(data?.error ?? `HTTP ${resp.status}`)

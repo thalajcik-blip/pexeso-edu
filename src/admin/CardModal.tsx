@@ -16,13 +16,14 @@ export type CardData = {
 
 type Props = {
   deckId: string
+  language: 'cs' | 'sk' | 'en'
   card?: CardData
   sortOrder: number
   onSave: () => void
   onClose: () => void
 }
 
-export default function CardModal({ deckId, card, sortOrder, onSave, onClose }: Props) {
+export default function CardModal({ deckId, language, card, sortOrder, onSave, onClose }: Props) {
   const [imageUrl, setImageUrl]         = useState(card?.image_url ?? '')
   const [imagePreview, setImagePreview] = useState(card?.image_url ?? '')
   const [cropSrc, setCropSrc]           = useState<string | null>(null)
@@ -52,7 +53,7 @@ export default function CardModal({ deckId, card, sortOrder, onSave, onClose }: 
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({ label: label.trim() }),
+        body: JSON.stringify({ label: label.trim(), language }),
       })
       const data = await resp.json()
       if (!resp.ok) throw new Error(data?.error ?? `HTTP ${resp.status}`)

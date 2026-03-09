@@ -1,3 +1,29 @@
+const LANG_CONFIG = {
+  cs: { lang: 'češtině', example: 'Jak se jmenuje ...?' },
+  sk: { lang: 'slovenčine', example: 'Ako sa volá ...?' },
+  en: { lang: 'English', example: 'What is the name of ...?' },
+}
+
+function buildPrompt(label: string, language: string): string {
+  const cfg = LANG_CONFIG[language as keyof typeof LANG_CONFIG] ?? LANG_CONFIG.cs
+  return `Create a quiz question for an educational memory card game about: "${label}"
+
+Return JSON in this exact format (JSON only, no other text):
+{
+  "question": "${cfg.example}",
+  "options": ["correct answer", "wrong answer 2", "wrong answer 3", "wrong answer 4"],
+  "correct": "correct answer",
+  "fun_fact": "An interesting fact in 1-2 sentences."
+}
+
+Rules:
+- Question, options and fun_fact must be in ${cfg.lang}
+- First option in options array must be the correct answer (will be shuffled)
+- Wrong answers must be plausible but clearly incorrect
+- Fun fact must be real and interesting for children
+- Everything in ${cfg.lang} only, no mixing of languages`
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -9,7 +35,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { label } = await req.json()
+    const { label, language = 'cs' } = await req.json()
     if (!label) {
       return new Response(JSON.stringify({ error: 'label is required' }), {
         status: 400,
@@ -32,22 +58,7 @@ Deno.serve(async (req) => {
         max_tokens: 512,
         messages: [{
           role: 'user',
-          content: `Vytvoř kvízovou otázku pro vzdělávací pexeso o: "${label}"
-
-Vrať JSON v tomto přesném formátu (pouze JSON, žádný jiný text):
-{
-  "question": "Jak se jmenuje ...?",
-  "options": ["správná odpověď", "špatná odpověď 2", "špatná odpověď 3", "špatná odpověď 4"],
-  "correct": "správná odpověď",
-  "fun_fact": "Zajímavost v 1-2 větách."
-}
-
-Pravidla:
-- Otázka musí být v češtině
-- První možnost v options musí být správná odpověď (bude zamíchána)
-- Špatné odpovědi musí být věrohodné, ale jednoznačně špatné
-- Zajímavost musí být skutečná a zajímavá pro děti
-- Vše v češtině`,
+          content: buildPrompt(label, language),
         }],
       }),
     })

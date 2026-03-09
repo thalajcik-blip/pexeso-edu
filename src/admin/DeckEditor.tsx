@@ -10,6 +10,7 @@ type Deck = {
   status: 'draft' | 'pending' | 'approved' | 'rejected'
   is_private: boolean
   private_code: string | null
+  language: 'cs' | 'sk' | 'en'
 }
 
 type Props = {
@@ -27,6 +28,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [title, setTitle]       = useState('')
   const [desc, setDesc]         = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
+  const [language, setLanguage] = useState<Deck['language']>('cs')
   const [status, setStatus]     = useState<Deck['status']>('draft')
   const [cards, setCards]       = useState<CardData[]>([])
   const [editCard, setEditCard]   = useState<CardData | 'new' | null>(null)
@@ -46,6 +48,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         setTitle(d.title)
         setDesc(d.description ?? '')
         setIsPrivate(d.is_private)
+        setLanguage(d.language ?? 'cs')
         setStatus(d.status)
       }
       setCards(c ?? [])
@@ -61,6 +64,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       description: desc.trim() || null,
       is_private:  isPrivate,
       private_code: isPrivate ? (deck?.private_code ?? generateCode()) : null,
+      language,
       status,
       updated_at: new Date().toISOString(),
     }
@@ -135,7 +139,20 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         </div>
 
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Jazyk decku</label>
+            <select
+              value={language}
+              onChange={e => setLanguage(e.target.value as Deck['language'])}
+              className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-400"
+            >
+              <option value="cs">🇨🇿 Čeština</option>
+              <option value="sk">🇸🇰 Slovenčina</option>
+              <option value="en">🇬🇧 English</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 mt-4">
             <input
               id="private"
               type="checkbox"
@@ -193,7 +210,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
                 onClick={() => setEditCard('new')}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
               >
-                + Přidat kartičku
+                + Kartičku
               </button>
             </div>
           </div>
@@ -245,6 +262,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       {bulkOpen && currentDeckId && (
         <BulkUploadModal
           deckId={currentDeckId}
+          language={language}
           startIndex={cards.length}
           onDone={() => { setBulkOpen(false); reloadCards() }}
           onClose={() => setBulkOpen(false)}
@@ -255,6 +273,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       {editCard && currentDeckId && (
         <CardModal
           deckId={currentDeckId}
+          language={language}
           card={editCard === 'new' ? undefined : editCard}
           sortOrder={cards.length}
           onSave={() => { setEditCard(null); reloadCards() }}
