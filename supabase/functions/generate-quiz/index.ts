@@ -1,5 +1,3 @@
-import Anthropic from 'npm:@anthropic-ai/sdk'
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -19,14 +17,22 @@ Deno.serve(async (req) => {
       })
     }
 
-    const client = new Anthropic()
+    const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
+    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set')
 
-    const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 512,
-      messages: [{
-        role: 'user',
-        content: `Vytvoř kvízovou otázku pro vzdělávací pexeso o: "${label}"
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 512,
+        messages: [{
+          role: 'user',
+          content: `Vytvoř kvízovou otázku pro vzdělávací pexeso o: "${label}"
 
 Vrať JSON v tomto přesném formátu (pouze JSON, žádný jiný text):
 {
@@ -42,18 +48,22 @@ Pravidla:
 - Špatné odpovědi musí být věrohodné, ale jednoznačně špatné
 - Zajímavost musí být skutečná a zajímavá pro děti
 - Vše v češtině`,
-      }],
+        }],
+      }),
     })
 
-    const text = (message.content[0] as { type: string; text: string }).text.trim()
+    if (!response.ok) {
+      const err = await response.text()
+      throw new Error(`Anthropic API error: ${response.status} ${err}`)
+    }
 
-    // Extract JSON even if surrounded by markdown code block
+    const data = await response.json()
+    const text = data.content[0].text.trim()
+
     const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('Invalid response from AI')
+    if (!jsonMatch) throw new Error('Invalid AI response')
 
     const result = JSON.parse(jsonMatch[0])
-
-    // Shuffle options so correct isn't always first
     const shuffled = [...result.options].sort(() => Math.random() - 0.5)
 
     return new Response(JSON.stringify({
