@@ -40,6 +40,11 @@ export default function CardModal({ deckId, card, sortOrder, onSave, onClose }: 
     const file = e.target.files?.[0]
     if (!file) return
 
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Obrázek je příliš velký. Maximální velikost je 2 MB.')
+      return
+    }
+
     // Local preview
     const objectUrl = URL.createObjectURL(file)
     setImagePreview(objectUrl)
