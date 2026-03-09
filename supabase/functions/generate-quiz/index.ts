@@ -18,6 +18,8 @@ Return JSON in this exact format (JSON only, no other text):
 
 Rules:
 - Question, options and fun_fact must be in ${cfg.lang}
+- IMPORTANT: The correct answer must NOT be the label "${label}" itself or a trivial rephrasing of it. Ask about a fact, property, or characteristic of the subject — not its name.
+- Example for "George Washington": ask "How many terms did he serve?" not "Who was the first US president?"
 - First option in options array must be the correct answer (will be shuffled)
 - Wrong answers must be plausible but clearly incorrect
 - Fun fact must be real and interesting for children
