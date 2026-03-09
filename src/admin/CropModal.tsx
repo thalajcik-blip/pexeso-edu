@@ -17,7 +17,7 @@ async function getCroppedBlob(imageSrc: string, cropArea: Area): Promise<Blob> {
   })
 
   const canvas = document.createElement('canvas')
-  const size = 600 // výstupná veľkosť v px
+  const size = 400 // výstupná veľkosť v px
   canvas.width = size
   canvas.height = size
   const ctx = canvas.getContext('2d')!
@@ -34,7 +34,7 @@ async function getCroppedBlob(imageSrc: string, cropArea: Area): Promise<Blob> {
     0, 0, size, size,
   )
 
-  return new Promise(resolve => canvas.toBlob(b => resolve(b!), 'image/jpeg', 0.88))
+  return new Promise(resolve => canvas.toBlob(b => resolve(b!), 'image/jpeg', 0.82))
 }
 
 export default function CropModal({ imageSrc, onCrop, onClose }: Props) {
