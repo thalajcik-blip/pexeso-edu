@@ -2,12 +2,15 @@ import { useState } from 'react'
 import { useAuth } from './useAuth'
 import LoginScreen from './LoginScreen'
 import DeckList from './DeckList'
+import DeckEditor from './DeckEditor'
 
-type AdminView = 'decks' // rozšírime neskôr
+type AdminView =
+  | { type: 'decks' }
+  | { type: 'editor'; deckId: string | null }
 
 export default function AdminApp() {
   const { user, role, loading, signIn, signOut } = useAuth()
-  const [view, setView] = useState<AdminView>('decks')
+  const [view, setView] = useState<AdminView>({ type: 'decks' })
 
   if (loading) {
     return (
@@ -43,10 +46,7 @@ export default function AdminApp() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-xs text-gray-400">{user.email}</span>
-          <button
-            onClick={signOut}
-            className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-          >
+          <button onClick={signOut} className="text-xs text-gray-500 hover:text-gray-700 transition-colors">
             Odhlásit se
           </button>
         </div>
@@ -56,9 +56,9 @@ export default function AdminApp() {
       <div className="flex">
         <nav className="w-52 shrink-0 p-4 space-y-1">
           <button
-            onClick={() => setView('decks')}
+            onClick={() => setView({ type: 'decks' })}
             className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-              view === 'decks'
+              view.type === 'decks'
                 ? 'bg-indigo-50 text-indigo-700 font-semibold'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
@@ -68,11 +68,18 @@ export default function AdminApp() {
         </nav>
 
         <main className="flex-1 p-8 max-w-4xl">
-          {view === 'decks' && (
+          {view.type === 'decks' && (
             <DeckList
               role={role}
-              onNew={() => alert('Deck editor — bude implementován')}
-              onEdit={() => alert('Deck editor — bude implementován')}
+              onNew={() => setView({ type: 'editor', deckId: null })}
+              onEdit={deck => setView({ type: 'editor', deckId: deck.id })}
+            />
+          )}
+          {view.type === 'editor' && (
+            <DeckEditor
+              deckId={view.deckId}
+              isSuperadmin={role === 'superadmin'}
+              onBack={() => setView({ type: 'decks' })}
             />
           )}
         </main>
