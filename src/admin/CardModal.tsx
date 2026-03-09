@@ -92,11 +92,8 @@ export default function CardModal({ deckId, card, sortOrder, onSave, onClose }: 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onClose}>
-      <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
-        onClick={e => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-bold text-gray-800 text-lg">{card ? 'Upravit kartičku' : 'Nová kartička'}</h2>
