@@ -142,7 +142,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           />
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-end gap-4 flex-wrap">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Jazyk decku</label>
             <select
@@ -169,7 +169,23 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             </select>
           </div>
 
-          <div className="flex items-center gap-2 mt-4">
+          {isSuperadmin && (
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+              <select
+                value={status}
+                onChange={e => setStatus(e.target.value as Deck['status'])}
+                className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-400"
+              >
+                <option value="draft">Koncept</option>
+                <option value="pending">Čeká na schválení</option>
+                <option value="approved">Schváleno</option>
+                <option value="rejected">Zamítnuto</option>
+              </select>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 pb-0.5">
             <input
               id="private"
               type="checkbox"
@@ -179,22 +195,6 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             />
             <label htmlFor="private" className="text-sm text-gray-700">Soukromý deck</label>
           </div>
-
-          {isSuperadmin && (
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-gray-600">Status:</label>
-              <select
-                value={status}
-                onChange={e => setStatus(e.target.value as Deck['status'])}
-                className="text-sm border border-gray-200 rounded-lg px-2 py-1 outline-none focus:border-indigo-400"
-              >
-                <option value="draft">Koncept</option>
-                <option value="pending">Čeká na schválení</option>
-                <option value="approved">Schváleno</option>
-                <option value="rejected">Zamítnuto</option>
-              </select>
-            </div>
-          )}
         </div>
 
         <div className="flex items-center gap-3 pt-1">
