@@ -44,14 +44,12 @@ export default function CardModal({ deckId, card, sortOrder, onSave, onClose }: 
     setGenerating(true)
     setError('')
     try {
-      const session = await supabase.auth.getSession()
-      const token = session.data.session?.access_token
       const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`
       const resp = await fetch(fnUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({ label: label.trim() }),
