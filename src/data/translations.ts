@@ -139,7 +139,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       jobs:    'Povolání',
     },
     defaultPlayerNames: ['Hráč 1', 'Hráč 2', 'Hráč 3', 'Hráč 4', 'Hráč 5', 'Hráč 6'],
-    localBtn: '💻 Místní hra',
+    localBtn: '💻 Lokální hra',
     onlineBtn: '🌐 Online hra',
     createRoom: 'Vytvořit místnost',
     joinRoom: 'Připojit se ke hře',
