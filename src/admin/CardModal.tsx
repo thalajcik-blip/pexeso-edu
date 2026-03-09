@@ -47,7 +47,10 @@ export default function CardModal({ deckId, card, sortOrder, onSave, onClose }: 
       const { data, error: fnError } = await supabase.functions.invoke('generate-quiz', {
         body: { label: label.trim() },
       })
-      if (fnError) throw fnError
+      if (fnError) {
+        const details = await fnError.context?.json?.().catch(() => null)
+        throw new Error(details?.error ?? fnError.message)
+      }
       setQuestion(data.question)
       setOptions(data.options)
       setCorrect(data.correct)
