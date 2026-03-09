@@ -127,7 +127,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   language: 'cs',
   theme: 'dark',
   selectedDeckId: 'flags',
-  selectedSize: 'large',
+  selectedSize: 'medium',
   numPlayers: 2,
   playerNames: [...DEFAULT_NAMES],
   phase: 'setup',
