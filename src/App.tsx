@@ -41,11 +41,18 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler)
   }, [phase, debugEndGame])
 
+  const isDev = import.meta.env.VITE_SUPABASE_URL?.includes('zmiwnqiocdolvnzabcrm')
+
   return (
     <div
       className="min-h-screen select-none transition-colors duration-300"
       style={{ fontFamily: "'Readex Pro', sans-serif", background: tc.bg, color: tc.text }}
     >
+      {isDev && (
+        <div className="fixed bottom-3 left-3 z-50 px-2 py-0.5 rounded text-xs font-bold tracking-widest" style={{ background: '#f59e0b', color: '#000' }}>
+          DEV
+        </div>
+      )}
       {phase === 'setup' && <SetupScreen />}
       {phase === 'lobby' && <LobbyScreen />}
       {(inGame || phase === 'win') && <GameBoard />}
