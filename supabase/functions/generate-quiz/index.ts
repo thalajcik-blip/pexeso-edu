@@ -4,16 +4,40 @@ const LANG_CONFIG = {
   en: { lang: 'English', example: 'What is the name of ...?' },
 }
 
-function buildPrompt(label: string, language: string): string {
+const DIFFICULTY_CONFIG = {
+  easy: {
+    question: 'Simple, straightforward question about a well-known basic fact.',
+    options: 'Wrong answers are clearly different and easy to rule out.',
+    fun_fact: 'Simple, easy to understand fact.',
+  },
+  medium: {
+    question: 'Moderately specific question requiring some knowledge.',
+    options: 'Wrong answers are plausible but distinguishable.',
+    fun_fact: 'Interesting fact that adds context.',
+  },
+  hard: {
+    question: 'Specific, detailed question about a less obvious fact or characteristic.',
+    options: 'Wrong answers are very similar and plausible — requires precise knowledge to distinguish.',
+    fun_fact: 'Surprising or lesser-known fact.',
+  },
+}
+
+function buildPrompt(label: string, language: string, difficulty: string): string {
   const cfg = LANG_CONFIG[language as keyof typeof LANG_CONFIG] ?? LANG_CONFIG.cs
+  const diff = DIFFICULTY_CONFIG[difficulty as keyof typeof DIFFICULTY_CONFIG] ?? DIFFICULTY_CONFIG.medium
   return `Create a quiz question for an educational memory card game about: "${label}"
+
+Difficulty level: ${difficulty.toUpperCase()}
+- Question style: ${diff.question}
+- Wrong answers style: ${diff.options}
+- Fun fact style: ${diff.fun_fact}
 
 Return JSON in this exact format (JSON only, no other text):
 {
-  "question": "${cfg.example}",
+  "question": "...",
   "options": ["correct answer", "wrong answer 2", "wrong answer 3", "wrong answer 4"],
   "correct": "correct answer",
-  "fun_fact": "An interesting fact in 1-2 sentences."
+  "fun_fact": "..."
 }
 
 Rules:
@@ -21,7 +45,6 @@ Rules:
 - IMPORTANT: The correct answer must NOT be the label "${label}" itself or a trivial rephrasing of it. Ask about a fact, property, or characteristic of the subject — not its name.
 - Example for "George Washington": ask "How many terms did he serve?" not "Who was the first US president?"
 - First option in options array must be the correct answer (will be shuffled)
-- Wrong answers must be plausible but clearly incorrect
 - Fun fact must be real and interesting for children
 - Everything in ${cfg.lang} only, no mixing of languages`
 }
@@ -37,7 +60,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { label, language = 'cs' } = await req.json()
+    const { label, language = 'cs', difficulty = 'medium' } = await req.json()
     if (!label) {
       return new Response(JSON.stringify({ error: 'label is required' }), {
         status: 400,
@@ -60,7 +83,7 @@ Deno.serve(async (req) => {
         max_tokens: 512,
         messages: [{
           role: 'user',
-          content: buildPrompt(label, language),
+          content: buildPrompt(label, language, difficulty),
         }],
       }),
     })

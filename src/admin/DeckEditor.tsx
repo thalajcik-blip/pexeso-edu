@@ -11,6 +11,7 @@ type Deck = {
   is_private: boolean
   private_code: string | null
   language: 'cs' | 'sk' | 'en'
+  difficulty: 'easy' | 'medium' | 'hard'
 }
 
 type Props = {
@@ -28,8 +29,9 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [title, setTitle]       = useState('')
   const [desc, setDesc]         = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
-  const [language, setLanguage] = useState<Deck['language']>('cs')
-  const [status, setStatus]     = useState<Deck['status']>('draft')
+  const [language, setLanguage]     = useState<Deck['language']>('cs')
+  const [difficulty, setDifficulty] = useState<Deck['difficulty']>('medium')
+  const [status, setStatus]         = useState<Deck['status']>('draft')
   const [cards, setCards]       = useState<CardData[]>([])
   const [editCard, setEditCard]   = useState<CardData | 'new' | null>(null)
   const [bulkOpen, setBulkOpen]   = useState(false)
@@ -49,6 +51,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         setDesc(d.description ?? '')
         setIsPrivate(d.is_private)
         setLanguage(d.language ?? 'cs')
+        setDifficulty(d.difficulty ?? 'medium')
         setStatus(d.status)
       }
       setCards(c ?? [])
@@ -65,6 +68,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       is_private:  isPrivate,
       private_code: isPrivate ? (deck?.private_code ?? generateCode()) : null,
       language,
+      difficulty,
       status,
       updated_at: new Date().toISOString(),
     }
@@ -149,6 +153,19 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
               <option value="cs">🇨🇿 Čeština</option>
               <option value="sk">🇸🇰 Slovenčina</option>
               <option value="en">🇬🇧 English</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Obtížnost kvízu</label>
+            <select
+              value={difficulty}
+              onChange={e => setDifficulty(e.target.value as Deck['difficulty'])}
+              className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-400"
+            >
+              <option value="easy">🟢 Snadná</option>
+              <option value="medium">🟡 Střední</option>
+              <option value="hard">🔴 Těžká</option>
             </select>
           </div>
 
@@ -263,6 +280,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         <BulkUploadModal
           deckId={currentDeckId}
           language={language}
+          difficulty={difficulty}
           startIndex={cards.length}
           onDone={() => { setBulkOpen(false); reloadCards() }}
           onClose={() => setBulkOpen(false)}
@@ -274,6 +292,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         <CardModal
           deckId={currentDeckId}
           language={language}
+          difficulty={difficulty}
           card={editCard === 'new' ? undefined : editCard}
           sortOrder={cards.length}
           onSave={() => { setEditCard(null); reloadCards() }}
