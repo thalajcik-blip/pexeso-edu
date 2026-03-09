@@ -78,10 +78,18 @@ export default function BulkUploadModal({ deckId, startIndex, onDone, onClose }:
     if (!card.label.trim()) return
     update(index, { generating: true, error: '' })
     try {
-      const { data, error } = await supabase.functions.invoke('generate-quiz', {
-        body: { label: card.label.trim() },
+      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`
+      const resp = await fetch(fnUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ label: card.label.trim() }),
       })
-      if (error) throw error
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data?.error ?? `HTTP ${resp.status}`)
       update(index, {
         question: data.question,
         options: data.options,
