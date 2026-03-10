@@ -49,9 +49,79 @@ Rules:
 - Everything in ${cfg.lang} only, no mixing of languages`
 }
 
+function parseResult(text: string) {
+  const jsonMatch = text.match(/\{[\s\S]*\}/)
+  if (!jsonMatch) throw new Error('Invalid AI response')
+  const result = JSON.parse(jsonMatch[0])
+  const shuffled = [...result.options].sort(() => Math.random() - 0.5)
+  return {
+    question: result.question,
+    options:  shuffled,
+    correct:  result.correct,
+    fun_fact: result.fun_fact,
+  }
+}
+
+async function callClaude(prompt: string, apiKey: string) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 512,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  })
+  if (!response.ok) throw new Error(`Claude error: ${response.status} ${await response.text()}`)
+  const data = await response.json()
+  return parseResult(data.content[0].text.trim())
+}
+
+async function callGemini(prompt: string, apiKey: string) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 512 },
+      }),
+    }
+  )
+  if (!response.ok) throw new Error(`Gemini error: ${response.status} ${await response.text()}`)
+  const data = await response.json()
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!text) throw new Error('Empty Gemini response')
+  return parseResult(text.trim())
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+async function getAiSettings(): Promise<{ primary: 'claude' | 'gemini'; fallback: boolean }> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (!supabaseUrl || !serviceKey) return { primary: 'claude', fallback: true }
+
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/admin_settings?key=eq.ai_provider&select=value`, {
+      headers: {
+        'apikey': serviceKey,
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+    })
+    const data = await res.json()
+    return data?.[0]?.value ?? { primary: 'claude', fallback: true }
+  } catch {
+    return { primary: 'claude', fallback: true }
+  }
 }
 
 Deno.serve(async (req) => {
@@ -68,46 +138,43 @@ Deno.serve(async (req) => {
       })
     }
 
-    const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
-    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set')
+    const claudeKey  = Deno.env.get('ANTHROPIC_API_KEY')
+    const geminiKey  = Deno.env.get('GEMINI_API_KEY')
+    const prompt     = buildPrompt(label, language, difficulty)
+    const aiSettings = await getAiSettings()
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 512,
-        messages: [{
-          role: 'user',
-          content: buildPrompt(label, language, difficulty),
-        }],
-      }),
-    })
+    const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
+    const primaryCall = aiSettings.primary === 'claude'
+      ? (k: string) => callClaude(prompt, k)
+      : (k: string) => callGemini(prompt, k)
 
-    if (!response.ok) {
-      const err = await response.text()
-      throw new Error(`Anthropic API error: ${response.status} ${err}`)
+    const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
+    const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
+    const fallbackCall = fallbackProvider === 'claude'
+      ? (k: string) => callClaude(prompt, k)
+      : (k: string) => callGemini(prompt, k)
+
+    let result
+    let usedProvider = aiSettings.primary
+
+    if (primaryKey) {
+      try {
+        result = await primaryCall(primaryKey)
+      } catch (e) {
+        if (!aiSettings.fallback) throw e
+        console.warn(`${aiSettings.primary} failed, falling back to ${fallbackProvider}:`, e)
+        usedProvider = fallbackProvider
+        if (!fallbackKey) throw new Error(`${aiSettings.primary} failed and ${fallbackProvider} key not set`)
+        result = await fallbackCall(fallbackKey)
+      }
+    } else if (aiSettings.fallback && fallbackKey) {
+      usedProvider = fallbackProvider
+      result = await fallbackCall(fallbackKey)
+    } else {
+      throw new Error('No AI provider configured')
     }
 
-    const data = await response.json()
-    const text = data.content[0].text.trim()
-
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('Invalid AI response')
-
-    const result = JSON.parse(jsonMatch[0])
-    const shuffled = [...result.options].sort(() => Math.random() - 0.5)
-
-    return new Response(JSON.stringify({
-      question: result.question,
-      options:  shuffled,
-      correct:  result.correct,
-      fun_fact: result.fun_fact,
-    }), {
+    return new Response(JSON.stringify({ ...result, _provider: usedProvider }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {
