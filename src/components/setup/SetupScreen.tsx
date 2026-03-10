@@ -135,7 +135,7 @@ export default function SetupScreen() {
                       className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left whitespace-nowrap"
                       style={{
                         color: lang.id === language ? tc.accent : tc.btnInactiveText,
-                        background: lang.id === language ? tc.btnActiveBg : 'transparent',
+                        background: lang.id === language ? 'rgba(128,128,128,0.15)' : 'transparent',
                       }}
                     >
                       <span>{lang.flag}</span>
