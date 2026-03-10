@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { CustomDeckData } from '../types/game'
+import type { CustomDeckData, CustomDeckCard } from '../types/game'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -14,7 +14,8 @@ export async function fetchCustomDeckFull(id: string): Promise<CustomDeckData | 
     .order('sort_order')
   if (!cards) return null
   const pool: CustomDeckData['pool'] = {}
-  cards.forEach((c: { image_url: string; label: string; quiz_question: string | null; quiz_options: [string,string,string,string] | null; quiz_correct: string | null; fun_fact: string | null; translations?: Record<string, unknown> }) => {
+  type RawCard = { image_url: string; label: string; quiz_question: string | null; quiz_options: [string,string,string,string] | null; quiz_correct: string | null; fun_fact: string | null; translations?: CustomDeckCard['translations'] }
+  cards.forEach((c: RawCard) => {
     pool[c.image_url] = {
       image_url: c.image_url,
       label: c.label,
