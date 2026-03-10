@@ -166,6 +166,19 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
         sort_order: card.sort_order,
       }
 
+      // Translate label
+      try {
+        const res = await fetch(fnUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ mode: 'text', text: card.label, source_lang: deck.language, target_lang: targetLang }),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.text && !data.error) translatedCard.label = data.text
+        }
+      } catch (e) { console.error('Label translation failed:', e) }
+
       if (card.quiz_question && card.quiz_correct) {
         try {
           const res = await fetch(fnUrl, {

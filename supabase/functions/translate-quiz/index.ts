@@ -55,6 +55,31 @@ async function getAiSettings(supabaseUrl: string, serviceKey: string): Promise<{
   }
 }
 
+async function callClaudeRaw(prompt: string, apiKey: string): Promise<string> {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 256, messages: [{ role: 'user', content: prompt }] }),
+  })
+  if (!response.ok) throw new Error(`Claude error: ${response.status}`)
+  const data = await response.json()
+  return data.content[0].text.trim().replace(/^"|"$/g, '')
+}
+
+async function callGeminiRaw(prompt: string, apiKey: string): Promise<string> {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 256 } }),
+    }
+  )
+  if (!response.ok) throw new Error(`Gemini error: ${response.status}`)
+  const data = await response.json()
+  return (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim().replace(/^"|"$/g, '')
+}
+
 async function callClaude(prompt: string, apiKey: string) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -111,31 +136,23 @@ Deno.serve(async (req) => {
       const claudeKey   = Deno.env.get('ANTHROPIC_API_KEY')
       const geminiKey   = Deno.env.get('GEMINI_API_KEY')
       const aiSettings  = await getAiSettings(supabaseUrl, serviceKey)
-      const textPrompt  = `Translate this text from ${LANG_NAMES[source_lang] ?? source_lang} to ${LANG_NAMES[target_lang] ?? target_lang}. Return only the translated text, nothing else:\n\n"${body.text}"`
+      const textPrompt  = `Translate this text from ${LANG_NAMES[source_lang] ?? source_lang} to ${LANG_NAMES[target_lang] ?? target_lang}. Return only the translated text, nothing else: ${body.text}`
       const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
-      const primaryCall = aiSettings.primary === 'claude'
-        ? (k: string) => callClaude(textPrompt, k)
-        : (k: string) => callGemini(textPrompt, k)
+      const primaryRaw  = aiSettings.primary === 'claude' ? callClaudeRaw : callGeminiRaw
       const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
       const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
-      const fallbackCall = fallbackProvider === 'claude'
-        ? (k: string) => callClaude(textPrompt, k)
-        : (k: string) => callGemini(textPrompt, k)
-      let translated: { quiz_question?: string } | string
+      const fallbackRaw  = fallbackProvider === 'claude' ? callClaudeRaw : callGeminiRaw
+      let translatedText: string
       if (primaryKey) {
-        try { translated = await primaryCall(primaryKey) }
+        try { translatedText = await primaryRaw(textPrompt, primaryKey) }
         catch (e) {
           if (!aiSettings.fallback || !fallbackKey) throw e
-          translated = await fallbackCall(fallbackKey)
+          translatedText = await fallbackRaw(textPrompt, fallbackKey)
         }
       } else if (aiSettings.fallback && fallbackKey) {
-        translated = await fallbackCall(fallbackKey)
+        translatedText = await fallbackRaw(textPrompt, fallbackKey)
       } else throw new Error('No AI provider configured')
-      // For text mode, AI returns JSON with quiz_question field or raw text — extract plain text
-      const translatedText = typeof translated === 'string'
-        ? translated
-        : (translated as { quiz_question?: string }).quiz_question ?? body.text
-      return new Response(JSON.stringify({ text: translatedText.replace(/^"|"$/g, '') }), {
+      return new Response(JSON.stringify({ text: translatedText }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
