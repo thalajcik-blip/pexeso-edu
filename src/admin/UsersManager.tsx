@@ -73,7 +73,7 @@ export default function UsersManager() {
                         onChange={e => setRole(u.user_id, e.target.value || null)}
                         className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-400 disabled:opacity-50 bg-white"
                       >
-                        <option value="">— bez přístupu —</option>
+                        <option value="">Čeká na schválení</option>
                         <option value="teacher">Učitel</option>
                         <option value="superadmin">Superadmin</option>
                       </select>
@@ -87,8 +87,8 @@ export default function UsersManager() {
                         </span>
                       )}
                       {!u.role && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">
-                          Bez přístupu
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">
+                          Čeká na schválení
                         </span>
                       )}
                     </div>
