@@ -129,11 +129,9 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
       return
     }
 
-    const { data: { session } } = await supabase.auth.getSession()
-    const token = session?.access_token
     const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate-quiz`
     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'apikey': anonKey }
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${anonKey}`, 'apikey': anonKey }
 
     // Translate deck title
     let translatedTitle = `${deck.title} (${LANG_LABEL[targetLang]})`

@@ -106,8 +106,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
     setTranslateError('')
     setTranslateProgress({ done: 0, total: translatableCards.length })
 
-    const { data: { session } } = await supabase.auth.getSession()
-    const token = session?.access_token
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
     for (let i = 0; i < translatableCards.length; i++) {
       const card = translatableCards[i]
@@ -121,7 +120,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate-quiz`,
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY },
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${anonKey}`, 'apikey': anonKey },
               body: JSON.stringify({
                 label: card.label,
                 quiz_question: card.quiz_question,
