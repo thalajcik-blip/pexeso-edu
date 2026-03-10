@@ -13,6 +13,33 @@ html, body {
 
 button, a { cursor: pointer; }
 
+/* Deck selector — subtle scrollbar on desktop, hidden on touch */
+.deck-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128,128,128,0.25) transparent;
+}
+.deck-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.deck-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.deck-scroll::-webkit-scrollbar-thumb {
+  background: rgba(128,128,128,0.25);
+  border-radius: 2px;
+}
+.deck-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(128,128,128,0.45);
+}
+@media (pointer: coarse) {
+  .deck-scroll {
+    scrollbar-width: none;
+  }
+  .deck-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Card flip animation */
 .card-inner {
   transform-style: preserve-3d;

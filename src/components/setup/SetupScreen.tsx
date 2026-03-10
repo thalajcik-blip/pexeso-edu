@@ -123,8 +123,7 @@ export default function SetupScreen() {
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.deckLabel}</div>
           <div
             ref={deckScrollRef}
-            className="flex gap-3 overflow-x-auto pb-1"
-            style={{ scrollbarWidth: 'none' }}
+            className="deck-scroll flex gap-3 overflow-x-auto pb-2"
           >
             {DECKS.map(deck => (
               <button
