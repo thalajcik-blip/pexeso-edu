@@ -121,7 +121,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate-quiz`,
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY },
               body: JSON.stringify({
                 label: card.label,
                 quiz_question: card.quiz_question,
