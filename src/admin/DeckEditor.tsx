@@ -40,6 +40,9 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [loading, setLoading]   = useState(!!deckId)
   const [saved, setSaved]       = useState(false)
   const [sort, setSort] = useState<'default' | 'newest' | 'oldest' | 'az' | 'za'>('default')
+  const [translating, setTranslating]   = useState(false)
+  const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number } | null>(null)
+  const [translateError, setTranslateError] = useState('')
 
   useEffect(() => {
     if (!deckId) return
@@ -90,6 +93,62 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       setTimeout(() => setSaved(false), 2000)
       return data.id
     }
+  }
+
+  async function translateAll() {
+    if (!deck || cards.length === 0) return
+    const ALL_LANGS = ['cs', 'sk', 'en']
+    const targetLangs = ALL_LANGS.filter(l => l !== deck.language)
+    const translatableCards = cards.filter(c => c.quiz_question && c.quiz_correct && c.quiz_options?.length)
+    if (translatableCards.length === 0) return
+
+    setTranslating(true)
+    setTranslateError('')
+    setTranslateProgress({ done: 0, total: translatableCards.length })
+
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+
+    for (let i = 0; i < translatableCards.length; i++) {
+      const card = translatableCards[i]
+      const existingTranslations: Record<string, unknown> = (card as CardData & { translations?: Record<string, unknown> }).translations ?? {}
+      const newTranslations = { ...existingTranslations }
+
+      for (const targetLang of targetLangs) {
+        if (newTranslations[targetLang]) continue // already translated
+        try {
+          const res = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate-quiz`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({
+                label: card.label,
+                quiz_question: card.quiz_question,
+                quiz_options: card.quiz_options,
+                quiz_correct: card.quiz_correct,
+                fun_fact: card.fun_fact,
+                source_lang: deck.language,
+                target_lang: targetLang,
+              }),
+            }
+          )
+          if (res.ok) {
+            const translated = await res.json()
+            if (!translated.error) newTranslations[targetLang] = translated
+          }
+        } catch (e) {
+          console.error(`Translation failed for card ${card.id}, lang ${targetLang}:`, e)
+        }
+      }
+
+      await supabase.from('custom_cards').update({ translations: newTranslations }).eq('id', card.id!)
+      setTranslateProgress({ done: i + 1, total: translatableCards.length })
+    }
+
+    setTranslating(false)
+    setTranslateProgress(null)
+    reloadCards()
   }
 
   async function deleteCard(cardId: string) {
@@ -152,12 +211,29 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           {deck ? 'Upravit sadu' : 'Nová sada'}
         </h1>
         {isSuperadmin && deck && (
-          <button
-            onClick={handleExport}
-            className="ml-auto text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-          >
-            ↓ Export JSON
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            {translateProgress && (
+              <span className="text-xs text-indigo-500">
+                Překládám {translateProgress.done}/{translateProgress.total}…
+              </span>
+            )}
+            {translateError && (
+              <span className="text-xs text-red-500">{translateError}</span>
+            )}
+            <button
+              onClick={translateAll}
+              disabled={translating || cards.filter(c => c.quiz_question).length === 0}
+              className="text-xs px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 disabled:opacity-40 transition-colors"
+            >
+              {translating ? '⏳ Překládám…' : '🌐 Přeložit vše'}
+            </button>
+            <button
+              onClick={handleExport}
+              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              ↓ Export JSON
+            </button>
+          </div>
         )}
       </div>
 

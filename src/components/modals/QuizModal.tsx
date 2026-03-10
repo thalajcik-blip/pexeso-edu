@@ -72,13 +72,17 @@ export default function QuizModal() {
   const { correct, options, hint } = useMemo(() => {
     if (!quizSymbol) return { correct: '', options: [] as string[], hint: '' }
 
-    // Custom deck: per-card quiz data
+    // Custom deck: per-card quiz data (use translation if available)
     if (isCustomDeck && customDeck) {
       const card = customDeck.pool[quizSymbol]
-      if (card?.quiz_options && card?.quiz_correct) {
+      const langKey = language === 'CZ' ? 'cs' : language === 'SK' ? 'sk' : 'en'
+      const translation = (card as typeof card & { translations?: Record<string, { quiz_question: string; quiz_options: string[]; quiz_correct: string }> })?.translations?.[langKey]
+      const quizOptions = translation?.quiz_options ?? card?.quiz_options
+      const quizCorrect = translation?.quiz_correct ?? card?.quiz_correct
+      if (quizOptions && quizCorrect) {
         return {
-          correct: card.quiz_correct,
-          options: shuffle([...card.quiz_options]),
+          correct: quizCorrect,
+          options: shuffle([...quizOptions]),
           hint: card.label ?? '',
         }
       }
@@ -110,8 +114,12 @@ export default function QuizModal() {
   const player = players[currentPlayer]
   const tr     = TRANSLATIONS[language]
 
-  // Custom deck card lookup
+  // Custom deck card lookup (with translation)
   const customCard = isCustomDeck && customDeck ? customDeck.pool[quizSymbol] : null
+  const customLangKey = language === 'CZ' ? 'cs' : language === 'SK' ? 'sk' : 'en'
+  const customTranslation = (customCard as typeof customCard & { translations?: Record<string, { quiz_question?: string; fun_fact?: string }> })?.translations?.[customLangKey]
+  const customQuestion = customTranslation?.quiz_question ?? customCard?.quiz_question
+  const customFunFact  = customTranslation?.fun_fact ?? customCard?.fun_fact
 
   // Static deck data (only when not custom)
   const deck   = !isCustomDeck ? DECKS.find(d => d.id === selectedDeckId) : null
@@ -190,7 +198,7 @@ export default function QuizModal() {
 
         <div className="text-base font-medium" style={{ color: tc.textDim }}>
           {isCustomDeck
-            ? (customCard?.quiz_question ?? '')
+            ? (customQuestion ?? '')
             : tr.deckQuestions[selectedDeckId as DeckId]}
         </div>
 
@@ -250,9 +258,9 @@ export default function QuizModal() {
         )}
 
         {/* Fun fact */}
-        {myVote && revealed && isCustomDeck && customCard?.fun_fact && (
+        {myVote && revealed && isCustomDeck && customFunFact && (
           <div className="text-xs px-4 py-2.5 rounded-xl" style={{ background: tc.factBg, color: tc.factText }}>
-            💡 {customCard.fun_fact}
+            💡 {customFunFact}
           </div>
         )}
         {myVote && revealed && !isCustomDeck && (!isEn || !enData) && item?.fact && (
