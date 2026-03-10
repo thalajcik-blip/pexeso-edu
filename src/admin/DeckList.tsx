@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../services/supabase'
 import type { AdminRole } from './useAuth'
 
@@ -35,9 +35,29 @@ const STATUS_COLOR: Record<Deck['status'], string> = {
   rejected: 'bg-red-100 text-red-600',
 }
 
+type DeckJson = {
+  version: number
+  title: string
+  description?: string | null
+  language: Deck['language']
+  difficulty: 'easy' | 'medium' | 'hard'
+  is_private?: boolean
+  cards: {
+    image_url: string
+    label: string
+    quiz_question: string
+    quiz_options: [string, string, string, string]
+    quiz_correct: string
+    fun_fact: string
+    sort_order: number
+  }[]
+}
+
 export default function DeckList({ role, onNew, onEdit }: Props) {
-  const [decks, setDecks]     = useState<Deck[]>([])
-  const [loading, setLoading] = useState(true)
+  const [decks, setDecks]         = useState<Deck[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [importing, setImporting] = useState(false)
+  const importRef                 = useRef<HTMLInputElement>(null)
 
   async function load() {
     setLoading(true)
@@ -60,6 +80,55 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
     load()
   }
 
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    setImporting(true)
+    try {
+      const text = await file.text()
+      const json: DeckJson = JSON.parse(text)
+      if (!json.title || !Array.isArray(json.cards)) throw new Error('Neplatný formát souboru')
+
+      const { data: newDeck, error } = await supabase
+        .from('custom_decks')
+        .insert({
+          title: json.title,
+          description: json.description ?? null,
+          language: json.language ?? 'cs',
+          difficulty: json.difficulty ?? 'medium',
+          is_private: json.is_private ?? false,
+          private_code: null,
+          status: 'draft',
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single()
+      if (error || !newDeck) throw error ?? new Error('Nepodařilo se vytvořit sadu')
+
+      if (json.cards.length > 0) {
+        const cardRows = json.cards.map((c, i) => ({
+          deck_id: newDeck.id,
+          image_url: c.image_url,
+          label: c.label,
+          quiz_question: c.quiz_question,
+          quiz_options: c.quiz_options,
+          quiz_correct: c.quiz_correct,
+          fun_fact: c.fun_fact,
+          sort_order: c.sort_order ?? i,
+        }))
+        const { error: cardsErr } = await supabase.from('custom_cards').insert(cardRows)
+        if (cardsErr) throw cardsErr
+      }
+
+      load()
+    } catch (err) {
+      alert(`Import selhal: ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setImporting(false)
+    }
+  }
+
   useEffect(() => { load() }, [])
 
   if (loading) return <div className="text-gray-400 text-sm p-8">Načítání…</div>
@@ -68,12 +137,32 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-800">Vlastní sady</h1>
-        <button
-          onClick={onNew}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
-        >
-          + Nová sada
-        </button>
+        <div className="flex items-center gap-2">
+          {role === 'superadmin' && (
+            <>
+              <input
+                ref={importRef}
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={handleImport}
+              />
+              <button
+                onClick={() => importRef.current?.click()}
+                disabled={importing}
+                className="px-4 py-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg text-sm font-semibold hover:bg-indigo-50 disabled:opacity-50 transition-colors"
+              >
+                {importing ? 'Importuji…' : '↑ Import JSON'}
+              </button>
+            </>
+          )}
+          <button
+            onClick={onNew}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
+          >
+            + Nová sada
+          </button>
+        </div>
       </div>
 
       {decks.length === 0 ? (

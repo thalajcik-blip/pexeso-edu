@@ -106,6 +106,31 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
 
   const currentDeckId = deck?.id ?? null
 
+  async function handleExport() {
+    if (!deck) return
+    const { data: allCards } = await supabase
+      .from('custom_cards')
+      .select('image_url, label, quiz_question, quiz_options, quiz_correct, fun_fact, sort_order')
+      .eq('deck_id', deck.id)
+      .order('sort_order')
+    const payload = {
+      version: 1,
+      title: deck.title,
+      description: deck.description,
+      language: deck.language,
+      difficulty: deck.difficulty,
+      is_private: deck.is_private,
+      cards: allCards ?? [],
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${deck.title.toLowerCase().replace(/\s+/g, '-')}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const sortedCards = [...cards].sort((a, b) => {
     if (sort === 'newest') return (b.created_at ?? '') > (a.created_at ?? '') ? 1 : -1
     if (sort === 'oldest') return (a.created_at ?? '') > (b.created_at ?? '') ? 1 : -1
@@ -126,6 +151,14 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         <h1 className="text-xl font-bold text-gray-800">
           {deck ? 'Upravit sadu' : 'Nová sada'}
         </h1>
+        {isSuperadmin && deck && (
+          <button
+            onClick={handleExport}
+            className="ml-auto text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+          >
+            ↓ Export JSON
+          </button>
+        )}
       </div>
 
       {/* Deck metadata */}
