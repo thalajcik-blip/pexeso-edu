@@ -103,22 +103,22 @@ export default function SetupScreen() {
             <select
               value={language}
               onChange={e => setLanguage(e.target.value as Language)}
-              className="hidden sm:block rounded-lg border text-sm pl-2 pr-7 py-1.5 outline-none cursor-pointer appearance-none"
+              className="hidden sm:block rounded-lg border text-sm pl-2 pr-6 py-1.5 outline-none cursor-pointer appearance-none"
               style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
             >
               {LANGUAGES.map(lang => (
                 <option key={lang.id} value={lang.id}>{lang.flag} {lang.code}</option>
               ))}
             </select>
-            {/* Mobile: flag only */}
+            {/* Mobile: flag only (dropdown shows full label) */}
             <select
               value={language}
               onChange={e => setLanguage(e.target.value as Language)}
-              className="sm:hidden rounded-lg border text-sm pl-2 pr-7 py-1.5 outline-none cursor-pointer appearance-none"
+              className="sm:hidden rounded-lg border text-sm pl-2 pr-6 py-1.5 outline-none cursor-pointer appearance-none"
               style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
             >
               {LANGUAGES.map(lang => (
-                <option key={lang.id} value={lang.id}>{lang.flag}</option>
+                <option key={lang.id} value={lang.id}>{lang.label}</option>
               ))}
             </select>
             <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-50" style={{ color: tc.btnInactiveText }}>▾</span>
