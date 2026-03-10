@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
 import CardModal, { type CardData } from './CardModal'
 import BulkUploadModal from './BulkUploadModal'
+import AdminSelect from './AdminSelect'
 
 type Deck = {
   id: string
@@ -154,43 +155,31 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         <div className="flex items-end gap-4 flex-wrap">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Jazyk sady</label>
-            <select
-              value={language}
-              onChange={e => setLanguage(e.target.value as Deck['language'])}
-              className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-400"
-            >
+            <AdminSelect value={language} onChange={e => setLanguage(e.target.value as Deck['language'])}>
               <option value="cs">🇨🇿 Čeština</option>
               <option value="sk">🇸🇰 Slovenčina</option>
               <option value="en">🇬🇧 English</option>
-            </select>
+            </AdminSelect>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Obtížnost kvízu</label>
-            <select
-              value={difficulty}
-              onChange={e => setDifficulty(e.target.value as Deck['difficulty'])}
-              className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-400"
-            >
+            <AdminSelect value={difficulty} onChange={e => setDifficulty(e.target.value as Deck['difficulty'])}>
               <option value="easy">🟢 Snadná</option>
               <option value="medium">🟡 Střední</option>
               <option value="hard">🔴 Těžká</option>
-            </select>
+            </AdminSelect>
           </div>
 
           {isSuperadmin && (
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
-              <select
-                value={status}
-                onChange={e => setStatus(e.target.value as Deck['status'])}
-                className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-400"
-              >
+              <AdminSelect value={status} onChange={e => setStatus(e.target.value as Deck['status'])}>
                 <option value="draft">Koncept</option>
                 <option value="pending">Čeká na schválení</option>
                 <option value="approved">Schváleno</option>
                 <option value="rejected">Zamítnuto</option>
-              </select>
+              </AdminSelect>
             </div>
           )}
 
@@ -227,17 +216,17 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             </h2>
             <div className="flex items-center gap-2">
               {cards.length > 1 && (
-                <select
+                <AdminSelect
                   value={sort}
                   onChange={e => setSort(e.target.value as typeof sort)}
-                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-400 text-gray-600"
+                  className="text-xs text-gray-600"
                 >
                   <option value="default">Pořadí (výchozí)</option>
                   <option value="newest">Nejnovější první</option>
                   <option value="oldest">Nejstarší první</option>
                   <option value="az">Abecedně A–Z</option>
                   <option value="za">Abecedně Z–A</option>
-                </select>
+                </AdminSelect>
               )}
               <button
                 onClick={() => setBulkOpen(true)}
