@@ -16,20 +16,21 @@ button, a { cursor: pointer; }
 /* Deck selector — subtle scrollbar on desktop, hidden on touch */
 .deck-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(128,128,128,0.25) transparent;
+  scrollbar-color: rgba(128,128,128,0.45) rgba(128,128,128,0.1);
 }
 .deck-scroll::-webkit-scrollbar {
-  height: 4px;
+  height: 6px;
 }
 .deck-scroll::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(128,128,128,0.1);
+  border-radius: 3px;
 }
 .deck-scroll::-webkit-scrollbar-thumb {
-  background: rgba(128,128,128,0.25);
-  border-radius: 2px;
+  background: rgba(128,128,128,0.45);
+  border-radius: 3px;
 }
 .deck-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(128,128,128,0.45);
+  background: rgba(128,128,128,0.7);
 }
 @media (pointer: coarse) {
   .deck-scroll {
