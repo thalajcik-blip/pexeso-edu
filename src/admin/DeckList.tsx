@@ -9,8 +9,11 @@ type Deck = {
   status: 'draft' | 'pending' | 'approved' | 'rejected'
   is_private: boolean
   private_code: string | null
+  language: 'cs' | 'sk' | 'en'
   created_at: string
 }
+
+const LANG_FLAG: Record<Deck['language'], string> = { cs: '🇨🇿', sk: '🇸🇰', en: '🇬🇧' }
 
 type Props = {
   role: AdminRole
@@ -83,7 +86,10 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
           {decks.map(deck => (
             <div key={deck.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-gray-800 truncate">{deck.title}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-base leading-none shrink-0">{LANG_FLAG[deck.language]}</span>
+                  <span className="font-semibold text-gray-800 truncate">{deck.title}</span>
+                </div>
                 {deck.description && (
                   <div className="text-xs text-gray-400 truncate mt-0.5">{deck.description}</div>
                 )}
