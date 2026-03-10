@@ -150,10 +150,11 @@ export default function SetupScreen() {
         {/* Deck */}
         <div>
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.deckLabel}</div>
-          <div
-            ref={deckScrollRef}
-            className="deck-scroll flex gap-3 overflow-x-scroll pb-3"
-          >
+          <div className="relative">
+            <div
+              ref={deckScrollRef}
+              className="deck-scroll flex gap-3 overflow-x-scroll pb-3"
+            >
             {DECKS.map(deck => (
               <button
                 key={deck.id}
@@ -180,6 +181,12 @@ export default function SetupScreen() {
                 <span className="text-xs truncate w-full text-center">{cd.title}</span>
               </button>
             ))}
+            </div>
+            {/* Fade hint — indicates more content to scroll */}
+            <div
+              className="absolute right-0 top-0 bottom-3 w-10 pointer-events-none"
+              style={{ background: `linear-gradient(to right, transparent, ${tc.surface})` }}
+            />
           </div>
         </div>
 
