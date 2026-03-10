@@ -5,9 +5,10 @@ import type { User } from '@supabase/supabase-js'
 export type AdminRole = 'superadmin' | 'teacher' | null
 
 export function useAuth() {
-  const [user, setUser]     = useState<User | null>(null)
-  const [role, setRole]     = useState<AdminRole>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser]           = useState<User | null>(null)
+  const [role, setRole]           = useState<AdminRole>(null)
+  const [loading, setLoading]     = useState(true)
+  const [isRecovery, setIsRecovery] = useState(false)
 
   async function fetchRole(userId: string) {
     const { data } = await supabase
@@ -28,7 +29,13 @@ export function useAuth() {
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecovery(true)
+        setUser(session?.user ?? null)
+        setLoading(false)
+        return
+      }
       setUser(session?.user ?? null)
       if (session?.user) fetchRole(session.user.id)
       else { setRole(null); setLoading(false) }
@@ -49,7 +56,6 @@ export function useAuth() {
       options: { emailRedirectTo: `${window.location.origin}/admin` },
     })
     if (error) return error
-    // Assign default teacher role
     if (data.user) {
       await supabase.from('user_roles').insert({ user_id: data.user.id, role: 'teacher' })
     }
@@ -63,9 +69,15 @@ export function useAuth() {
     return error
   }
 
+  async function updatePassword(newPassword: string) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (!error) setIsRecovery(false)
+    return error
+  }
+
   async function signOut() {
     await supabase.auth.signOut()
   }
 
-  return { user, role, loading, signIn, signUp, resetPassword, signOut }
+  return { user, role, loading, isRecovery, signIn, signUp, resetPassword, updatePassword, signOut }
 }

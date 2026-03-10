@@ -3,13 +3,56 @@ import { useAuth } from './useAuth'
 import LoginScreen from './LoginScreen'
 import DeckList from './DeckList'
 import DeckEditor from './DeckEditor'
+import type { useAuth as UseAuthType } from './useAuth'
+
+function SetNewPasswordScreen({ updatePassword }: { updatePassword: ReturnType<typeof UseAuthType>['updatePassword'] }) {
+  const [password, setPassword]   = useState('')
+  const [password2, setPassword2] = useState('')
+  const [error, setError]         = useState('')
+  const [loading, setLoading]     = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (password !== password2) { setError('Hesla se neshodují.'); return }
+    setLoading(true)
+    const err = await updatePassword(password)
+    if (err) setError(err.message)
+    setLoading(false)
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8">
+        <div className="text-2xl font-bold text-gray-800 mb-1">Nové heslo</div>
+        <div className="text-sm text-gray-500 mb-6">Zadejte své nové heslo</div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Nové heslo</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Heslo znovu</label>
+            <input type="password" value={password2} onChange={e => setPassword2(e.target.value)} required
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
+          </div>
+          {error && <div className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</div>}
+          <button type="submit" disabled={loading}
+            className="w-full py-2.5 rounded-lg bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+            {loading ? 'Ukládání…' : 'Uložit heslo'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
 
 type AdminView =
   | { type: 'decks' }
   | { type: 'editor'; deckId: string | null }
 
 export default function AdminApp() {
-  const { user, role, loading, signIn, signUp, resetPassword, signOut } = useAuth()
+  const { user, role, loading, isRecovery, signIn, signUp, resetPassword, updatePassword, signOut } = useAuth()
   const [view, setView] = useState<AdminView>({ type: 'decks' })
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -27,6 +70,8 @@ export default function AdminApp() {
   }
 
   if (!user) return <LoginScreen signIn={signIn} signUp={signUp} resetPassword={resetPassword} />
+
+  if (isRecovery) return <SetNewPasswordScreen updatePassword={updatePassword} />
 
   if (!role) {
     return (
