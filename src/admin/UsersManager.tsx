@@ -1,0 +1,107 @@
+import { useEffect, useState } from 'react'
+import { supabase } from '../services/supabase'
+
+type UserRow = {
+  user_id: string
+  email: string
+  role: string | null
+  created_at: string
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  superadmin: 'Superadmin',
+  teacher: 'Učitel',
+}
+
+export default function UsersManager() {
+  const [users, setUsers]     = useState<UserRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving]   = useState<string | null>(null)
+  const [error, setError]     = useState('')
+
+  async function fetchUsers() {
+    setLoading(true)
+    const { data, error } = await supabase.rpc('get_users_with_roles')
+    if (error) setError(error.message)
+    else setUsers(data ?? [])
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchUsers() }, [])
+
+  async function setRole(userId: string, newRole: string | null) {
+    setSaving(userId)
+    if (newRole === null) {
+      await supabase.from('user_roles').delete().eq('user_id', userId)
+    } else {
+      await supabase.from('user_roles').upsert({ user_id: userId, role: newRole })
+    }
+    await fetchUsers()
+    setSaving(null)
+  }
+
+  return (
+    <div>
+      <h1 className="text-xl font-bold text-gray-800 mb-6">Uživatelé</h1>
+
+      {error && <div className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-4">{error}</div>}
+
+      {loading ? (
+        <div className="text-sm text-gray-400">Načítání…</div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">E-mail</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Registrace</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map(u => (
+                <tr key={u.user_id} className="border-b border-gray-50 last:border-0">
+                  <td className="px-4 py-3 text-gray-700">{u.email}</td>
+                  <td className="px-4 py-3 text-gray-400 text-xs">
+                    {new Date(u.created_at).toLocaleDateString('cs-CZ')}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={u.role ?? ''}
+                        disabled={saving === u.user_id}
+                        onChange={e => setRole(u.user_id, e.target.value || null)}
+                        className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-400 disabled:opacity-50 bg-white"
+                      >
+                        <option value="">— bez přístupu —</option>
+                        <option value="teacher">Učitel</option>
+                        <option value="superadmin">Superadmin</option>
+                      </select>
+                      {u.role && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          u.role === 'superadmin'
+                            ? 'bg-indigo-50 text-indigo-600'
+                            : 'bg-green-50 text-green-700'
+                        }`}>
+                          {ROLE_LABELS[u.role] ?? u.role}
+                        </span>
+                      )}
+                      {!u.role && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">
+                          Bez přístupu
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {users.length === 0 && (
+            <div className="text-center text-sm text-gray-400 py-8">Žádní uživatelé</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
