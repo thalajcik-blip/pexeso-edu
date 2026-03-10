@@ -5,7 +5,7 @@ import { DEFAULT_NAMES, PLAYER_COLORS } from '../../types/game'
 import type { DeckId, BoardSize } from '../../types/game'
 import type { Language } from '../../data/translations'
 import { THEMES } from '../../data/themes'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase, fetchCustomDeckFull } from '../../services/supabase'
 
 const SIZES: { id: BoardSize; labelKey: 'sizeLarge' | 'sizeMedium' | 'sizeSmall'; grid: string }[] = [
@@ -39,6 +39,15 @@ export default function SetupScreen() {
   } = useGameStore()
 
   const [customDecks, setCustomDecks] = useState<CustomDeckMeta[]>([])
+  const deckScrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = deckScrollRef.current
+    if (!el) return
+    const handler = (e: WheelEvent) => { e.preventDefault(); el.scrollLeft += e.deltaY }
+    el.addEventListener('wheel', handler, { passive: false })
+    return () => el.removeEventListener('wheel', handler)
+  }, [])
 
   useEffect(() => {
     supabase
@@ -113,9 +122,9 @@ export default function SetupScreen() {
         <div>
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.deckLabel}</div>
           <div
+            ref={deckScrollRef}
             className="flex gap-3 overflow-x-auto pb-1"
             style={{ scrollbarWidth: 'none' }}
-            onWheel={e => { e.preventDefault(); e.currentTarget.scrollLeft += e.deltaY }}
           >
             {DECKS.map(deck => (
               <button
