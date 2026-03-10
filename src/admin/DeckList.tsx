@@ -192,6 +192,8 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
         }
         doneCount++
         setTranslate(t => t ? { ...t, progress: { done: doneCount, total: translatableCards.length } } : null)
+        // Avoid rate limiting (Gemini free tier: 15 req/min)
+        await new Promise(r => setTimeout(r, 4200))
       }
 
       translatedCards.push(translatedCard)

@@ -143,6 +143,8 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
 
       await supabase.from('custom_cards').update({ translations: newTranslations }).eq('id', card.id!)
       setTranslateProgress({ done: i + 1, total: translatableCards.length })
+      // Avoid rate limiting (Gemini free tier: 15 req/min)
+      await new Promise(r => setTimeout(r, 4200))
     }
 
     setTranslating(false)
