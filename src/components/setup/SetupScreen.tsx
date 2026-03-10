@@ -178,7 +178,7 @@ export default function SetupScreen() {
                 ) : (
                   <span className="text-3xl leading-none">🃏</span>
                 )}
-                <span className="text-xs truncate w-full text-center">{cd.title}</span>
+                <span className="text-xs line-clamp-2 w-full text-center leading-tight">{cd.title}</span>
               </button>
             ))}
             </div>
