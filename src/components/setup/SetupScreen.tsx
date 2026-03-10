@@ -112,7 +112,11 @@ export default function SetupScreen() {
         {/* Deck */}
         <div>
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.deckLabel}</div>
-          <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          <div
+            className="flex gap-3 overflow-x-auto pb-1"
+            style={{ scrollbarWidth: 'none' }}
+            onWheel={e => { e.preventDefault(); e.currentTarget.scrollLeft += e.deltaY }}
+          >
             {DECKS.map(deck => (
               <button
                 key={deck.id}
