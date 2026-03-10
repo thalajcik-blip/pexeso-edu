@@ -12,6 +12,7 @@ export type CardData = {
   quiz_correct: string
   fun_fact: string
   sort_order: number
+  created_at?: string
 }
 
 type Props = {

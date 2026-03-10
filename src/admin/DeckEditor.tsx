@@ -38,6 +38,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [saving, setSaving]     = useState(false)
   const [loading, setLoading]   = useState(!!deckId)
   const [saved, setSaved]       = useState(false)
+  const [sort, setSort] = useState<'default' | 'newest' | 'oldest' | 'az' | 'za'>('default')
 
   useEffect(() => {
     if (!deckId) return
@@ -103,6 +104,14 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   }
 
   const currentDeckId = deck?.id ?? null
+
+  const sortedCards = [...cards].sort((a, b) => {
+    if (sort === 'newest') return (b.created_at ?? '') > (a.created_at ?? '') ? 1 : -1
+    if (sort === 'oldest') return (a.created_at ?? '') > (b.created_at ?? '') ? 1 : -1
+    if (sort === 'az') return (a.label ?? '').localeCompare(b.label ?? '', 'cs')
+    if (sort === 'za') return (b.label ?? '').localeCompare(a.label ?? '', 'cs')
+    return a.sort_order - b.sort_order  // default
+  })
 
   if (loading) return <div className="text-gray-400 text-sm p-8">Načítání…</div>
 
@@ -212,11 +221,24 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       {/* Cards section */}
       {(deck || currentDeckId) && (
         <div>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
             <h2 className="font-semibold text-gray-700">
               Kartičky <span className="text-gray-400 font-normal">({cards.length})</span>
             </h2>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              {cards.length > 1 && (
+                <select
+                  value={sort}
+                  onChange={e => setSort(e.target.value as typeof sort)}
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-400 text-gray-600"
+                >
+                  <option value="default">Pořadí (výchozí)</option>
+                  <option value="newest">Nejnovější první</option>
+                  <option value="oldest">Nejstarší první</option>
+                  <option value="az">Abecedně A–Z</option>
+                  <option value="za">Abecedně Z–A</option>
+                </select>
+              )}
               <button
                 onClick={() => setBulkOpen(true)}
                 className="px-4 py-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition-colors"
@@ -239,7 +261,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {cards.map((card) => (
+              {sortedCards.map((card) => (
                 <div key={card.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden group">
                   <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
                     <img src={card.image_url} alt={card.label ?? ''} className="w-full h-full object-contain p-2" />
