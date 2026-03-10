@@ -127,9 +127,17 @@ interface GameStore {
   voteQuiz: (answer: string) => void
 }
 
+function detectLanguage(): Language {
+  const lang = (navigator.language ?? '').toLowerCase()
+  if (lang.startsWith('sk')) return 'sk'
+  if (lang.startsWith('cs') || lang.startsWith('cz')) return 'cs'
+  if (lang.startsWith('en')) return 'en'
+  return 'cs'
+}
+
 export const useGameStore = create<GameStore>()(persist((set, get) => ({
   // Defaults
-  language: 'cs',
+  language: detectLanguage(),
   theme: 'dark',
   selectedDeckId: 'flags',
   customDeck: null,
