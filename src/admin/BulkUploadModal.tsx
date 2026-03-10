@@ -31,16 +31,17 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
   const [cards, setCards]       = useState<PendingCard[]>([])
   const [cropIndex, setCropIndex] = useState<number | null>(null)
   const [savingAll, setSavingAll] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   function update(index: number, patch: Partial<PendingCard>) {
     setCards(prev => prev.map((c, i) => i === index ? { ...c, ...patch } : c))
   }
 
-  function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []).filter(f => f.size <= 2 * 1024 * 1024)
-    if (!files.length) return
-    const newCards: PendingCard[] = files.map(file => ({
+  function addFiles(files: File[]) {
+    const valid = files.filter(f => f.size <= 2 * 1024 * 1024)
+    if (!valid.length) return
+    const newCards: PendingCard[] = valid.map(file => ({
       file,
       previewUrl: URL.createObjectURL(file),
       croppedBlob: null,
@@ -57,12 +58,21 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
     }))
     setCards(prev => {
       const next = [...prev, ...newCards]
-      // Auto-open crop for first uncropped
       const firstUncropped = next.findIndex(c => !c.croppedBlob)
       if (firstUncropped !== -1) setCropIndex(firstUncropped)
       return next
     })
+  }
+
+  function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    addFiles(Array.from(e.target.files ?? []))
     e.target.value = ''
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragging(false)
+    addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')))
   }
 
   function handleCropped(blob: Blob) {
@@ -182,11 +192,14 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
         <div className="flex-1 overflow-y-auto p-6">
           {/* Drop zone */}
           <div
-            className="border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-indigo-300 transition-colors py-10 mb-6 bg-white"
+            className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors py-10 mb-6 ${isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-white hover:border-indigo-300'}`}
             onClick={() => fileRef.current?.click()}
+            onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+            onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false) }}
+            onDrop={handleDrop}
           >
-            <div className="text-3xl mb-2">📁</div>
-            <div className="text-sm font-medium text-gray-600">Klikněte pro výběr obrázků</div>
+            <div className="text-3xl mb-2">{isDragging ? '📂' : '📁'}</div>
+            <div className="text-sm font-medium text-gray-600">{isDragging ? 'Pusťte obrázky' : 'Přetáhněte obrázky nebo klikněte'}</div>
             <div className="text-xs text-gray-400 mt-1">PNG, JPG, WebP · max 2 MB · více souborů najednou</div>
           </div>
           <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFiles} />

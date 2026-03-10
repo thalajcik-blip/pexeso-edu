@@ -40,7 +40,18 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
   const [saving, setSaving]             = useState(false)
   const [generating, setGenerating]     = useState(false)
   const [error, setError]               = useState('')
+  const [isDragging, setIsDragging]     = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) { setError('Obrázek je příliš velký. Maximální velikost je 2 MB.'); return }
+    setError('')
+    setCropSrc(URL.createObjectURL(file))
+  }
 
   async function handleGenerate() {
     if (!label.trim()) { setError('Nejprve zadejte label/popis kartičky.'); return }
@@ -153,16 +164,19 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
             <div className="mb-5">
               <label className="block text-xs font-medium text-gray-600 mb-2">Obrázek *</label>
               <div
-                className="border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-indigo-300 transition-colors overflow-hidden"
+                className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors overflow-hidden ${isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'}`}
                 style={{ minHeight: 140 }}
                 onClick={() => fileRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
               >
                 {imagePreview ? (
                   <img src={imagePreview} alt="" className="w-full h-40 object-contain p-2" />
                 ) : (
                   <div className="text-center py-8 px-4">
                     <div className="text-3xl mb-2">🖼️</div>
-                    <div className="text-sm text-gray-400">Klikněte pro nahrání obrázku</div>
+                    <div className="text-sm text-gray-400">Přetáhněte obrázek nebo klikněte</div>
                     <div className="text-xs text-gray-300 mt-1">PNG, JPG, SVG, WebP · max 2 MB</div>
                   </div>
                 )}
