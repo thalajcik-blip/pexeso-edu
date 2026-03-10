@@ -163,7 +163,9 @@ export default function SetupScreen() {
                 style={{ ...( selectedDeckId === deck.id ? activeBtn : inactiveBtn), width: 96 }}
               >
                 <span className="text-3xl leading-none">{deck.icon}</span>
-                <span className="text-xs">{tr.deckNames[deck.id as DeckId]}</span>
+                <div className="flex items-center justify-center w-full text-center text-xs leading-tight" style={{ minHeight: '2.5em' }}>
+                  {tr.deckNames[deck.id as DeckId]}
+                </div>
               </button>
             ))}
             {customDecks.map(cd => (
@@ -178,7 +180,9 @@ export default function SetupScreen() {
                 ) : (
                   <span className="text-3xl leading-none">🃏</span>
                 )}
-                <span className="text-xs line-clamp-2 w-full text-center leading-tight">{cd.title}</span>
+                <div className="flex items-center justify-center w-full text-center text-xs leading-tight line-clamp-2" style={{ minHeight: '2.5em' }}>
+                  {cd.title}
+                </div>
               </button>
             ))}
             </div>
