@@ -99,14 +99,26 @@ export default function SetupScreen() {
         </div>
         <div className="flex items-center gap-1.5 justify-end -translate-y-6">
           <div className="relative">
+            {/* Desktop: flag + code */}
             <select
               value={language}
               onChange={e => setLanguage(e.target.value as Language)}
-              className="rounded-lg border text-sm pl-2 pr-7 py-1.5 outline-none cursor-pointer appearance-none"
+              className="hidden sm:block rounded-lg border text-sm pl-2 pr-7 py-1.5 outline-none cursor-pointer appearance-none"
               style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
             >
               {LANGUAGES.map(lang => (
                 <option key={lang.id} value={lang.id}>{lang.flag} {lang.code}</option>
+              ))}
+            </select>
+            {/* Mobile: flag only */}
+            <select
+              value={language}
+              onChange={e => setLanguage(e.target.value as Language)}
+              className="sm:hidden rounded-lg border text-sm pl-2 pr-7 py-1.5 outline-none cursor-pointer appearance-none"
+              style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
+            >
+              {LANGUAGES.map(lang => (
+                <option key={lang.id} value={lang.id}>{lang.flag}</option>
               ))}
             </select>
             <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-50" style={{ color: tc.btnInactiveText }}>▾</span>
