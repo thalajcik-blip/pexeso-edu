@@ -131,8 +131,29 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
 
     const { data: { session } } = await supabase.auth.getSession()
     const token = session?.access_token
+    const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate-quiz`
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
 
+    // Translate deck title
+    let translatedTitle = `${deck.title} (${LANG_LABEL[targetLang]})`
+    try {
+      const res = await fetch(fnUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ mode: 'text', text: deck.title, source_lang: deck.language, target_lang: targetLang }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.text && !data.error) translatedTitle = data.text
+      }
+    } catch (e) { console.error('Title translation failed:', e) }
+
+    await supabase.from('custom_decks').update({ title: translatedTitle }).eq('id', newDeck.id)
+
+    const errors: string[] = []
     const translatedCards = []
+    let doneCount = 0
+
     for (let i = 0; i < cards.length; i++) {
       const card = cards[i]
       let translatedCard = {
@@ -148,39 +169,42 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
 
       if (card.quiz_question && card.quiz_correct) {
         try {
-          const res = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate-quiz`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-              body: JSON.stringify({
-                label: card.label,
-                quiz_question: card.quiz_question,
-                quiz_options: card.quiz_options,
-                quiz_correct: card.quiz_correct,
-                fun_fact: card.fun_fact,
-                source_lang: deck.language,
-                target_lang: targetLang,
-              }),
-            }
-          )
-          if (res.ok) {
-            const translated = await res.json()
-            if (!translated.error) {
-              translatedCard = { ...translatedCard, ...translated }
-            }
+          const res = await fetch(fnUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              label: card.label,
+              quiz_question: card.quiz_question,
+              quiz_options: card.quiz_options,
+              quiz_correct: card.quiz_correct,
+              fun_fact: card.fun_fact,
+              source_lang: deck.language,
+              target_lang: targetLang,
+            }),
+          })
+          const translated = await res.json()
+          if (!res.ok || translated.error) {
+            errors.push(`Karta "${card.label}": ${translated.error ?? res.status}`)
+          } else {
+            translatedCard = { ...translatedCard, ...translated }
           }
         } catch (e) {
-          console.error(`Translation failed for card ${card.id}:`, e)
+          errors.push(`Karta "${card.label}": ${String(e)}`)
         }
-        setTranslate(t => t ? { ...t, progress: { done: i + 1, total: translatableCards.length } } : null)
+        doneCount++
+        setTranslate(t => t ? { ...t, progress: { done: doneCount, total: translatableCards.length } } : null)
       }
 
       translatedCards.push(translatedCard)
     }
 
     await supabase.from('custom_cards').insert(translatedCards)
-    setTranslate(null)
+
+    if (errors.length > 0) {
+      setTranslate(t => t ? { ...t, progress: null, error: `${errors.length} karet se nepodařilo přeložit. První chyba: ${errors[0]}` } : null)
+    } else {
+      setTranslate(null)
+    }
     load()
   }
 

@@ -91,9 +91,54 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { label, quiz_question, quiz_options, quiz_correct, fun_fact, source_lang, target_lang } = await req.json()
+    const body = await req.json()
+    const { source_lang, target_lang } = body
 
-    if (!quiz_question || !quiz_options || !quiz_correct || !source_lang || !target_lang) {
+    if (!source_lang || !target_lang) {
+      return new Response(JSON.stringify({ error: 'Missing source_lang or target_lang' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Text-only mode (for translating deck title)
+    if (body.mode === 'text' && body.text) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+      const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      const claudeKey   = Deno.env.get('ANTHROPIC_API_KEY')
+      const geminiKey   = Deno.env.get('GEMINI_API_KEY')
+      const aiSettings  = await getAiSettings(supabaseUrl, serviceKey)
+      const textPrompt  = `Translate this text from ${LANG_NAMES[source_lang] ?? source_lang} to ${LANG_NAMES[target_lang] ?? target_lang}. Return only the translated text, nothing else:\n\n"${body.text}"`
+      const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
+      const primaryCall = aiSettings.primary === 'claude'
+        ? (k: string) => callClaude(textPrompt, k)
+        : (k: string) => callGemini(textPrompt, k)
+      const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
+      const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
+      const fallbackCall = fallbackProvider === 'claude'
+        ? (k: string) => callClaude(textPrompt, k)
+        : (k: string) => callGemini(textPrompt, k)
+      let translated: { quiz_question?: string } | string
+      if (primaryKey) {
+        try { translated = await primaryCall(primaryKey) }
+        catch (e) {
+          if (!aiSettings.fallback || !fallbackKey) throw e
+          translated = await fallbackCall(fallbackKey)
+        }
+      } else if (aiSettings.fallback && fallbackKey) {
+        translated = await fallbackCall(fallbackKey)
+      } else throw new Error('No AI provider configured')
+      // For text mode, AI returns JSON with quiz_question field or raw text — extract plain text
+      const translatedText = typeof translated === 'string'
+        ? translated
+        : (translated as { quiz_question?: string }).quiz_question ?? body.text
+      return new Response(JSON.stringify({ text: translatedText.replace(/^"|"$/g, '') }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const { label, quiz_question, quiz_options, quiz_correct, fun_fact } = body
+
+    if (!quiz_question || !quiz_options || !quiz_correct) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
