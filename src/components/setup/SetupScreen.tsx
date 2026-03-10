@@ -88,15 +88,16 @@ export default function SetupScreen() {
   return (
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-6 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
 
-      {/* Header row: logo + controls */}
-      <div className="w-full max-w-md flex items-center justify-between">
+      {/* Header row: logo centered, controls top-right */}
+      <div className="w-full max-w-md grid items-start" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
+        <div />
         <div className="flex items-center gap-2">
           <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="Pexedu logo" className="w-10 h-10" />
           <h1 className="text-3xl font-semibold tracking-tight lowercase relative -top-0.5" style={{ color: tc.textMuted }}>
             Pexedu
           </h1>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 justify-end -translate-y-1">
           <div className="relative">
             <select
               value={language}
