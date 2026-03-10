@@ -74,7 +74,7 @@ export default function SetupScreen() {
   const tc = THEMES[theme]
 
   const inactiveBtn = { background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }
-  const activeBtn   = { background: tc.accent, borderColor: tc.accent, color: tc.accentText }
+  const activeBtn   = { background: tc.accentGradient, borderColor: tc.accent, color: tc.accentText }
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-6 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
@@ -206,14 +206,14 @@ export default function SetupScreen() {
           <button
             onClick={startGame}
             className="flex-1 py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
-            style={{ background: tc.accent, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
+            style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
           >
             {tr.localBtn}
           </button>
           <button
             onClick={goToLobby}
             className="flex-1 py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
-            style={{ background: tc.accent, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
+            style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
           >
             {tr.onlineBtn}
           </button>

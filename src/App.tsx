@@ -87,7 +87,7 @@ export default function App() {
             <button
               onClick={leaveRoom}
               className="w-full py-3 rounded-xl font-bold transition-all hover:opacity-90"
-              style={{ background: tc.accent, color: tc.accentText }}
+              style={{ background: tc.accentGradient, color: tc.accentText }}
             >
               {tr.leaveRoom}
             </button>

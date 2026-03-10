@@ -36,7 +36,8 @@ export interface ThemeColors {
   errorColor: string
   errorBg: string
   // Accent (yellow in dark, blue in light)
-  accent: string
+  accent: string          // solid color — for text, border, icon
+  accentGradient: string  // gradient — for button backgrounds
   accentText: string
   accentGlow: string
   accentBorderActive: string
@@ -79,11 +80,12 @@ export const THEMES: Record<Theme, ThemeColors> = {
     successBg:          'rgba(46,204,113,0.25)',
     errorColor:         '#e74c3c',
     errorBg:            'rgba(231,76,60,0.25)',
-    accent:             '#f9d74e',
+    accent:             '#ffdd35',
+    accentGradient:     'linear-gradient(135deg, #ffea83 0%, #ffdd35 15%, #ffa800 100%)',
     accentText:         '#0d1b2a',
-    accentGlow:         'rgba(249,215,78,0.3)',
-    accentBorderActive: 'rgba(249,215,78,0.7)',
-    accentBgActive:     'rgba(249,215,78,0.1)',
+    accentGlow:         'rgba(255,187,0,0.35)',
+    accentBorderActive: 'rgba(255,187,0,0.7)',
+    accentBgActive:     'rgba(255,187,0,0.1)',
   },
   light: {
     bg:                 '#eef1f9',
@@ -120,10 +122,11 @@ export const THEMES: Record<Theme, ThemeColors> = {
     successBg:          'rgba(22,163,74,0.15)',
     errorColor:         '#dc2626',
     errorBg:            'rgba(220,38,38,0.12)',
-    accent:             '#6d41a1',
+    accent:             '#2653eb',
+    accentGradient:     'linear-gradient(135deg, #2653eb 0%, #ef8cfa 100%)',
     accentText:         '#ffffff',
-    accentGlow:         'rgba(109,65,161,0.25)',
-    accentBorderActive: 'rgba(109,65,161,0.7)',
-    accentBgActive:     'rgba(109,65,161,0.1)',
+    accentGlow:         'rgba(38,83,235,0.25)',
+    accentBorderActive: 'rgba(38,83,235,0.7)',
+    accentBgActive:     'rgba(38,83,235,0.1)',
   },
 }

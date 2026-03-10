@@ -171,7 +171,7 @@ export default function LobbyScreen() {
               onClick={handleCreate}
               disabled={loading || !myName.trim()}
               className="w-full py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 disabled:opacity-50"
-              style={{ background: tc.accent, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
+              style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
             >
               {loading ? tr.connecting : tr.createRoom}
             </button>
@@ -212,7 +212,7 @@ export default function LobbyScreen() {
                 onClick={handleJoin}
                 disabled={loading || codeInput.length < 6 || !myName.trim()}
                 className="flex-1 py-3 rounded-xl font-bold transition-all disabled:opacity-50"
-                style={{ background: tc.accent, color: tc.accentText }}
+                style={{ background: tc.accentGradient, color: tc.accentText }}
               >
                 {loading ? tr.connecting : tr.joinRoom}
               </button>
@@ -329,7 +329,7 @@ export default function LobbyScreen() {
                 onClick={startOnlineGame}
                 disabled={!canStart}
                 className="w-full py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: tc.accent, color: tc.accentText, boxShadow: canStart ? `0 4px 20px ${tc.accentGlow}` : 'none' }}
+                style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: canStart ? `0 4px 20px ${tc.accentGlow}` : 'none' }}
               >
                 {tr.startOnlineGame} ▶
               </button>

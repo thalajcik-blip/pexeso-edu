@@ -78,7 +78,7 @@ export default function WinModal() {
             onClick={playAgain}
             className="mt-8 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105"
             style={{
-              background: rematchRequested ? tc.text : tc.accent,
+              background: rematchRequested ? tc.text : tc.accentGradient,
               color: rematchRequested ? tc.bg : tc.accentText,
               boxShadow: rematchRequested ? `0 0 16px ${tc.accentGlow}` : undefined,
             }}
@@ -96,7 +96,7 @@ export default function WinModal() {
             : <button
                 onClick={requestRematch}
                 className="mt-8 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105"
-                style={{ background: tc.accent, color: tc.accentText }}
+                style={{ background: tc.accentGradient, color: tc.accentText }}
               >
                 {tr.rematchRequest}
               </button>
