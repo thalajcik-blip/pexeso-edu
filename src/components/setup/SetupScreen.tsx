@@ -14,10 +14,10 @@ const SIZES: { id: BoardSize; labelKey: 'sizeLarge' | 'sizeMedium' | 'sizeSmall'
   { id: 'large',  labelKey: 'sizeLarge',  grid: '8×8' },
 ]
 
-const LANGUAGES: { id: Language; label: string; flag: string }[] = [
-  { id: 'cs', label: 'Čeština',   flag: '🇨🇿' },
-  { id: 'sk', label: 'Slovenčina', flag: '🇸🇰' },
-  { id: 'en', label: 'English',   flag: '🇬🇧' },
+const LANGUAGES: { id: Language; label: string; flag: string; code: string }[] = [
+  { id: 'cs', label: 'Čeština',   flag: '🇨🇿', code: 'CZ' },
+  { id: 'sk', label: 'Slovenčina', flag: '🇸🇰', code: 'SK' },
+  { id: 'en', label: 'English',   flag: '🇬🇧', code: 'EN' },
 ]
 
 type CustomDeckMeta = {
@@ -98,7 +98,7 @@ export default function SetupScreen() {
             style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
           >
             {LANGUAGES.map(lang => (
-              <option key={lang.id} value={lang.id}>{lang.flag} {lang.id.toUpperCase()}</option>
+              <option key={lang.id} value={lang.id}>{lang.flag} {lang.code}</option>
             ))}
           </select>
           <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-50" style={{ color: tc.btnInactiveText }}>▾</span>
