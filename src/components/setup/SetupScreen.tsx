@@ -45,6 +45,7 @@ export default function SetupScreen() {
       .from('custom_decks')
       .select('id, title, status')
       .eq('status', 'approved')
+      .eq('language', language)
       .then(({ data }) => {
         if (!data) return
         // Fetch first card thumbnail for each deck
@@ -60,7 +61,7 @@ export default function SetupScreen() {
           })
         ).then(setCustomDecks)
       })
-  }, [])
+  }, [language])
 
   async function handleSelectCustomDeck(meta: CustomDeckMeta) {
     const full = await fetchCustomDeckFull(meta.id)
