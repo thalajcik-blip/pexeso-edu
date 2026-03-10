@@ -78,10 +78,13 @@ export default function AdminApp() {
   if (!role) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="text-2xl mb-2">🚫</div>
-          <div className="text-gray-600 mb-4">Nemáte přístup do administrace.</div>
-          <button onClick={signOut} className="text-sm text-indigo-600 hover:underline">Odhlásit se</button>
+        <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8 text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <div className="text-lg font-bold text-gray-800 mb-2">Čekáme na schválení</div>
+          <div className="text-sm text-gray-500 mb-1">Váš účet byl zaregistrován jako</div>
+          <div className="text-sm font-medium text-gray-700 mb-4">{user.email}</div>
+          <div className="text-sm text-gray-500 mb-6">Administrátor vám brzy přidělí přístup. Zkuste se přihlásit znovu za chvíli.</div>
+          <button onClick={signOut} className="text-sm text-indigo-500 hover:underline">Odhlásit se</button>
         </div>
       </div>
     )
