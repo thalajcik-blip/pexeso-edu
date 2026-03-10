@@ -66,7 +66,7 @@ async function callClaude(prompt: string, apiKey: string) {
   return parseResult(data.content[0].text.trim())
 }
 
-async function callGemini(prompt: string, apiKey: string) {
+async function callGemini(prompt: string, apiKey: string, retries = 3): Promise<ReturnType<typeof parseResult>> {
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
     {
@@ -75,6 +75,10 @@ async function callGemini(prompt: string, apiKey: string) {
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 512 } }),
     }
   )
+  if (response.status === 429 && retries > 0) {
+    await new Promise(r => setTimeout(r, 10000))
+    return callGemini(prompt, apiKey, retries - 1)
+  }
   if (!response.ok) throw new Error(`Gemini error: ${response.status}`)
   const data = await response.json()
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text
