@@ -277,6 +277,7 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
       {/* Crop modal */}
       {cropIndex !== null && cards[cropIndex] && (
         <CropModal
+          key={cropIndex}
           imageSrc={cards[cropIndex].previewUrl}
           onCrop={handleCropped}
           onClose={() => setCropIndex(null)}
