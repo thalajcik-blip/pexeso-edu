@@ -97,7 +97,7 @@ export default function SetupScreen() {
             Pexedu
           </h1>
         </div>
-        <div className="flex items-center gap-1.5 justify-end -translate-y-1">
+        <div className="flex items-center gap-1.5 justify-end -translate-y-4">
           <div className="relative">
             <select
               value={language}
