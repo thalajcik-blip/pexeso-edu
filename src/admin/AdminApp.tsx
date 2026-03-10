@@ -52,7 +52,7 @@ type AdminView =
   | { type: 'editor'; deckId: string | null }
 
 export default function AdminApp() {
-  const { user, role, loading, isRecovery, signIn, signUp, resetPassword, updatePassword, signOut } = useAuth()
+  const { user, role, loading, isRecovery, signIn, signUp, resetPassword, updatePassword, signInWithGoogle, signOut } = useAuth()
   const [view, setView] = useState<AdminView>({ type: 'decks' })
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -69,7 +69,7 @@ export default function AdminApp() {
     )
   }
 
-  if (!user) return <LoginScreen signIn={signIn} signUp={signUp} resetPassword={resetPassword} />
+  if (!user) return <LoginScreen signIn={signIn} signUp={signUp} resetPassword={resetPassword} signInWithGoogle={signInWithGoogle} />
 
   if (isRecovery) return <SetNewPasswordScreen updatePassword={updatePassword} />
 

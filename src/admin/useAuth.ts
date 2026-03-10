@@ -75,9 +75,17 @@ export function useAuth() {
     return error
   }
 
+  async function signInWithGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/admin` },
+    })
+    return error
+  }
+
   async function signOut() {
     await supabase.auth.signOut()
   }
 
-  return { user, role, loading, isRecovery, signIn, signUp, resetPassword, updatePassword, signOut }
+  return { user, role, loading, isRecovery, signIn, signUp, resetPassword, updatePassword, signInWithGoogle, signOut }
 }
