@@ -9,6 +9,7 @@ export interface CustomDeckCard {
   quiz_options: [string, string, string, string] | null
   quiz_correct: string | null
   fun_fact: string | null
+  translations?: Record<string, { quiz_question?: string; quiz_options?: string[]; quiz_correct?: string; fun_fact?: string }>
 }
 
 export interface CustomDeckData {

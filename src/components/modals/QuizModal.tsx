@@ -75,8 +75,8 @@ export default function QuizModal() {
     // Custom deck: per-card quiz data (use translation if available)
     if (isCustomDeck && customDeck) {
       const card = customDeck.pool[quizSymbol]
-      const langKey = language === 'CZ' ? 'cs' : language === 'SK' ? 'sk' : 'en'
-      const translation = (card as typeof card & { translations?: Record<string, { quiz_question: string; quiz_options: string[]; quiz_correct: string }> })?.translations?.[langKey]
+      const langKey = language
+      const translation = card?.translations?.[langKey]
       const quizOptions = translation?.quiz_options ?? card?.quiz_options
       const quizCorrect = translation?.quiz_correct ?? card?.quiz_correct
       if (quizOptions && quizCorrect) {
@@ -116,8 +116,8 @@ export default function QuizModal() {
 
   // Custom deck card lookup (with translation)
   const customCard = isCustomDeck && customDeck ? customDeck.pool[quizSymbol] : null
-  const customLangKey = language === 'CZ' ? 'cs' : language === 'SK' ? 'sk' : 'en'
-  const customTranslation = (customCard as typeof customCard & { translations?: Record<string, { quiz_question?: string; fun_fact?: string }> })?.translations?.[customLangKey]
+  const customLangKey = language
+  const customTranslation = customCard?.translations?.[customLangKey]
   const customQuestion = customTranslation?.quiz_question ?? customCard?.quiz_question
   const customFunFact  = customTranslation?.fun_fact ?? customCard?.fun_fact
 
