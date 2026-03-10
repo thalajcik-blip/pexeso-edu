@@ -612,6 +612,11 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     selectedSize: state.selectedSize,
     numPlayers: state.numPlayers,
   }),
+  onRehydrateStorage: () => (state) => {
+    if (state) {
+      state.playerNames = [...TRANSLATIONS[state.language].defaultPlayerNames]
+    }
+  },
 }))
 
 // Helper to read saved session for reconnect pre-fill
