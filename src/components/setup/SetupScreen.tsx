@@ -99,33 +99,30 @@ export default function SetupScreen() {
           </h1>
         </div>
         <div className="flex items-center gap-1.5 justify-end -translate-y-6">
+          <button
+            onClick={toggleTheme}
+            className="w-8 h-8 flex items-center justify-center rounded-lg border text-sm transition-all"
+            style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder }}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
           <div className="relative">
-            {/* Desktop: native select, flag + code */}
-            <select
-              value={language}
-              onChange={e => setLanguage(e.target.value as Language)}
-              className="hidden sm:block rounded-lg border text-sm pl-2 pr-6 py-1.5 outline-none cursor-pointer appearance-none"
-              style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
-            >
-              {LANGUAGES.map(lang => (
-                <option key={lang.id} value={lang.id}>{lang.flag} {lang.code}</option>
-              ))}
-            </select>
-            <span className="hidden sm:block pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-50" style={{ color: tc.btnInactiveText }}>▾</span>
-            {/* Mobile: custom dropdown, shows flag only in trigger, flag + label in options */}
+            {/* Custom dropdown: mobile = flag only trigger, desktop = flag + code trigger; both show flag + label in options */}
             <button
               onClick={() => setLangDropdownOpen(o => !o)}
-              className="sm:hidden flex items-center gap-1 rounded-lg border text-sm px-2 py-1.5 cursor-pointer"
+              className="flex items-center gap-1 rounded-lg border text-sm px-2 py-1.5 cursor-pointer"
               style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
             >
               <span>{LANGUAGES.find(l => l.id === language)?.flag}</span>
+              <span className="hidden sm:inline">{LANGUAGES.find(l => l.id === language)?.code}</span>
               <span className="text-xs opacity-50">▾</span>
             </button>
             {langDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setLangDropdownOpen(false)} />
                 <div
-                  className="sm:hidden absolute right-0 top-full mt-1 z-20 rounded-lg border shadow-lg overflow-hidden"
+                  className="absolute right-0 top-full mt-1 z-20 rounded-lg border shadow-lg overflow-hidden"
                   style={{ background: tc.bg, borderColor: tc.btnInactiveBorder }}
                 >
                   {LANGUAGES.map(lang => (
@@ -146,14 +143,6 @@ export default function SetupScreen() {
               </>
             )}
           </div>
-          <button
-            onClick={toggleTheme}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border text-sm transition-all"
-            style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder }}
-            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
         </div>
       </div>
 
