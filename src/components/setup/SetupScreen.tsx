@@ -2,11 +2,11 @@ import { useGameStore } from '../../store/gameStore'
 import { DECKS } from '../../data/decks'
 import { TRANSLATIONS } from "../../data/translations"
 import { DEFAULT_NAMES, PLAYER_COLORS } from '../../types/game'
-import type { DeckId, BoardSize, CustomDeckData } from '../../types/game'
+import type { DeckId, BoardSize } from '../../types/game'
 import type { Language } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { useEffect, useState } from 'react'
-import { supabase } from '../../services/supabase'
+import { supabase, fetchCustomDeckFull } from '../../services/supabase'
 
 const SIZES: { id: BoardSize; labelKey: 'sizeLarge' | 'sizeMedium' | 'sizeSmall'; grid: string }[] = [
   { id: 'small',  labelKey: 'sizeSmall',  grid: '4×4' },
@@ -26,27 +26,6 @@ type CustomDeckMeta = {
   thumbnail: string | null
 }
 
-async function loadCustomDeckFull(id: string): Promise<CustomDeckData | null> {
-  const { data: cards } = await supabase
-    .from('custom_cards')
-    .select('image_url, label, quiz_question, quiz_options, quiz_correct, fun_fact')
-    .eq('deck_id', id)
-    .order('sort_order')
-  if (!cards) return null
-  const pool: CustomDeckData['pool'] = {}
-  cards.forEach((c: { image_url: string; label: string; quiz_question: string | null; quiz_options: [string,string,string,string] | null; quiz_correct: string | null; fun_fact: string | null }) => {
-    pool[c.image_url] = {
-      image_url: c.image_url,
-      label: c.label,
-      quiz_question: c.quiz_question,
-      quiz_options: c.quiz_options,
-      quiz_correct: c.quiz_correct,
-      fun_fact: c.fun_fact,
-    }
-  })
-  const thumbnail = cards[0]?.image_url ?? null
-  return { id, title: '', thumbnail, pool }
-}
 
 export default function SetupScreen() {
   const {
@@ -84,7 +63,7 @@ export default function SetupScreen() {
   }, [])
 
   async function handleSelectCustomDeck(meta: CustomDeckMeta) {
-    const full = await loadCustomDeckFull(meta.id)
+    const full = await fetchCustomDeckFull(meta.id)
     if (!full) return
     full.title = meta.title
     selectDeck(meta.id, full)

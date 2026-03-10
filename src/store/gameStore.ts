@@ -21,6 +21,7 @@ import {
   generateRoomCode,
   getPlayerId,
 } from '../services/multiplayerService'
+import { fetchCustomDeckFull } from '../services/supabase'
 import type { LobbyPlayer, GameAction } from '../services/multiplayerService'
 
 const SESSION_ROOM_KEY = 'qm_last_room'
@@ -116,7 +117,7 @@ interface GameStore {
   _applyAction: (action: GameAction) => void
   _flipCard: (index: number) => void
   _answerQuiz: (correct: boolean) => void
-  _applyGameStart: (cards: CardData[], playerIds: string[], playerNames: string[], deckId: string, size: string, turnTime: number, quizTime: number, startingPlayer: number) => void
+  _applyGameStart: (cards: CardData[], playerIds: string[], playerNames: string[], deckId: string, size: string, turnTime: number, quizTime: number, startingPlayer: number) => Promise<void>
   _applyTurnTimeout: () => void
   _applyEmojiReact: (playerId: string, emoji: string) => void
   _broadcastStateIfHost: () => void
@@ -288,8 +289,17 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     set({ cards: resetCards, flipped: [], locked: false, currentPlayer: nextPlayer, turnMessage: '' })
   },
 
-  _applyGameStart: (cards, playerIds, playerNames, deckId, size, turnTime, quizTime, startingPlayer) => {
+  _applyGameStart: async (cards, playerIds, playerNames, deckId, size, turnTime, quizTime, startingPlayer) => {
     const { language, myPlayerId } = get()
+
+    // Resolve custom deck: use cache if already loaded, else fetch from Supabase
+    let customDeck: CustomDeckData | null = null
+    const isStaticDeck = DECKS.some(d => d.id === deckId)
+    if (!isStaticDeck) {
+      const cached = get().customDeck
+      customDeck = cached?.id === deckId ? cached : await fetchCustomDeckFull(deckId)
+    }
+
     const players: Player[] = playerNames.map((name, i) => ({
       name: name.trim() || TRANSLATIONS[language].defaultPlayerNames[i],
       color: PLAYER_COLORS[i],
@@ -298,6 +308,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const myIndex = playerIds.indexOf(myPlayerId)
     set({
       selectedDeckId: deckId as DeckId,
+      customDeck,
       selectedSize: size as BoardSize,
       turnTime,
       quizTime,
