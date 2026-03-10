@@ -126,7 +126,7 @@ export default function SetupScreen() {
                 <div className="fixed inset-0 z-10" onClick={() => setLangDropdownOpen(false)} />
                 <div
                   className="sm:hidden absolute right-0 top-full mt-1 z-20 rounded-lg border shadow-lg overflow-hidden"
-                  style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder }}
+                  style={{ background: tc.bg, borderColor: tc.btnInactiveBorder }}
                 >
                   {LANGUAGES.map(lang => (
                     <button
