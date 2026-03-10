@@ -42,9 +42,26 @@ export function useAuth() {
     return error
   }
 
+  async function signUp(email: string, password: string) {
+    const { data, error } = await supabase.auth.signUp({ email, password })
+    if (error) return error
+    // Assign default teacher role
+    if (data.user) {
+      await supabase.from('user_roles').insert({ user_id: data.user.id, role: 'teacher' })
+    }
+    return null
+  }
+
+  async function resetPassword(email: string) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/admin`,
+    })
+    return error
+  }
+
   async function signOut() {
     await supabase.auth.signOut()
   }
 
-  return { user, role, loading, signIn, signOut }
+  return { user, role, loading, signIn, signUp, resetPassword, signOut }
 }
