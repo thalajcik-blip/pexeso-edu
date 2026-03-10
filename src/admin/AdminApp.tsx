@@ -63,7 +63,7 @@ export default function AdminApp() {
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            🃏 Decky
+            🃏 Sady
           </button>
         </nav>
 

@@ -22,7 +22,7 @@ export default function LoginScreen({ signIn }: Props) {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8">
         <div className="text-2xl font-bold text-gray-800 mb-1">Pexedu Admin</div>
-        <div className="text-sm text-gray-500 mb-6">Přihlaste se pro správu decků</div>
+        <div className="text-sm text-gray-500 mb-6">Přihlaste se pro správu sad</div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

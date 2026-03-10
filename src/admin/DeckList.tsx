@@ -52,7 +52,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
   }
 
   async function deleteDeck(id: string) {
-    if (!confirm('Opravdu smazat tento deck?')) return
+    if (!confirm('Opravdu smazat tuto sadu?')) return
     await supabase.from('custom_decks').delete().eq('id', id)
     load()
   }
@@ -64,19 +64,19 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-800">Vlastní decky</h1>
+        <h1 className="text-xl font-bold text-gray-800">Vlastní sady</h1>
         <button
           onClick={onNew}
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
         >
-          + Nový deck
+          + Nová sada
         </button>
       </div>
 
       {decks.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <div className="text-4xl mb-3">🃏</div>
-          <div>Zatím žádné decky</div>
+          <div>Zatím žádné sady</div>
         </div>
       ) : (
         <div className="space-y-3">

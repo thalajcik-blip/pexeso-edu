@@ -123,7 +123,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           ← Zpět
         </button>
         <h1 className="text-xl font-bold text-gray-800">
-          {deck ? 'Upravit deck' : 'Nový deck'}
+          {deck ? 'Upravit sadu' : 'Nová sada'}
         </h1>
       </div>
 
@@ -146,14 +146,14 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             value={desc}
             onChange={e => setDesc(e.target.value)}
             rows={2}
-            placeholder="Krátký popis decku…"
+            placeholder="Krátký popis sady…"
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 resize-none"
           />
         </div>
 
         <div className="flex items-end gap-4 flex-wrap">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Jazyk decku</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Jazyk sady</label>
             <select
               value={language}
               onChange={e => setLanguage(e.target.value as Deck['language'])}
@@ -202,7 +202,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
               onChange={e => setIsPrivate(e.target.checked)}
               className="accent-indigo-600"
             />
-            <label htmlFor="private" className="text-sm text-gray-700">Soukromý deck</label>
+            <label htmlFor="private" className="text-sm text-gray-700">Soukromá sada</label>
           </div>
         </div>
 
@@ -212,7 +212,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             disabled={saving || !title.trim()}
             className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
           >
-            {saving ? 'Ukládání…' : deck ? 'Uložit změny' : 'Vytvořit deck'}
+            {saving ? 'Ukládání…' : deck ? 'Uložit změny' : 'Vytvořit sadu'}
           </button>
           {saved && <span className="text-xs text-green-600">✓ Uloženo</span>}
         </div>
@@ -293,7 +293,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
 
       {!deck && !currentDeckId && (
         <div className="text-sm text-gray-400 text-center py-8">
-          Nejprve vytvořte deck, pak budete moci přidávat kartičky.
+          Nejprve vytvořte sadu, pak budete moci přidávat kartičky.
         </div>
       )}
 
