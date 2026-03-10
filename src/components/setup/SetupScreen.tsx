@@ -39,6 +39,7 @@ export default function SetupScreen() {
   } = useGameStore()
 
   const [customDecks, setCustomDecks] = useState<CustomDeckMeta[]>([])
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false)
   const deckScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -99,7 +100,7 @@ export default function SetupScreen() {
         </div>
         <div className="flex items-center gap-1.5 justify-end -translate-y-6">
           <div className="relative">
-            {/* Desktop: flag + code */}
+            {/* Desktop: native select, flag + code */}
             <select
               value={language}
               onChange={e => setLanguage(e.target.value as Language)}
@@ -110,18 +111,40 @@ export default function SetupScreen() {
                 <option key={lang.id} value={lang.id}>{lang.flag} {lang.code}</option>
               ))}
             </select>
-            {/* Mobile: flag only (dropdown shows full label) */}
-            <select
-              value={language}
-              onChange={e => setLanguage(e.target.value as Language)}
-              className="sm:hidden rounded-lg border text-sm pl-2 pr-6 py-1.5 outline-none cursor-pointer appearance-none"
+            <span className="hidden sm:block pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-50" style={{ color: tc.btnInactiveText }}>▾</span>
+            {/* Mobile: custom dropdown, shows flag only in trigger, flag + label in options */}
+            <button
+              onClick={() => setLangDropdownOpen(o => !o)}
+              className="sm:hidden flex items-center gap-1 rounded-lg border text-sm px-2 py-1.5 cursor-pointer"
               style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
             >
-              {LANGUAGES.map(lang => (
-                <option key={lang.id} value={lang.id}>{lang.label}</option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-50" style={{ color: tc.btnInactiveText }}>▾</span>
+              <span>{LANGUAGES.find(l => l.id === language)?.flag}</span>
+              <span className="text-xs opacity-50">▾</span>
+            </button>
+            {langDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setLangDropdownOpen(false)} />
+                <div
+                  className="sm:hidden absolute right-0 top-full mt-1 z-20 rounded-lg border shadow-lg overflow-hidden"
+                  style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder }}
+                >
+                  {LANGUAGES.map(lang => (
+                    <button
+                      key={lang.id}
+                      onClick={() => { setLanguage(lang.id); setLangDropdownOpen(false) }}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left whitespace-nowrap"
+                      style={{
+                        color: lang.id === language ? tc.accent : tc.btnInactiveText,
+                        background: lang.id === language ? tc.btnActiveBg : 'transparent',
+                      }}
+                    >
+                      <span>{lang.flag}</span>
+                      <span>{lang.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
           <button
             onClick={toggleTheme}
