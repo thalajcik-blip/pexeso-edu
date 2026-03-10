@@ -87,34 +87,37 @@ export default function SetupScreen() {
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-6 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
+
+      {/* Top-right controls */}
+      <div className="fixed top-3 right-3 flex items-center gap-1.5 z-50">
+        <div className="relative">
+          <select
+            value={language}
+            onChange={e => setLanguage(e.target.value as Language)}
+            className="rounded-lg border text-sm pl-2 pr-7 py-1.5 outline-none cursor-pointer appearance-none"
+            style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
+          >
+            {LANGUAGES.map(lang => (
+              <option key={lang.id} value={lang.id}>{lang.flag} {lang.id.toUpperCase()}</option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-50" style={{ color: tc.btnInactiveText }}>▾</span>
+        </div>
+        <button
+          onClick={toggleTheme}
+          className="w-8 h-8 flex items-center justify-center rounded-lg border text-sm transition-all"
+          style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder }}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+      </div>
+
       <div className="flex items-center gap-2">
         <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="Pexedu logo" className="w-10 h-10" />
         <h1 className="text-3xl font-semibold tracking-tight lowercase relative -top-0.5" style={{ color: tc.textMuted }}>
           Pexedu
         </h1>
-      </div>
-
-      {/* Language + theme row */}
-      <div className="flex items-center gap-2">
-        {LANGUAGES.map(lang => (
-          <button
-            key={lang.id}
-            onClick={() => setLanguage(lang.id)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all"
-            style={language === lang.id ? activeBtn : inactiveBtn}
-          >
-            <span>{lang.flag}</span>
-            <span>{lang.label}</span>
-          </button>
-        ))}
-        <button
-          onClick={toggleTheme}
-          className="px-3 py-1.5 rounded-lg border text-sm transition-all"
-          style={inactiveBtn}
-          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
       </div>
 
       <div className="w-full max-w-md rounded-2xl p-6 space-y-5" style={{ background: tc.surface, border: `1px solid ${tc.surfaceBorder}` }}>
