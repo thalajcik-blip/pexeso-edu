@@ -215,7 +215,6 @@ export default function LightningGame() {
               { icon: '↺', label: tr.newGame, onClick: () => { resetToSetup(); setMenuOpen(false) } },
               { icon: theme === 'dark' ? '☀️' : '🌙', label: theme === 'dark' ? tr.lightMode : tr.darkMode, onClick: () => { toggleTheme(); setMenuOpen(false) } },
               { icon: muted ? '🔇' : '🔊', label: muted ? tr.soundOn : tr.soundOff, onClick: () => { setMuted(toggleMuted()); setMenuOpen(false) } },
-              { icon: '📖', label: tr.rulesLink, onClick: () => { openRules(); setMenuOpen(false) } },
             ].map(({ icon, label, onClick }) => (
               <button
                 key={label}
@@ -334,6 +333,16 @@ export default function LightningGame() {
           </button>
         </div>
       )}
+
+      {/* Footer */}
+      <div className="flex flex-col items-center gap-0.5 mt-auto pt-6 pb-2">
+        <button onClick={openRules} className="text-sm transition-opacity opacity-35 hover:opacity-70">
+          {tr.rulesLink}
+        </button>
+        <p className="text-xs" style={{ color: tc.textFaint }}>
+          © {new Date().getFullYear()} teamplayer.cz · v{__APP_VERSION__}
+        </p>
+      </div>
 
     </div>
   )
