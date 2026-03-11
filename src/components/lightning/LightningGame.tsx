@@ -141,7 +141,7 @@ export default function LightningGame() {
 
   if (!question) return null
 
-  const timerPct = (timeLeft / lightningTimeLimit) * 100
+  const timerPct = ((lightningTimeLimit - timeLeft) / lightningTimeLimit) * 100
   const timerColor = timeLeft <= 5 ? '#ef4444' : timeLeft <= 10 ? '#f97316' : tc.accent
   const isTimedOut = selectedAnswer === '' && isReveal
   const lastAnswer = lightningAnswers[lightningAnswers.length - 1]
