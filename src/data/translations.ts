@@ -43,6 +43,8 @@ export interface Translations {
   rules: string[]
   rulesOnlineTitle: string
   rulesOnline: string[]
+  rulesLightningTitle: string
+  rulesLightning: string[]
   // Deck questions (used for CS + SK quiz mode)
   deckQuestions: Record<DeckId, string>
   // Deck names (shown in setup)
@@ -144,6 +146,14 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       'Na tahu je vždy <b>jen jeden hráč</b> — ostatní čekají. Pokud je nastaven časový limit tahu, musí hráč otočit pár do vypršení času, jinak přichází další.',
       'V kvízu <b>hlasují všichni hráči</b> — každý může získat bod za správnou odpověď. Hlasování se uzavře, jakmile odpoví všichni, nebo vyprší limit.',
       'Pokud hráč opustí hru, ostatní jsou <b>upozorněni</b>. Zůstaneš-li sám v místnosti, hra se pozastaví a můžeš odejít.',
+    ],
+    rulesLightningTitle: '⚡ Bleskový kvíz',
+    rulesLightning: [
+      'Každé kolo zobrazí <b>kartičku</b> s otázkou a čtyřmi možnostmi odpovědí.',
+      'Vyber správnou odpověď dříve, než vyprší <b>časový limit</b>. Pokud nestihneš, kolo je ztraceno.',
+      'Za každou <b>správnou odpověď</b> získáš 1 bod.',
+      'Po zodpovězení se zobrazí správná odpověď a případná <b>zajímavost</b>.',
+      'Hra skončí po zodpovězení všech otázek. Výsledky zobrazují <b>přesnost</b> a průměrný <b>reakční čas</b>.',
     ],
     deckQuestions: {
       animals: 'Jak se toto zvířátko řekne anglicky?',
@@ -251,6 +261,14 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       'V kvíze <b>hlasujú všetci hráči</b> — každý môže získať bod za správnu odpoveď. Hlasovanie sa uzavrie, keď odpovedajú všetci, alebo vyprší limit.',
       'Ak hráč opustí hru, ostatní sú <b>upozornení</b>. Ak zostaneš sám v miestnosti, hra sa pozastaví a môžeš odísť.',
     ],
+    rulesLightningTitle: '⚡ Bleskový kvíz',
+    rulesLightning: [
+      'Každé kolo zobrazí <b>kartičku</b> s otázkou a štyrmi možnosťami odpovede.',
+      'Vyber správnu odpoveď skôr, ako vyprší <b>časový limit</b>. Ak nestihneš, kolo je stratené.',
+      'Za každú <b>správnu odpoveď</b> získaš 1 bod.',
+      'Po zodpovedaní sa zobrazí správna odpoveď a prípadná <b>zaujímavosť</b>.',
+      'Hra skončí po zodpovedaní všetkých otázok. Výsledky zobrazujú <b>presnosť</b> a priemerný <b>reakčný čas</b>.',
+    ],
     deckQuestions: {
       animals: 'Ako sa toto zvieratko povie po anglicky?',
       flags:   'Čia je to vlajka?',
@@ -356,6 +374,14 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       'Only <b>one player is on turn</b> at a time — others wait. If a turn timer is set, the active player must find a pair before time runs out, or the turn passes.',
       'In the quiz, <b>all players vote</b> — everyone can earn a point for a correct answer. Voting closes when all have answered or the timer expires.',
       'If a player leaves, others are <b>notified</b>. If you\'re left alone in the room, the game pauses and you can leave.',
+    ],
+    rulesLightningTitle: '⚡ Lightning Quiz',
+    rulesLightning: [
+      'Each round shows a <b>card</b> with a question and four answer options.',
+      'Select the correct answer before the <b>time limit</b> runs out. If you don\'t, the round is lost.',
+      'Each <b>correct answer</b> earns you 1 point.',
+      'After answering, the correct answer and a <b>fun fact</b> are revealed.',
+      'The game ends after all questions are answered. Results show your <b>accuracy</b> and average <b>reaction time</b>.',
     ],
     deckQuestions: {
       animals: 'Which fact is true about this animal?',

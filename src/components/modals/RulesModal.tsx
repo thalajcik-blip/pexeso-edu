@@ -3,14 +3,17 @@ import { TRANSLATIONS } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 
 export default function RulesModal() {
-  const rulesOpen = useGameStore(s => s.rulesOpen)
+  const rulesOpen  = useGameStore(s => s.rulesOpen)
   const closeRules = useGameStore(s => s.closeRules)
-  const language = useGameStore(s => s.language)
-  const theme = useGameStore(s => s.theme)
+  const language   = useGameStore(s => s.language)
+  const theme      = useGameStore(s => s.theme)
+  const gameMode   = useGameStore(s => s.gameMode)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
   if (!rulesOpen) return null
+
+  const isLightning = gameMode === 'lightning'
 
   return (
     <div
@@ -24,20 +27,34 @@ export default function RulesModal() {
         onClick={e => e.stopPropagation()}
       >
         <h2 className="text-xl font-bold">{tr.rulesTitle}</h2>
-        <ol className="space-y-2 text-sm list-decimal list-inside" style={{ color: tc.textDim }}>
-          {tr.rules.map((rule, i) => (
-            <li key={i} dangerouslySetInnerHTML={{ __html: rule }} />
-          ))}
-        </ol>
 
-        <div className="pt-2 border-t" style={{ borderColor: tc.modalSurfaceBorder }}>
-          <h3 className="text-base font-bold mb-2">{tr.rulesOnlineTitle}</h3>
-          <ol className="space-y-2 text-sm list-decimal list-inside" style={{ color: tc.textDim }}>
-            {tr.rulesOnline.map((rule, i) => (
-              <li key={i} dangerouslySetInnerHTML={{ __html: rule }} />
-            ))}
-          </ol>
-        </div>
+        {isLightning ? (
+          <>
+            <div className="text-sm font-semibold" style={{ color: tc.accent }}>{tr.rulesLightningTitle}</div>
+            <ol className="space-y-2 text-sm list-decimal list-inside" style={{ color: tc.textDim }}>
+              {tr.rulesLightning.map((rule, i) => (
+                <li key={i} dangerouslySetInnerHTML={{ __html: rule }} />
+              ))}
+            </ol>
+          </>
+        ) : (
+          <>
+            <ol className="space-y-2 text-sm list-decimal list-inside" style={{ color: tc.textDim }}>
+              {tr.rules.map((rule, i) => (
+                <li key={i} dangerouslySetInnerHTML={{ __html: rule }} />
+              ))}
+            </ol>
+            <div className="pt-2 border-t" style={{ borderColor: tc.modalSurfaceBorder }}>
+              <h3 className="text-base font-bold mb-2">{tr.rulesOnlineTitle}</h3>
+              <ol className="space-y-2 text-sm list-decimal list-inside" style={{ color: tc.textDim }}>
+                {tr.rulesOnline.map((rule, i) => (
+                  <li key={i} dangerouslySetInnerHTML={{ __html: rule }} />
+                ))}
+              </ol>
+            </div>
+          </>
+        )}
+
         <button
           onClick={closeRules}
           className="w-full py-2.5 rounded-xl font-bold mt-2 transition-opacity hover:opacity-90"
