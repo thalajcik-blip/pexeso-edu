@@ -26,10 +26,8 @@ export default function LightningGame() {
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState(lightningTimeLimit)
-  const [isPaused, setIsPaused] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [muted, setMuted] = useState(isMuted)
-  const isPausedRef = useRef(false)
   const remainingRef = useRef(lightningTimeLimit)
   const lastTickSecRef = useRef(lightningTimeLimit + 1)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -44,8 +42,6 @@ export default function LightningGame() {
     return () => document.removeEventListener('mousedown', handler)
   }, [menuOpen])
 
-  isPausedRef.current = isPaused
-
   const question = lightningQuestions[lightningCurrentIndex]
   const isReveal  = phase === 'lightning_reveal'
   const isResults = phase === 'lightning_results'
@@ -57,19 +53,14 @@ export default function LightningGame() {
     lastTickSecRef.current = lightningTimeLimit + 1
     setTimeLeft(lightningTimeLimit)
     setSelectedAnswer(null)
-    setIsPaused(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightningCurrentIndex])
 
-  // Timer countdown — interval respects pause via ref
+  // Timer countdown
   useEffect(() => {
     if (phase !== 'lightning_playing') return
     let lastTick = Date.now()
     const interval = setInterval(() => {
-      if (isPausedRef.current) {
-        lastTick = Date.now()
-        return
-      }
       const now = Date.now()
       remainingRef.current -= (now - lastTick) / 1000
       lastTick = now
@@ -81,7 +72,6 @@ export default function LightningGame() {
         soundQuizTimeout()
       } else {
         setTimeLeft(remainingRef.current)
-        // Urgent tick once per second when ≤5s left
         const sec = Math.ceil(remainingRef.current)
         if (sec <= 5 && sec < lastTickSecRef.current) {
           lastTickSecRef.current = sec
@@ -93,15 +83,13 @@ export default function LightningGame() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightningCurrentIndex, phase])
 
-  // Auto-advance after reveal + play reveal sound
+  // Play reveal sound
   useEffect(() => {
     if (phase !== 'lightning_reveal') return
     const lastAns = lightningAnswers[lightningAnswers.length - 1]
     if (lastAns) {
       lastAns.correct ? soundQuizCorrect() : soundQuizWrong()
     }
-    const timer = setTimeout(() => nextLightningQuestion(), 2500)
-    return () => clearTimeout(timer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, lightningCurrentIndex])
 
@@ -123,7 +111,7 @@ export default function LightningGame() {
   }, [phase])
 
   function handleAnswer(answer: string) {
-    if (phase !== 'lightning_playing' || selectedAnswer !== null || isPaused) return
+    if (phase !== 'lightning_playing' || selectedAnswer !== null) return
     setSelectedAnswer(answer)
     soundQuizSelect()
     answerLightningQuestion(answer)
@@ -245,7 +233,7 @@ export default function LightningGame() {
               style={{
                 background: timerColor,
                 animation: `lightning-timer ${lightningTimeLimit}s linear forwards`,
-                animationPlayState: isReveal || isPaused ? 'paused' : 'running',
+                animationPlayState: isReveal ? 'paused' : 'running',
               }}
             />
           </div>
@@ -301,7 +289,7 @@ export default function LightningGame() {
           <button
             key={i}
             onClick={() => handleAnswer(option)}
-            disabled={isReveal || selectedAnswer !== null || isPaused}
+            disabled={isReveal || selectedAnswer !== null}
             className="py-3 px-3 rounded-xl border-2 font-semibold text-sm text-left transition-all cursor-pointer disabled:cursor-default"
             style={getOptionStyle(option)}
           >
@@ -321,18 +309,20 @@ export default function LightningGame() {
         </div>
       )}
 
-      {/* Pause button (solo only) */}
-      {!isReveal && (
-        <div className="flex justify-center mt-6">
+      {/* Next button (reveal) or spacer */}
+      <div className="flex justify-center mt-6">
+        {isReveal ? (
           <button
-            onClick={() => setIsPaused(p => !p)}
-            className="px-5 py-2 rounded-xl text-sm font-medium transition-all opacity-40 hover:opacity-80"
-            style={{ background: tc.btnInactiveBg, border: `1px solid ${tc.btnInactiveBorder}`, color: tc.btnInactiveText }}
+            onClick={nextLightningQuestion}
+            className="px-8 py-2.5 rounded-xl font-bold transition-all hover:-translate-y-0.5"
+            style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: `0 4px 16px ${tc.accentGlow}` }}
           >
-            {isPaused ? tr.lightningResume : tr.lightningPause}
+            {tr.lightningNext}
           </button>
-        </div>
-      )}
+        ) : (
+          <div className="h-10" />
+        )}
+      </div>
 
       {/* Footer */}
       <div className="flex flex-col items-center gap-0.5 mt-auto pt-6 pb-2">
