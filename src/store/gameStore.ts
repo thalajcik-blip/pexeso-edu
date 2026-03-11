@@ -357,6 +357,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   transitionToLightningReveal: () => {
+    if (get().phase !== 'lightning_playing') return  // guard against double-call (timer + all-answered race)
     const { lightningPlayerAnswers, players, playerIds, myPlayerId, lightningAnswers, lightningQuestionStart } = get()
     // Update cumulative scores for all players
     const updatedPlayers = players.map((p, i) => {
@@ -400,7 +401,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   _applyLightningAnswer: (playerId, answer, timeMs) => {
-    const { lightningQuestions, lightningCurrentIndex } = get()
+    const { lightningQuestions, lightningCurrentIndex, playerIds } = get()
     const question = lightningQuestions[lightningCurrentIndex]
     if (!question) return
     const correct = answer !== '' && answer === question.correct
@@ -410,6 +411,11 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
         [playerId]: { answer, timeMs, correct },
       },
     }))
+    // If all players answered, transition to reveal immediately (don't wait for timer)
+    const answered = Object.keys(get().lightningPlayerAnswers).length
+    if (playerIds.length > 0 && answered >= playerIds.length) {
+      get().transitionToLightningReveal()
+    }
   },
 
   setTurnTime: (t) => set({ turnTime: t }),
