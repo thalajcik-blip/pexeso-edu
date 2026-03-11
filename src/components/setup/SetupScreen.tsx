@@ -91,7 +91,7 @@ export default function SetupScreen() {
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-6 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
 
       {/* Header row: logo centered, controls top-right */}
-      <div className="w-full grid items-start px-2" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
+      <div className="w-full grid items-start px-2 relative z-10" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
         <div />
         <div className="flex items-center gap-2">
           <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="Pexedu logo" className="w-10 h-10" />
@@ -120,14 +120,12 @@ export default function SetupScreen() {
               <span className="hidden sm:inline">{LANGUAGES.find(l => l.id === language)?.code}</span>
               <span className="text-xs opacity-50">▾</span>
             </button>
-            {langDropdownOpen && (() => {
-              const rect = langBtnRef.current?.getBoundingClientRect()
-              return (
+            {langDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setLangDropdownOpen(false)} />
                 <div
-                  className="fixed z-50 rounded-lg border shadow-lg overflow-hidden"
-                  style={{ background: tc.bg, borderColor: tc.btnInactiveBorder, top: (rect?.bottom ?? 0) + 4, right: window.innerWidth - (rect?.right ?? 0) }}
+                  className="absolute right-0 top-full mt-1 z-50 rounded-lg border shadow-lg overflow-hidden"
+                  style={{ background: tc.bg, borderColor: tc.btnInactiveBorder }}
                 >
                   {LANGUAGES.map(lang => (
                     <button
@@ -145,7 +143,7 @@ export default function SetupScreen() {
                   ))}
                 </div>
               </>
-            )})()}
+            )}
           </div>
         </div>
       </div>
