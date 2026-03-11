@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../services/supabase'
 import CropModal from './CropModal'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -46,6 +46,12 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
   const [error, setError]               = useState('')
   const [isDragging, setIsDragging]     = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
