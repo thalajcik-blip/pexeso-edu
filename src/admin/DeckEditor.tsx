@@ -3,6 +3,7 @@ import { supabase } from '../services/supabase'
 import CardModal, { type CardData } from './CardModal'
 import BulkUploadModal from './BulkUploadModal'
 import { Button } from '@/components/ui/button'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -252,12 +253,19 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
     <div>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={onBack} className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
-          ← Zpět
-        </button>
-        <h1 className="text-xl font-bold text-gray-800">
-          {deck ? 'Upravit sadu' : 'Nová sada'}
-        </h1>
+        <div className="flex-1">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={onBack} className="cursor-pointer">Sady</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{deck ? title || 'Sada' : 'Nová sada'}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
         {isSuperadmin && deck && (
           <div className="ml-auto flex items-center gap-2">
             {translateProgress && (
