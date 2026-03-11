@@ -15,7 +15,8 @@ html, body {
   scrollbar-gutter: stable;
 }
 
-body.with-scroll-bars-hidden {
+body.with-scroll-bars-hidden,
+html:has([data-radix-dialog-overlay]) {
   overflow: hidden !important;
 }
 
