@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import { supabase } from '../services/supabase'
 import CropModal from './CropModal'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -47,7 +47,7 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
   const [isDragging, setIsDragging]     = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const scrollY = window.scrollY
     document.body.style.position = 'fixed'
     document.body.style.top = `-${scrollY}px`
@@ -145,7 +145,8 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
   return (
     <>
       <Dialog open onOpenChange={open => { if (!open) onClose() }}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto overscroll-contain" style={{ overscrollBehavior: 'contain' }}>
+        <DialogContent className="max-w-lg p-0">
+          <div className="max-h-[90vh] overflow-y-auto overscroll-contain p-6" style={{ overscrollBehavior: 'contain' }}>
           <DialogHeader>
             <DialogTitle>{card ? 'Upravit kartičku' : 'Nová kartička'}</DialogTitle>
           </DialogHeader>
@@ -258,6 +259,7 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
             <Button onClick={handleSave} disabled={saving || uploading}>
               {saving ? 'Ukládání…' : 'Uložit'}
             </Button>
+          </div>
           </div>
         </DialogContent>
       </Dialog>
