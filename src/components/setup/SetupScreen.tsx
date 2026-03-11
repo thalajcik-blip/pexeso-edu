@@ -40,6 +40,7 @@ export default function SetupScreen() {
 
   const [customDecks, setCustomDecks] = useState<CustomDeckMeta[]>([])
   const [langDropdownOpen, setLangDropdownOpen] = useState(false)
+  const langBtnRef = useRef<HTMLButtonElement>(null)
   const deckScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -110,6 +111,7 @@ export default function SetupScreen() {
           <div className="relative">
             {/* Custom dropdown: mobile = flag only trigger, desktop = flag + code trigger; both show flag + label in options */}
             <button
+              ref={langBtnRef}
               onClick={() => setLangDropdownOpen(o => !o)}
               className="flex items-center gap-1 rounded-lg border text-sm px-2 py-1.5 cursor-pointer"
               style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }}
@@ -118,12 +120,14 @@ export default function SetupScreen() {
               <span className="hidden sm:inline">{LANGUAGES.find(l => l.id === language)?.code}</span>
               <span className="text-xs opacity-50">▾</span>
             </button>
-            {langDropdownOpen && (
+            {langDropdownOpen && (() => {
+              const rect = langBtnRef.current?.getBoundingClientRect()
+              return (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setLangDropdownOpen(false)} />
                 <div
-                  className="absolute right-0 top-full mt-1 z-50 rounded-lg border shadow-lg overflow-hidden"
-                  style={{ background: tc.bg, borderColor: tc.btnInactiveBorder }}
+                  className="fixed z-50 rounded-lg border shadow-lg overflow-hidden"
+                  style={{ background: tc.bg, borderColor: tc.btnInactiveBorder, top: (rect?.bottom ?? 0) + 4, right: window.innerWidth - (rect?.right ?? 0) }}
                 >
                   {LANGUAGES.map(lang => (
                     <button
@@ -141,7 +145,7 @@ export default function SetupScreen() {
                   ))}
                 </div>
               </>
-            )}
+            )})()}
           </div>
         </div>
       </div>
