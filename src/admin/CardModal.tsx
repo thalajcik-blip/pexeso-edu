@@ -1,6 +1,10 @@
 import { useState, useRef } from 'react'
 import { supabase } from '../services/supabase'
 import CropModal from './CropModal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 
 export type CardData = {
   id?: string
@@ -83,40 +87,22 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-
-    if (file.size > 2 * 1024 * 1024) {
-      setError('Obrázek je příliš velký. Maximální velikost je 2 MB.')
-      return
-    }
-
+    if (file.size > 2 * 1024 * 1024) { setError('Obrázek je příliš velký. Maximální velikost je 2 MB.'); return }
     setError('')
-    // Open crop modal with the raw file
-    const objectUrl = URL.createObjectURL(file)
-    setCropSrc(objectUrl)
-    // Reset input so same file can be re-selected
+    setCropSrc(URL.createObjectURL(file))
     e.target.value = ''
   }
 
   async function handleCropped(blob: Blob) {
     setCropSrc(null)
-
-    // Show preview immediately
-    const preview = URL.createObjectURL(blob)
-    setImagePreview(preview)
-
+    setImagePreview(URL.createObjectURL(blob))
     setUploading(true)
     setError('')
     const path = `${deckId}/${Date.now()}.jpg`
     const { error: uploadError } = await supabase.storage
       .from('card-images')
       .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
-
-    if (uploadError) {
-      setError('Chyba při nahrávání obrázku: ' + uploadError.message)
-      setUploading(false)
-      return
-    }
-
+    if (uploadError) { setError('Chyba při nahrávání obrázku: ' + uploadError.message); setUploading(false); return }
     const { data } = supabase.storage.from('card-images').getPublicUrl(path)
     setImageUrl(data.publicUrl)
     setUploading(false)
@@ -126,7 +112,6 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
     if (!imageUrl) { setError('Nahrajte prosím obrázek.'); return }
     setSaving(true)
     setError('')
-
     const payload = {
       deck_id:       deckId,
       image_url:     imageUrl,
@@ -137,161 +122,132 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
       fun_fact:      funFact || null,
       sort_order:    sortOrder,
     }
-
     const { error: saveError } = card?.id
       ? await supabase.from('custom_cards').update(payload).eq('id', card.id)
       : await supabase.from('custom_cards').insert(payload)
-
-    if (saveError) {
-      setError('Chyba při ukládání: ' + saveError.message)
-    } else {
-      onSave()
-    }
+    if (saveError) { setError('Chyba při ukládání: ' + saveError.message) } else { onSave() }
     setSaving(false)
   }
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="font-bold text-gray-800 text-lg">{card ? 'Upravit kartičku' : 'Nová kartička'}</h2>
-              <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
-            </div>
+      <Dialog open onOpenChange={open => { if (!open) onClose() }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{card ? 'Upravit kartičku' : 'Nová kartička'}</DialogTitle>
+          </DialogHeader>
 
-            {/* Image upload */}
-            <div className="mb-5">
-              <label className="block text-xs font-medium text-gray-600 mb-2">Obrázek *</label>
-              <div
-                className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors overflow-hidden ${isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'}`}
-                style={{ minHeight: 140 }}
-                onClick={() => fileRef.current?.click()}
-                onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={handleDrop}
-              >
-                {imagePreview ? (
-                  <img src={imagePreview} alt="" className="w-full h-40 object-contain p-2" />
-                ) : (
-                  <div className="text-center py-8 px-4">
-                    <div className="text-3xl mb-2">🖼️</div>
-                    <div className="text-sm text-gray-400">Přetáhněte obrázek nebo klikněte</div>
-                    <div className="text-xs text-gray-300 mt-1">PNG, JPG, SVG, WebP · max 2 MB</div>
-                  </div>
-                )}
-              </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-              {uploading && <div className="text-xs text-indigo-500 mt-1">Nahrávání…</div>}
-              {imagePreview && !uploading && (
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="text-xs text-indigo-500 hover:underline mt-1"
-                >
-                  Změnit obrázek
-                </button>
+          {/* Image upload */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-2">Obrázek *</label>
+            <div
+              className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors overflow-hidden ${isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'}`}
+              style={{ minHeight: 140 }}
+              onClick={() => fileRef.current?.click()}
+              onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+            >
+              {imagePreview ? (
+                <img src={imagePreview} alt="" className="w-full h-40 object-contain p-2" />
+              ) : (
+                <div className="text-center py-8 px-4">
+                  <div className="text-3xl mb-2">🖼️</div>
+                  <div className="text-sm text-gray-400">Přetáhněte obrázek nebo klikněte</div>
+                  <div className="text-xs text-gray-300 mt-1">PNG, JPG, SVG, WebP · max 2 MB</div>
+                </div>
               )}
             </div>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            {uploading && <div className="text-xs text-indigo-500 mt-1">Nahrávání…</div>}
+            {imagePreview && !uploading && (
+              <button onClick={() => fileRef.current?.click()} className="text-xs text-indigo-500 hover:underline mt-1">
+                Změnit obrázek
+              </button>
+            )}
+          </div>
 
-            {/* Label */}
-            <div className="mb-5">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Popis / label <span className="text-gray-300">(volitelné)</span></label>
-              <input
-                type="text"
-                value={label}
-                onChange={e => setLabel(e.target.value)}
-                placeholder="např. Jelen lesní"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+          {/* Label */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Popis / label <span className="text-gray-300">(volitelné)</span></label>
+            <Input
+              value={label}
+              onChange={e => setLabel(e.target.value)}
+              placeholder="např. Jelen lesní"
+            />
+          </div>
+
+          {/* Quiz section */}
+          <div className="border border-gray-100 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Kvíz <span className="font-normal normal-case text-gray-300">(volitelné)</span></div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerate}
+                disabled={generating || !label.trim()}
+                className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+              >
+                {generating ? '⏳ Generuji…' : '✨ Generovat AI'}
+              </Button>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Otázka</label>
+              <Input value={question} onChange={e => setQuestion(e.target.value)} placeholder="např. Jak se jmenuje toto zvíře?" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {(['A', 'B', 'C', 'D'] as const).map((letter, i) => (
+                <div key={letter} className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="correct"
+                    checked={correct === options[i] && options[i] !== ''}
+                    onChange={() => setCorrect(options[i])}
+                    className="accent-indigo-600 shrink-0"
+                  />
+                  <Input
+                    value={options[i]}
+                    onChange={e => {
+                      const next = [...options] as [string,string,string,string]
+                      next[i] = e.target.value
+                      setOptions(next)
+                      if (correct === options[i]) setCorrect(e.target.value)
+                    }}
+                    placeholder={`Možnost ${letter}`}
+                    className="flex-1 min-w-0"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="text-xs text-gray-400">Označte radio button u správné odpovědi.</div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Zajímavost</label>
+              <Textarea
+                value={funFact}
+                onChange={e => setFunFact(e.target.value)}
+                placeholder="např. Jelen může vážit až 200 kg…"
+                rows={2}
+                className="resize-none"
               />
             </div>
-
-            {/* Quiz section */}
-            <div className="border border-gray-100 rounded-xl p-4 mb-5 space-y-3">
-              <div className="flex items-center justify-between mb-1">
-                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Kvíz <span className="font-normal normal-case text-gray-300">(volitelné)</span></div>
-                <button
-                  type="button"
-                  onClick={handleGenerate}
-                  disabled={generating || !label.trim()}
-                  className="text-xs px-3 py-1 rounded-lg bg-indigo-50 text-indigo-600 font-medium hover:bg-indigo-100 disabled:opacity-40 transition-colors"
-                >
-                  {generating ? '⏳ Generuji…' : '✨ Generovat AI'}
-                </button>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Otázka</label>
-                <input
-                  type="text"
-                  value={question}
-                  onChange={e => setQuestion(e.target.value)}
-                  placeholder="např. Jak se jmenuje toto zvíře?"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {(['A', 'B', 'C', 'D'] as const).map((letter, i) => (
-                  <div key={letter} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="correct"
-                      checked={correct === options[i] && options[i] !== ''}
-                      onChange={() => setCorrect(options[i])}
-                      className="accent-indigo-600 shrink-0"
-                    />
-                    <input
-                      type="text"
-                      value={options[i]}
-                      onChange={e => {
-                        const next = [...options] as [string,string,string,string]
-                        next[i] = e.target.value
-                        setOptions(next)
-                        if (correct === options[i]) setCorrect(e.target.value)
-                      }}
-                      placeholder={`Možnost ${letter}`}
-                      className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400 min-w-0"
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="text-xs text-gray-400">Označte radio button u správné odpovědi.</div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Zajímavost</label>
-                <textarea
-                  value={funFact}
-                  onChange={e => setFunFact(e.target.value)}
-                  placeholder="např. Jelen může vážit až 200 kg…"
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 resize-none"
-                />
-              </div>
-            </div>
-
-            {error && (
-              <div className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-4">{error}</div>
-            )}
-
-            <div className="flex gap-3 justify-end">
-              <button onClick={onClose} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700">Zrušit</button>
-              <button
-                onClick={handleSave}
-                disabled={saving || uploading}
-                className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-              >
-                {saving ? 'Ukládání…' : 'Uložit'}
-              </button>
-            </div>
           </div>
-        </div>
-      </div>
+
+          {error && (
+            <div className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</div>
+          )}
+
+          <div className="flex gap-3 justify-end">
+            <Button variant="ghost" onClick={onClose}>Zrušit</Button>
+            <Button onClick={handleSave} disabled={saving || uploading}>
+              {saving ? 'Ukládání…' : 'Uložit'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {cropSrc && (
         <CropModal
