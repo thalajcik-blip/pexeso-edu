@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../services/supabase'
 import type { AdminRole } from './useAuth'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 type Deck = {
   id: string
@@ -31,11 +33,11 @@ const STATUS_LABEL: Record<Deck['status'], string> = {
   rejected: 'Zamítnuto',
 }
 
-const STATUS_COLOR: Record<Deck['status'], string> = {
-  draft:    'bg-gray-100 text-gray-600',
-  pending:  'bg-yellow-100 text-yellow-700',
-  approved: 'bg-green-100 text-green-700',
-  rejected: 'bg-red-100 text-red-600',
+const STATUS_CLASS: Record<Deck['status'], string> = {
+  draft:    'bg-gray-100 text-gray-600 hover:bg-gray-100',
+  pending:  'bg-yellow-100 text-yellow-700 hover:bg-yellow-100',
+  approved: 'bg-green-100 text-green-700 hover:bg-green-100',
+  rejected: 'bg-red-100 text-red-600 hover:bg-red-100',
 }
 
 type DeckJson = {
@@ -100,15 +102,11 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
       .eq('deck_id', deck.id)
       .order('sort_order')
 
-    if (!cards || cards.length === 0) {
-      setTranslate(null)
-      return
-    }
+    if (!cards || cards.length === 0) { setTranslate(null); return }
 
     const translatableCards = cards.filter((c: { quiz_question: string }) => c.quiz_question)
     setTranslate(t => t ? { ...t, progress: { done: 0, total: translatableCards.length } } : null)
 
-    // Create new deck
     const { data: newDeck, error: deckErr } = await supabase
       .from('custom_decks')
       .insert({
@@ -133,18 +131,10 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
     const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${anonKey}`, 'apikey': anonKey }
 
-    // Translate deck title
     let translatedTitle = `${deck.title} (${LANG_LABEL[targetLang]})`
     try {
-      const res = await fetch(fnUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ mode: 'text', text: deck.title, source_lang: deck.language, target_lang: targetLang }),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        if (data.text && !data.error) translatedTitle = data.text
-      }
+      const res = await fetch(fnUrl, { method: 'POST', headers, body: JSON.stringify({ mode: 'text', text: deck.title, source_lang: deck.language, target_lang: targetLang }) })
+      if (res.ok) { const data = await res.json(); if (data.text && !data.error) translatedTitle = data.text }
     } catch (e) { console.error('Title translation failed:', e) }
 
     await supabase.from('custom_decks').update({ title: translatedTitle }).eq('id', newDeck.id)
@@ -166,46 +156,20 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
         sort_order: card.sort_order,
       }
 
-      // Translate label
       try {
-        const res = await fetch(fnUrl, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ mode: 'text', text: card.label, source_lang: deck.language, target_lang: targetLang }),
-        })
-        if (res.ok) {
-          const data = await res.json()
-          if (data.text && !data.error) translatedCard.label = data.text
-        }
+        const res = await fetch(fnUrl, { method: 'POST', headers, body: JSON.stringify({ mode: 'text', text: card.label, source_lang: deck.language, target_lang: targetLang }) })
+        if (res.ok) { const data = await res.json(); if (data.text && !data.error) translatedCard.label = data.text }
       } catch (e) { console.error('Label translation failed:', e) }
 
       if (card.quiz_question && card.quiz_correct) {
         try {
-          const res = await fetch(fnUrl, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-              label: card.label,
-              quiz_question: card.quiz_question,
-              quiz_options: card.quiz_options,
-              quiz_correct: card.quiz_correct,
-              fun_fact: card.fun_fact,
-              source_lang: deck.language,
-              target_lang: targetLang,
-            }),
-          })
+          const res = await fetch(fnUrl, { method: 'POST', headers, body: JSON.stringify({ label: card.label, quiz_question: card.quiz_question, quiz_options: card.quiz_options, quiz_correct: card.quiz_correct, fun_fact: card.fun_fact, source_lang: deck.language, target_lang: targetLang }) })
           const translated = await res.json()
-          if (!res.ok || translated.error) {
-            errors.push(`Karta "${card.label}": ${translated.error ?? res.status}`)
-          } else {
-            translatedCard = { ...translatedCard, ...translated }
-          }
-        } catch (e) {
-          errors.push(`Karta "${card.label}": ${String(e)}`)
-        }
+          if (!res.ok || translated.error) { errors.push(`Karta "${card.label}": ${translated.error ?? res.status}`) }
+          else { translatedCard = { ...translatedCard, ...translated } }
+        } catch (e) { errors.push(`Karta "${card.label}": ${String(e)}`) }
         doneCount++
         setTranslate(t => t ? { ...t, progress: { done: doneCount, total: translatableCards.length } } : null)
-        // Avoid rate limiting (Gemini free tier: 15 req/min)
         await new Promise(r => setTimeout(r, 4200))
       }
 
@@ -231,38 +195,13 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
       const text = await file.text()
       const json: DeckJson = JSON.parse(text)
       if (!json.title || !Array.isArray(json.cards)) throw new Error('Neplatný formát souboru')
-
-      const { data: newDeck, error } = await supabase
-        .from('custom_decks')
-        .insert({
-          title: json.title,
-          description: json.description ?? null,
-          language: json.language ?? 'cs',
-          difficulty: json.difficulty ?? 'medium',
-          is_private: json.is_private ?? false,
-          private_code: null,
-          status: 'draft',
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single()
+      const { data: newDeck, error } = await supabase.from('custom_decks').insert({ title: json.title, description: json.description ?? null, language: json.language ?? 'cs', difficulty: json.difficulty ?? 'medium', is_private: json.is_private ?? false, private_code: null, status: 'draft', updated_at: new Date().toISOString() }).select().single()
       if (error || !newDeck) throw error ?? new Error('Nepodařilo se vytvořit sadu')
-
       if (json.cards.length > 0) {
-        const cardRows = json.cards.map((c, i) => ({
-          deck_id: newDeck.id,
-          image_url: c.image_url,
-          label: c.label,
-          quiz_question: c.quiz_question,
-          quiz_options: c.quiz_options,
-          quiz_correct: c.quiz_correct,
-          fun_fact: c.fun_fact,
-          sort_order: c.sort_order ?? i,
-        }))
+        const cardRows = json.cards.map((c, i) => ({ deck_id: newDeck.id, image_url: c.image_url, label: c.label, quiz_question: c.quiz_question, quiz_options: c.quiz_options, quiz_correct: c.quiz_correct, fun_fact: c.fun_fact, sort_order: c.sort_order ?? i }))
         const { error: cardsErr } = await supabase.from('custom_cards').insert(cardRows)
         if (cardsErr) throw cardsErr
       }
-
       load()
     } catch (err) {
       alert(`Import selhal: ${err instanceof Error ? err.message : String(err)}`)
@@ -283,21 +222,12 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
           {role === 'superadmin' && (
             <>
               <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
-              <button
-                onClick={() => importRef.current?.click()}
-                disabled={importing}
-                className="px-4 py-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg text-sm font-semibold hover:bg-indigo-50 disabled:opacity-50 transition-colors"
-              >
+              <Button variant="outline" onClick={() => importRef.current?.click()} disabled={importing} className="text-indigo-600 border-indigo-200 hover:bg-indigo-50">
                 {importing ? 'Importuji…' : '↑ Import JSON'}
-              </button>
+              </Button>
             </>
           )}
-          <button
-            onClick={onNew}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
-          >
-            + Nová sada
-          </button>
+          <Button onClick={onNew}>+ Nová sada</Button>
         </div>
       </div>
 
@@ -326,76 +256,52 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                     )}
                   </div>
 
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full shrink-0 ${STATUS_COLOR[deck.status]}`}>
+                  <Badge className={`shrink-0 ${STATUS_CLASS[deck.status]}`}>
                     {STATUS_LABEL[deck.status]}
-                  </span>
+                  </Badge>
 
                   {deck.is_private && (
                     <span className="text-xs text-indigo-500 font-mono shrink-0">🔒 {deck.private_code}</span>
                   )}
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => onEdit(deck)}
-                      className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-                    >
-                      Upravit
-                    </button>
+                    <Button variant="outline" size="sm" onClick={() => onEdit(deck)}>Upravit</Button>
 
                     {role === 'superadmin' && (
-                      <button
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => setTranslate(isPickingLang ? null : { deckId: deck.id, targetLang: null, progress: null, error: '' })}
                         disabled={isTranslating}
                         title="Přeložit sadu do jiného jazyka"
-                        className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${isPickingLang ? 'border-indigo-400 bg-indigo-50 text-indigo-600' : 'border-gray-200 hover:bg-gray-50 text-gray-500'}`}
+                        className={isPickingLang ? 'border-indigo-400 bg-indigo-50 text-indigo-600' : 'text-gray-500'}
                       >
                         🌐
-                      </button>
+                      </Button>
                     )}
 
                     {role === 'superadmin' && deck.status === 'pending' && (
                       <>
-                        <button
-                          onClick={() => updateStatus(deck.id, 'approved')}
-                          className="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
-                        >
-                          Schválit
-                        </button>
-                        <button
-                          onClick={() => updateStatus(deck.id, 'rejected')}
-                          className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                        >
-                          Zamítnout
-                        </button>
+                        <Button variant="outline" size="sm" onClick={() => updateStatus(deck.id, 'approved')} className="text-green-700 border-green-200 hover:bg-green-50">Schválit</Button>
+                        <Button variant="outline" size="sm" onClick={() => updateStatus(deck.id, 'rejected')} className="text-red-600 border-red-200 hover:bg-red-50">Zamítnout</Button>
                       </>
                     )}
 
-                    <button
-                      onClick={() => deleteDeck(deck.id)}
-                      className="text-xs px-3 py-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
-                    >
-                      Smazat
-                    </button>
+                    <Button variant="ghost" size="sm" onClick={() => deleteDeck(deck.id)} className="text-red-500 hover:bg-red-50">Smazat</Button>
                   </div>
                 </div>
 
-                {/* Language picker */}
                 {isPickingLang && (
                   <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2 flex-wrap">
                     <span className="text-xs text-gray-500">Přeložit do:</span>
                     {targetLangs.map(lang => (
-                      <button
-                        key={lang}
-                        onClick={() => runTranslate(deck, lang)}
-                        className="text-xs px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-medium transition-colors"
-                      >
+                      <Button key={lang} variant="outline" size="sm" onClick={() => runTranslate(deck, lang)} className="text-indigo-600 border-indigo-200 hover:bg-indigo-50">
                         {LANG_FLAG[lang]} {LANG_LABEL[lang]}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 )}
 
-                {/* Progress */}
                 {isTranslating && translate.progress && (
                   <div className="mt-3 pt-3 border-t border-gray-100">
                     <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
