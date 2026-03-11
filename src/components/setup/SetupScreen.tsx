@@ -217,13 +217,13 @@ export default function SetupScreen() {
         {/* Player count */}
         <div>
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.playersLabel}</div>
-          <div className="flex gap-3">
-            {[2, 3, 4, 5, 6].map(n => (
+          <div className="flex gap-3 flex-wrap">
+            {[1, 2, 3, 4, 5, 6].map(n => (
               <button
                 key={n}
                 onClick={() => setNumPlayers(n)}
                 className="flex-1 py-2.5 rounded-xl border-2 text-xl font-bold transition-all cursor-pointer"
-                style={numPlayers === n ? activeBtn : inactiveBtn}
+                style={{ ...(numPlayers === n ? activeBtn : inactiveBtn), minWidth: '2.5rem' }}
               >
                 {n}
               </button>

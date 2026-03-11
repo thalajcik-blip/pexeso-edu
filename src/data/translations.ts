@@ -49,6 +49,11 @@ export interface Translations {
   deckNames: Record<DeckId, string>
   // Default player names
   defaultPlayerNames: string[]
+  // Solo mode win screen
+  soloGameOver: string
+  soloMovesLabel: string
+  soloQuizLabel: string
+  moveOne: string; moveFew: string; moveMany: string
   // Lobby / online
   localBtn: string
   onlineBtn: string
@@ -165,6 +170,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     rematchRequest: 'Hrát znovu?',
     rematchWaiting: 'Čekám na soupeře...',
     yourTurn: 'Jsi na tahu!',
+    soloGameOver: 'Výborně!',
+    soloMovesLabel: 'Počet tahů',
+    soloQuizLabel: 'Úspěšnost v kvízu',
+    moveOne: 'tah', moveFew: 'tahy', moveMany: 'tahů',
   },
 
   sk: {
@@ -254,6 +263,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     rematchRequest: 'Hrať znovu?',
     rematchWaiting: 'Čakám na súpera...',
     yourTurn: 'Si na ťahu!',
+    soloGameOver: 'Výborne!',
+    soloMovesLabel: 'Počet ťahov',
+    soloQuizLabel: 'Úspešnosť v kvíze',
+    moveOne: 'ťah', moveFew: 'ťahy', moveMany: 'ťahov',
   },
 
   en: {
@@ -343,6 +356,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     rematchRequest: 'Rematch?',
     rematchWaiting: 'Waiting for opponent...',
     yourTurn: 'Your turn!',
+    soloGameOver: 'Well done!',
+    soloMovesLabel: 'Total moves',
+    soloQuizLabel: 'Quiz accuracy',
+    moveOne: 'move', moveFew: 'moves', moveMany: 'moves',
   },
 }
 

@@ -60,6 +60,9 @@ interface GameStore {
   locked: boolean
   turnMessage: string
 
+  // Solo
+  soloMoves: number
+
   // Quiz
   quizSymbol: string | null
 
@@ -152,6 +155,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   flipped: [],
   locked: false,
   turnMessage: '',
+  soloMoves: 0,
   quizSymbol: null,
   rulesOpen: false,
   isOnline: false,
@@ -212,7 +216,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       color: PLAYER_COLORS[i],
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
-    set({ phase: 'playing', cards, players, playerIds: [], currentPlayer: Math.floor(Math.random() * players.length), flipped: [], locked: false, turnMessage: '', quizSymbol: null })
+    set({ phase: 'playing', cards, players, playerIds: [], currentPlayer: numPlayers === 1 ? 0 : Math.floor(Math.random() * players.length), flipped: [], locked: false, turnMessage: '', quizSymbol: null, soloMoves: 0 })
   },
 
   // ── Internal pure game logic ──
@@ -228,7 +232,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
 
     if (newFlipped.length < 2) return
 
-    set({ locked: true })
+    set(s => ({ locked: true, soloMoves: s.players.length === 1 ? s.soloMoves + 1 : s.soloMoves }))
     const [a, b] = newFlipped
 
     if (newCards[a].symbol === newCards[b].symbol) {
@@ -420,7 +424,8 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       get()._applyGameStart(cards, playerIds, playerNames, selectedDeckId, selectedSize, turnTime, quizTime, startingPlayer)
     } else {
       const resetPlayers = players.map(p => ({ ...p, score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0 }))
-      set({ phase: 'playing', cards, players: resetPlayers, currentPlayer: Math.floor(Math.random() * resetPlayers.length), flipped: [], locked: false, turnMessage: '', quizSymbol: null })
+      const isSolo = resetPlayers.length === 1
+      set({ phase: 'playing', cards, players: resetPlayers, currentPlayer: isSolo ? 0 : Math.floor(Math.random() * resetPlayers.length), flipped: [], locked: false, turnMessage: '', quizSymbol: null, soloMoves: 0 })
     }
     set({ rematchRequested: false })
   },
