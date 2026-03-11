@@ -268,7 +268,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   _answerQuiz: (correct) => {
-    const { players, currentPlayer, cards } = get()
+    const { players, currentPlayer, cards, quizSymbol } = get()
     const updatedPlayers = players.map((p, i) =>
       i === currentPlayer
         ? correct
@@ -276,7 +276,12 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
           : { ...p, wrongQuizzes: p.wrongQuizzes + 1 }
         : p
     )
-    const allMatched = cards.every(c => c.state === 'matched')
+    const updatedCards = cards.map(c =>
+      c.state === 'matched' && c.symbol === quizSymbol && c.quizCorrect === undefined
+        ? { ...c, quizCorrect: correct }
+        : c
+    )
+    const allMatched = updatedCards.every(c => c.state === 'matched')
     if (correct) soundQuizCorrect()
     if (allMatched) soundWin()
     const playerName = players[currentPlayer].name
@@ -286,6 +291,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       : tr.turnWrong.replace('{name}', playerName)
     set({
       players: updatedPlayers,
+      cards: updatedCards,
       quizSymbol: null,
       phase: allMatched ? 'win' : 'playing',
       locked: false,

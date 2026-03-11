@@ -64,15 +64,27 @@ const GameCard = memo(function GameCard({ card }: Props) {
             <img src={card.symbol} alt="" className="w-full h-full object-cover" draggable={false} />
           ) : card.symbol}
           {isMatched && card.matchedBy !== undefined && players[card.matchedBy] && (
-            <span
-              className="absolute top-1 right-1 rounded-full"
-              style={{
-                width: 'clamp(6px, 1.2vw, 10px)',
-                height: 'clamp(6px, 1.2vw, 10px)',
-                background: players[card.matchedBy].color,
-                opacity: 0.9,
-              }}
-            />
+            players.length === 1
+              ? card.quizCorrect !== undefined && (
+                  <span
+                    className="absolute top-0.5 right-0.5 font-bold leading-none"
+                    style={{
+                      fontSize: 'clamp(8px, 1.5vw, 13px)',
+                      color: card.quizCorrect ? '#4ade80' : '#f87171',
+                    }}
+                  >
+                    {card.quizCorrect ? '✓' : '✗'}
+                  </span>
+                )
+              : <span
+                  className="absolute top-1 right-1 rounded-full"
+                  style={{
+                    width: 'clamp(6px, 1.2vw, 10px)',
+                    height: 'clamp(6px, 1.2vw, 10px)',
+                    background: players[card.matchedBy].color,
+                    opacity: 0.9,
+                  }}
+                />
           )}
         </div>
       </div>
