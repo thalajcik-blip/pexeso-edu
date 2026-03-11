@@ -10,6 +10,11 @@ import AdminSettings from './AdminSettings'
 import type { useAuth as UseAuthType } from './useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
+  SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+  SidebarProvider, SidebarTrigger,
+} from '@/components/ui/sidebar'
 
 function SetNewPasswordScreen({ updatePassword }: { updatePassword: ReturnType<typeof UseAuthType>['updatePassword'] }) {
   const [password, setPassword]   = useState('')
@@ -62,88 +67,64 @@ function DeckEditorRoute({ isSuperadmin }: { isSuperadmin: boolean }) {
   )
 }
 
+const NAV_ITEMS = [
+  { path: '/admin', label: 'Sady', icon: '🃏', exact: true, superadminOnly: false },
+  { path: '/admin/users', label: 'Uživatelé', icon: '👥', exact: false, superadminOnly: true },
+  { path: '/admin/settings', label: 'Nastavení', icon: '⚙️', exact: false, superadminOnly: true },
+]
+
 function AdminLayout({ role, email, signOut }: { role: AdminRole; email: string; signOut: () => void }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const [drawerOpen, setDrawerOpen] = useState(false)
-
   const isSuperadmin = role === 'superadmin'
 
-  function navTo(path: string) {
-    navigate(path)
-    setDrawerOpen(false)
-  }
-
-  function navItem(path: string, label: string, exact = false) {
-    const active = exact ? location.pathname === path : location.pathname.startsWith(path)
-    return (
-      <button
-        onClick={() => navTo(path)}
-        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${active ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
-      >
-        {label}
-      </button>
-    )
-  }
+  const visibleItems = NAV_ITEMS.filter(item => !item.superadminOnly || isSuperadmin)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Topbar */}
-      <div className="bg-white border-b border-gray-100 px-4 md:px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="md:hidden p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
-            aria-label="Otevřít menu"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <span className="font-bold text-gray-800">Pexedu Admin</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium">
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader className="px-4 py-4 border-b border-sidebar-border">
+          <div className="font-bold text-base text-sidebar-foreground">Pexedu Admin</div>
+          <div className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium w-fit mt-1">
             {isSuperadmin ? 'Superadmin' : 'Učitel'}
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-gray-400 hidden sm:block">{email}</span>
-          <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500">
+          </div>
+        </SidebarHeader>
+
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {visibleItems.map(item => {
+                  const active = item.exact
+                    ? location.pathname === item.path
+                    : location.pathname.startsWith(item.path)
+                  return (
+                    <SidebarMenuItem key={item.path}>
+                      <SidebarMenuButton isActive={active} onClick={() => navigate(item.path)}>
+                        <span>{item.icon}</span>
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+
+        <SidebarFooter className="px-4 py-3 border-t border-sidebar-border">
+          <div className="text-xs text-sidebar-foreground/50 truncate mb-2">{email}</div>
+          <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500 px-0 h-auto">
             Odhlásit se
           </Button>
-        </div>
-      </div>
+        </SidebarFooter>
+      </Sidebar>
 
-      {/* Mobile drawer */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-40 md:hidden flex">
-          <div className="fixed inset-0 bg-black/30" onClick={() => setDrawerOpen(false)} />
-          <nav className="relative z-50 w-64 bg-white h-full shadow-xl p-4 space-y-1 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <span className="font-bold text-gray-800">Menu</span>
-              <button onClick={() => setDrawerOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
-            </div>
-            {navItem('/admin', '🃏 Sady', true)}
-            {isSuperadmin && navItem('/admin/users', '👥 Uživatelé')}
-            {isSuperadmin && navItem('/admin/settings', '⚙️ Nastavení')}
-            <div className="mt-auto pt-4 border-t border-gray-100">
-              <div className="text-xs text-gray-400 mb-2 truncate">{email}</div>
-              <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500 px-0">
-                Odhlásit se
-              </Button>
-            </div>
-          </nav>
-        </div>
-      )}
-
-      {/* Sidebar + content */}
-      <div className="flex">
-        <nav className="hidden md:block w-52 shrink-0 p-4 space-y-1">
-          {navItem('/admin', '🃏 Sady', true)}
-          {isSuperadmin && navItem('/admin/users', '👥 Uživatelé')}
-          {isSuperadmin && navItem('/admin/settings', '⚙️ Nastavení')}
-        </nav>
-
-        <main className="flex-1 p-4 md:p-8 max-w-4xl">
+      <SidebarInset>
+        <header className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-white">
+          <SidebarTrigger />
+        </header>
+        <main className="p-4 md:p-8 max-w-4xl">
           <Routes>
             <Route path="/admin" element={
               <DeckList
@@ -157,8 +138,8 @@ function AdminLayout({ role, email, signOut }: { role: AdminRole; email: string;
             {isSuperadmin && <Route path="/admin/settings" element={<AdminSettings />} />}
           </Routes>
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 
