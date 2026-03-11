@@ -33,12 +33,6 @@ const STATUS_LABEL: Record<Deck['status'], string> = {
   rejected: 'Zamítnuto',
 }
 
-const STATUS_SELECT_CLASS: Record<Deck['status'], string> = {
-  draft:    'bg-gray-100 text-gray-600',
-  pending:  'bg-yellow-100 text-yellow-700',
-  approved: 'bg-green-100 text-green-700',
-  rejected: 'bg-red-100 text-red-600',
-}
 
 type DeckJson = {
   version: number
@@ -287,8 +281,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                   <select
                     value={deck.status}
                     onChange={e => updateStatus(deck.id, e.target.value as Deck['status'])}
-                    className={`shrink-0 text-xs font-medium rounded-full px-2.5 py-1 border-0 cursor-pointer appearance-none pr-6 bg-no-repeat focus:outline-none focus:ring-2 focus:ring-indigo-300 ${STATUS_SELECT_CLASS[deck.status]}`}
-                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundPosition: 'right 6px center' }}
+                    className="shrink-0 text-sm rounded-lg border border-gray-200 bg-white px-3 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-300"
                   >
                     {Object.entries(STATUS_LABEL).map(([val, label]) => (
                       <option key={val} value={val}>{label}</option>
