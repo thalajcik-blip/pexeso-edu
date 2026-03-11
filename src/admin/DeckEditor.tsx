@@ -252,20 +252,22 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex-1">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink onClick={onBack} className="cursor-pointer">Sady</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{deck ? title || 'Sada' : 'Nová sada'}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+      <div className="mb-6">
+        <Breadcrumb className="mb-2">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={onBack} className="cursor-pointer">Sady</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{deck ? title || 'Sada' : 'Nová sada'}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-bold text-gray-800 flex-1">
+            {deck ? title || 'Sada' : 'Nová sada'}
+          </h1>
         {isSuperadmin && deck && (
           <div className="ml-auto flex items-center gap-2">
             {translateProgress && (
@@ -295,6 +297,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             </Button>
           </div>
         )}
+        </div>
       </div>
 
       {/* Deck metadata */}
