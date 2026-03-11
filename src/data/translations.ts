@@ -55,6 +55,14 @@ export interface Translations {
   soloQuizLabel: string
   moveOne: string; moveFew: string; moveMany: string
   chooseDeck: string
+  gameModeLabel: string
+  modePexeQuiz: string
+  modeLightning: string
+  questionCountLabel: string
+  timeLimitLabel: string
+  questionCountAll: string
+  soloQuizBtn: string
+  createGameBtn: string
   // Lobby / online
   localBtn: string
   onlineBtn: string
@@ -176,6 +184,14 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     soloQuizLabel: 'Úspěšnost v kvízu',
     moveOne: 'tah', moveFew: 'tahy', moveMany: 'tahů',
     chooseDeck: 'Vybrat jinou sadu',
+    gameModeLabel: 'Herní mód',
+    modePexeQuiz: 'PexeQuiz',
+    modeLightning: 'Bleskový kvíz',
+    questionCountLabel: 'Počet otázek',
+    timeLimitLabel: 'Čas na otázku',
+    questionCountAll: 'Vše',
+    soloQuizBtn: 'Solo kvíz',
+    createGameBtn: 'Vytvořit hru',
   },
 
   sk: {
@@ -270,6 +286,14 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     soloQuizLabel: 'Úspešnosť v kvíze',
     moveOne: 'ťah', moveFew: 'ťahy', moveMany: 'ťahov',
     chooseDeck: 'Vybrať inú sadu',
+    gameModeLabel: 'Herný mód',
+    modePexeQuiz: 'PexeQuiz',
+    modeLightning: 'Bleskový kvíz',
+    questionCountLabel: 'Počet otázok',
+    timeLimitLabel: 'Čas na otázku',
+    questionCountAll: 'Všetky',
+    soloQuizBtn: 'Solo kvíz',
+    createGameBtn: 'Vytvoriť hru',
   },
 
   en: {
@@ -364,6 +388,14 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     soloQuizLabel: 'Quiz accuracy',
     moveOne: 'move', moveFew: 'moves', moveMany: 'moves',
     chooseDeck: 'Choose a different deck',
+    gameModeLabel: 'Game mode',
+    modePexeQuiz: 'MemQuiz',
+    modeLightning: 'Lightning Quiz',
+    questionCountLabel: 'Questions',
+    timeLimitLabel: 'Time per question',
+    questionCountAll: 'All',
+    soloQuizBtn: 'Solo quiz',
+    createGameBtn: 'Create game',
   },
 }
 

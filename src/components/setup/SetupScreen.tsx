@@ -14,6 +14,9 @@ const SIZES: { id: BoardSize; labelKey: 'sizeLarge' | 'sizeMedium' | 'sizeSmall'
   { id: 'large',  labelKey: 'sizeLarge',  grid: '8×8' },
 ]
 
+const QUESTION_COUNTS = [5, 10, 15, 20, 0] // 0 = all
+const TIME_LIMITS = [5, 10, 20, 30] // seconds
+
 const LANGUAGES: { id: Language; label: string; flag: string; code: string }[] = [
   { id: 'cs', label: 'Čeština',   flag: '🇨🇿', code: 'CZ' },
   { id: 'sk', label: 'Slovenčina', flag: '🇸🇰', code: 'SK' },
@@ -36,6 +39,9 @@ export default function SetupScreen() {
     numPlayers, setNumPlayers,
     playerNames, setPlayerName,
     startGame, openRules, goToLobby,
+    gameMode, setGameMode,
+    lightningQuestionCount, setLightningQuestionCount,
+    lightningTimeLimit, setLightningTimeLimit,
   } = useGameStore()
 
   const [customDecks, setCustomDecks] = useState<CustomDeckMeta[]>([])
@@ -149,129 +155,205 @@ export default function SetupScreen() {
       </div>
 
       <div className="w-full max-w-md rounded-2xl p-6 space-y-5" style={{ background: tc.surface, border: `1px solid ${tc.surfaceBorder}` }}>
-        {/* Deck */}
+
+        {/* 1. Game Mode */}
+        <div>
+          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.gameModeLabel}</div>
+          <div className="flex gap-3">
+            {([['pexequiz', '🃏', tr.modePexeQuiz], ['lightning', '⚡', tr.modeLightning]] as const).map(([mode, icon, label]) => (
+              <button
+                key={mode}
+                onClick={() => setGameMode(mode)}
+                className="flex-1 py-2.5 rounded-xl border-2 font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
+                style={gameMode === mode ? activeBtn : inactiveBtn}
+              >
+                <span>{icon}</span>
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 2. Deck */}
         <div>
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.deckLabel}</div>
           <div className="relative">
-            <div
-              ref={deckScrollRef}
-              className="deck-scroll flex gap-3 overflow-x-scroll pb-3"
-            >
-            {DECKS.map(deck => (
-              <button
-                key={deck.id}
-                onClick={() => selectDeck(deck.id as DeckId)}
-                className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer flex-shrink-0"
-                style={{ ...( selectedDeckId === deck.id ? activeBtn : inactiveBtn), width: 96 }}
-              >
-                <span className="text-3xl leading-none">{deck.icon}</span>
-                <div className="flex items-center justify-center w-full text-center text-xs leading-tight" style={{ minHeight: '2.5em' }}>
-                  {tr.deckNames[deck.id as DeckId]}
-                </div>
-              </button>
-            ))}
-            {customDecks.map(cd => (
-              <button
-                key={cd.id}
-                onClick={() => handleSelectCustomDeck(cd)}
-                className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer overflow-hidden flex-shrink-0"
-                style={{ ...(selectedDeckId === cd.id ? activeBtn : inactiveBtn), width: 96 }}
-              >
-                {cd.thumbnail ? (
-                  <img src={cd.thumbnail} alt="" className="w-8 h-8 rounded-lg object-cover" />
-                ) : (
-                  <span className="text-3xl leading-none">🃏</span>
-                )}
-                <div className="flex items-center justify-center w-full text-center text-xs leading-tight line-clamp-2" style={{ minHeight: '2.5em' }}>
-                  {cd.title}
-                </div>
-              </button>
-            ))}
+            <div ref={deckScrollRef} className="deck-scroll flex gap-3 overflow-x-scroll pb-3">
+              {DECKS.map(deck => (
+                <button
+                  key={deck.id}
+                  onClick={() => selectDeck(deck.id as DeckId)}
+                  className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer flex-shrink-0"
+                  style={{ ...(selectedDeckId === deck.id ? activeBtn : inactiveBtn), width: 96 }}
+                >
+                  <span className="text-3xl leading-none">{deck.icon}</span>
+                  <div className="flex items-center justify-center w-full text-center text-xs leading-tight" style={{ minHeight: '2.5em' }}>
+                    {tr.deckNames[deck.id as DeckId]}
+                  </div>
+                </button>
+              ))}
+              {customDecks.map(cd => (
+                <button
+                  key={cd.id}
+                  onClick={() => handleSelectCustomDeck(cd)}
+                  className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer overflow-hidden flex-shrink-0"
+                  style={{ ...(selectedDeckId === cd.id ? activeBtn : inactiveBtn), width: 96 }}
+                >
+                  {cd.thumbnail ? (
+                    <img src={cd.thumbnail} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                  ) : (
+                    <span className="text-3xl leading-none">🃏</span>
+                  )}
+                  <div className="flex items-center justify-center w-full text-center text-xs leading-tight line-clamp-2" style={{ minHeight: '2.5em' }}>
+                    {cd.title}
+                  </div>
+                </button>
+              ))}
             </div>
-            {/* Fade hint — indicates more content to scroll */}
-            <div
-              className="absolute right-0 top-0 bottom-3 w-10 pointer-events-none"
-              style={{ background: `linear-gradient(to right, transparent, ${tc.surface})` }}
-            />
+            <div className="absolute right-0 top-0 bottom-3 w-10 pointer-events-none" style={{ background: `linear-gradient(to right, transparent, ${tc.surface})` }} />
           </div>
         </div>
 
-        {/* Size */}
-        <div>
-          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.sizeLabel}</div>
-          <div className="flex gap-3">
-            {SIZES.map(s => (
-              <button
-                key={s.id}
-                onClick={() => selectSize(s.id)}
-                className="flex-1 py-2.5 rounded-xl border-2 font-bold transition-all cursor-pointer"
-                style={selectedSize === s.id ? activeBtn : inactiveBtn}
-              >
-                {s.grid}
-                <div className="text-xs font-normal opacity-70">{tr[s.labelKey]}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Player count */}
-        <div>
-          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.playersLabel}</div>
-          <div className="flex gap-1.5">
-            {[1, 2, 3, 4, 5, 6].map(n => (
-              <button
-                key={n}
-                onClick={() => setNumPlayers(n)}
-                className="flex-1 py-2.5 rounded-xl border-2 text-xl font-bold transition-all cursor-pointer"
-                style={numPlayers === n ? activeBtn : inactiveBtn}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Player names */}
-        <div>
-          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.namesLabel}</div>
-          <div className="flex flex-col gap-2">
-            {Array.from({ length: numPlayers }, (_, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[i] }} />
-                <input
-                  className="flex-1 rounded-lg px-3 py-2 text-sm outline-none transition-colors"
-                  style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}`, color: tc.text }}
-                  value={playerNames[i]}
-                  placeholder={DEFAULT_NAMES[i]}
-                  maxLength={20}
-                  onChange={e => setPlayerName(i, e.target.value)}
-                  onFocus={e => e.target.style.borderColor = tc.accent}
-                  onBlur={e => {
-                    e.target.style.borderColor = tc.inputBorder
-                    if (!playerNames[i].trim()) setPlayerName(i, DEFAULT_NAMES[i])
-                  }}
-                />
+        {/* 3. Settings — conditional on mode */}
+        {gameMode === 'pexequiz' ? (
+          <>
+            {/* Board size */}
+            <div>
+              <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.sizeLabel}</div>
+              <div className="flex gap-3">
+                {SIZES.map(s => (
+                  <button
+                    key={s.id}
+                    onClick={() => selectSize(s.id)}
+                    className="flex-1 py-2.5 rounded-xl border-2 font-bold transition-all cursor-pointer"
+                    style={selectedSize === s.id ? activeBtn : inactiveBtn}
+                  >
+                    {s.grid}
+                    <div className="text-xs font-normal opacity-70">{tr[s.labelKey]}</div>
+                  </button>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+
+            {/* Player count */}
+            <div>
+              <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.playersLabel}</div>
+              <div className="flex gap-1.5">
+                {[1, 2, 3, 4, 5, 6].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setNumPlayers(n)}
+                    className="flex-1 py-2.5 rounded-xl border-2 text-xl font-bold transition-all cursor-pointer"
+                    style={numPlayers === n ? activeBtn : inactiveBtn}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Player names */}
+            <div>
+              <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.namesLabel}</div>
+              <div className="flex flex-col gap-2">
+                {Array.from({ length: numPlayers }, (_, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[i] }} />
+                    <input
+                      className="flex-1 rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                      style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}`, color: tc.text }}
+                      value={playerNames[i]}
+                      placeholder={DEFAULT_NAMES[i]}
+                      maxLength={20}
+                      onChange={e => setPlayerName(i, e.target.value)}
+                      onFocus={e => e.target.style.borderColor = tc.accent}
+                      onBlur={e => {
+                        e.target.style.borderColor = tc.inputBorder
+                        if (!playerNames[i].trim()) setPlayerName(i, DEFAULT_NAMES[i])
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Question count */}
+            <div>
+              <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.questionCountLabel}</div>
+              <div className="flex gap-1.5">
+                {QUESTION_COUNTS.map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setLightningQuestionCount(n)}
+                    className="flex-1 py-2.5 rounded-xl border-2 font-bold transition-all cursor-pointer text-sm"
+                    style={lightningQuestionCount === n ? activeBtn : inactiveBtn}
+                  >
+                    {n === 0 ? tr.questionCountAll : n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Time limit */}
+            <div>
+              <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.timeLimitLabel}</div>
+              <div className="flex gap-3">
+                {TIME_LIMITS.map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setLightningTimeLimit(t)}
+                    className="flex-1 py-2.5 rounded-xl border-2 font-bold transition-all cursor-pointer"
+                    style={lightningTimeLimit === t ? activeBtn : inactiveBtn}
+                  >
+                    {t}s
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* CTA buttons */}
+        <div className="flex gap-3">
+          {gameMode === 'pexequiz' ? (
+            <>
+              <button
+                onClick={startGame}
+                className="flex-1 py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
+                style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
+              >
+                {tr.localBtn}
+              </button>
+              <button
+                onClick={goToLobby}
+                className="flex-1 py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
+                style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
+              >
+                {tr.onlineBtn}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={startGame}
+                className="flex-1 py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
+                style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
+              >
+                {tr.soloQuizBtn}
+              </button>
+              <button
+                disabled
+                className="flex-1 py-3.5 rounded-xl text-base font-bold cursor-not-allowed opacity-40"
+                style={{ background: tc.accentGradient, color: tc.accentText }}
+              >
+                {tr.createGameBtn}
+              </button>
+            </>
+          )}
         </div>
 
-        <div className="flex gap-3">
-          <button
-            onClick={startGame}
-            className="flex-1 py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
-            style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
-          >
-            {tr.localBtn}
-          </button>
-          <button
-            onClick={goToLobby}
-            className="flex-1 py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
-            style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
-          >
-            {tr.onlineBtn}
-          </button>
-        </div>
       </div>
 
       <div className="flex flex-col items-center gap-0.5 pb-2 pt-1">

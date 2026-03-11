@@ -49,6 +49,9 @@ interface GameStore {
   selectedSize: BoardSize
   numPlayers: number
   playerNames: string[]
+  gameMode: 'pexequiz' | 'lightning'
+  lightningQuestionCount: number  // 5 | 10 | 15 | 20 | 0 (0 = all)
+  lightningTimeLimit: number      // seconds: 5 | 10 | 20 | 30
 
   // Game
   phase: GamePhase
@@ -92,6 +95,9 @@ interface GameStore {
   selectSize: (size: BoardSize) => void
   setNumPlayers: (n: number) => void
   setPlayerName: (i: number, name: string) => void
+  setGameMode: (mode: 'pexequiz' | 'lightning') => void
+  setLightningQuestionCount: (n: number) => void
+  setLightningTimeLimit: (t: number) => void
   startGame: () => void
   flipCard: (index: number) => void
   answerQuiz: (correct: boolean) => void
@@ -147,6 +153,9 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   selectedSize: 'medium',
   numPlayers: 2,
   playerNames: [...DEFAULT_NAMES],
+  gameMode: 'pexequiz',
+  lightningQuestionCount: 10,
+  lightningTimeLimit: 20,
   phase: 'setup',
   cards: [],
   players: [],
@@ -183,6 +192,9 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     names[i] = name
     set({ playerNames: names })
   },
+  setGameMode: (mode) => set({ gameMode: mode }),
+  setLightningQuestionCount: (n) => set({ lightningQuestionCount: n }),
+  setLightningTimeLimit: (t) => set({ lightningTimeLimit: t }),
 
   setTurnTime: (t) => set({ turnTime: t }),
   setQuizTime: (t) => set({ quizTime: t }),
@@ -622,6 +634,9 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     selectedDeckId: state.selectedDeckId,
     selectedSize: state.selectedSize,
     numPlayers: state.numPlayers,
+    gameMode: state.gameMode,
+    lightningQuestionCount: state.lightningQuestionCount,
+    lightningTimeLimit: state.lightningTimeLimit,
   }),
   onRehydrateStorage: () => (state) => {
     if (state) {
