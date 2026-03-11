@@ -36,7 +36,8 @@ export default function LightningGame() {
     setSelectedAnswer(null)
     const start = Date.now()
     const interval = setInterval(() => {
-      const remaining = lightningTimeLimit - Math.floor((Date.now() - start) / 1000)
+      const elapsedS = (Date.now() - start) / 1000
+      const remaining = lightningTimeLimit - elapsedS
       if (remaining <= 0) {
         clearInterval(interval)
         setTimeLeft(0)
@@ -164,7 +165,7 @@ export default function LightningGame() {
             />
           </div>
           <span className="text-sm font-bold tabular-nums w-7 text-right" style={{ color: timerColor }}>
-            {isReveal ? '' : timeLeft}
+            {isReveal ? '' : Math.ceil(timeLeft)}
           </span>
         </div>
       </div>
