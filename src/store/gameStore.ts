@@ -786,7 +786,8 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   _setLobbyPlayers: (incoming) => {
     const { phase, playerIds, players: gamePlayers, disconnectedPlayer } = get()
     set({ lobbyPlayers: incoming })
-    if (phase !== 'playing' && phase !== 'quiz') return
+    const isLightningPhase = phase === 'lightning_playing' || phase === 'lightning_reveal'
+    if (phase !== 'playing' && phase !== 'quiz' && !isLightningPhase) return
     if (!playerIds.length) return
     const connectedIds = new Set(incoming.map(p => p.id))
     const leftId = playerIds.find(id => !connectedIds.has(id))

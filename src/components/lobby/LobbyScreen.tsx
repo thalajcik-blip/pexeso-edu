@@ -94,7 +94,8 @@ export default function LobbyScreen() {
   }, [])
 
   const inRoom   = roomId !== null
-  const canStart = isHost && lobbyPlayers.length >= 2
+  const maxPlayers = gameMode === 'lightning' ? MAX_LIGHTNING_PLAYERS : 6
+  const canStart = isHost && lobbyPlayers.length >= 2 && lobbyPlayers.length <= maxPlayers
   const shareUrl = roomId ? `${window.location.origin}${window.location.pathname}?room=${roomId}` : ''
 
   const inactiveBtn = { background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }

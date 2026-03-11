@@ -24,8 +24,9 @@ export default function App() {
   const tc = THEMES[theme]
   const tr = TRANSLATIONS[language]
 
-  const inGame  = phase === 'playing' || phase === 'quiz'
-  const isAlone = isOnline && inGame && lobbyPlayers.length < 2
+  const inGame        = phase === 'playing' || phase === 'quiz'
+  const inLightning   = phase === 'lightning_playing' || phase === 'lightning_reveal'
+  const isAlone = isOnline && (inGame || inLightning) && lobbyPlayers.length < 2
 
   // Back button → return to setup instead of leaving the app
   const prevPhaseRef = useRef(phase)
