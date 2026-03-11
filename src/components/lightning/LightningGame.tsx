@@ -201,7 +201,7 @@ export default function LightningGame() {
       </div>
 
       {/* Timed out / reveal feedback */}
-      <div className="text-center text-sm mb-4 min-h-[1.4em]" style={{ color: tc.textMuted }}>
+      <div className="text-center text-sm mb-4 h-5 flex items-center justify-center" style={{ color: tc.textMuted }}>
         {isReveal && (
           isTimedOut
             ? <span style={{ color: '#ef4444' }}>{tr.lightningTimeUp}</span>
