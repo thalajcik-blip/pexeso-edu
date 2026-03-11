@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS } from '../../data/translations'
 import { THEMES } from '../../data/themes'
-import { soundQuizSelect, soundQuizCorrect, soundQuizWrong, soundQuizTimeout, soundTick, soundWin } from '../../services/audioService'
+import { soundQuizSelect, soundQuizCorrect, soundQuizWrong, soundQuizTimeout, soundTick, soundWin, isMuted, toggleMuted } from '../../services/audioService'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D']
 
@@ -17,6 +17,8 @@ export default function LightningGame() {
   const nextLightningQuestion    = useGameStore(s => s.nextLightningQuestion)
   const startLightningGame       = useGameStore(s => s.startLightningGame)
   const resetToSetup             = useGameStore(s => s.resetToSetup)
+  const toggleTheme              = useGameStore(s => s.toggleTheme)
+  const openRules                = useGameStore(s => s.openRules)
   const language                 = useGameStore(s => s.language)
   const theme                    = useGameStore(s => s.theme)
   const tr = TRANSLATIONS[language]
@@ -25,9 +27,22 @@ export default function LightningGame() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState(lightningTimeLimit)
   const [isPaused, setIsPaused] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [muted, setMuted] = useState(isMuted)
   const isPausedRef = useRef(false)
   const remainingRef = useRef(lightningTimeLimit)
   const lastTickSecRef = useRef(lightningTimeLimit + 1)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [menuOpen])
 
   isPausedRef.current = isPaused
 
@@ -181,6 +196,40 @@ export default function LightningGame() {
 
   return (
     <div className="min-h-screen flex flex-col px-4 pt-4 pb-6" style={{ background: tc.bg, color: tc.text }}>
+
+      {/* Settings menu — fixed top-right */}
+      <div ref={menuRef} className="fixed top-3 right-3 z-30">
+        <button
+          onClick={() => setMenuOpen(o => !o)}
+          className="w-8 h-8 flex items-center justify-center rounded-full text-base transition-opacity"
+          style={{ background: tc.scorePillBg, opacity: menuOpen ? 1 : 0.5 }}
+        >
+          ⚙️
+        </button>
+        {menuOpen && (
+          <div
+            className="absolute top-10 right-0 rounded-xl py-1 min-w-[180px] shadow-xl"
+            style={{ background: tc.modalSurface, border: `1px solid ${tc.surfaceBorder}` }}
+          >
+            {[
+              { icon: '↺', label: tr.newGame, onClick: () => { resetToSetup(); setMenuOpen(false) } },
+              { icon: theme === 'dark' ? '☀️' : '🌙', label: theme === 'dark' ? tr.lightMode : tr.darkMode, onClick: () => { toggleTheme(); setMenuOpen(false) } },
+              { icon: muted ? '🔇' : '🔊', label: muted ? tr.soundOn : tr.soundOff, onClick: () => { setMuted(toggleMuted()); setMenuOpen(false) } },
+              { icon: '📖', label: tr.rulesLink, onClick: () => { openRules(); setMenuOpen(false) } },
+            ].map(({ icon, label, onClick }) => (
+              <button
+                key={label}
+                onClick={onClick}
+                className="w-full flex items-center px-4 py-2.5 text-sm transition-opacity hover:opacity-70"
+                style={{ color: tc.text }}
+              >
+                <span className="inline-block w-6 shrink-0">{icon}</span>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Question number */}
       <div className="text-center text-sm font-bold tabular-nums mb-3" style={{ color: tc.textMuted }}>
