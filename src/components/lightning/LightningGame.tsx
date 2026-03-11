@@ -302,8 +302,8 @@ export default function LightningGame() {
       {/* Fun fact */}
       {isReveal && question.funFact && (
         <div
-          className="max-w-lg mx-auto w-full mt-4 px-4 py-3 rounded-xl text-sm"
-          style={{ background: tc.surface, border: `1px solid ${tc.surfaceBorder}`, color: tc.textDim }}
+          className="max-w-lg mx-auto w-full mt-4 px-4 py-2.5 rounded-xl text-xs text-center"
+          style={{ background: tc.factBg, color: tc.factText }}
         >
           💡 {question.funFact}
         </div>
