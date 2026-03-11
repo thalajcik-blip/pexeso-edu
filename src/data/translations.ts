@@ -54,6 +54,7 @@ export interface Translations {
   soloMovesLabel: string
   soloQuizLabel: string
   moveOne: string; moveFew: string; moveMany: string
+  chooseDeck: string
   // Lobby / online
   localBtn: string
   onlineBtn: string
@@ -174,6 +175,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     soloMovesLabel: 'Počet tahů',
     soloQuizLabel: 'Úspěšnost v kvízu',
     moveOne: 'tah', moveFew: 'tahy', moveMany: 'tahů',
+    chooseDeck: 'Vybrat jinou sadu',
   },
 
   sk: {
@@ -267,6 +269,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     soloMovesLabel: 'Počet ťahov',
     soloQuizLabel: 'Úspešnosť v kvíze',
     moveOne: 'ťah', moveFew: 'ťahy', moveMany: 'ťahov',
+    chooseDeck: 'Vybrať inú sadu',
   },
 
   en: {
@@ -360,6 +363,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     soloMovesLabel: 'Total moves',
     soloQuizLabel: 'Quiz accuracy',
     moveOne: 'move', moveFew: 'moves', moveMany: 'moves',
+    chooseDeck: 'Choose a different deck',
   },
 }
 

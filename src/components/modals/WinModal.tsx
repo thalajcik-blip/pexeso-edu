@@ -40,6 +40,7 @@ export default function WinModal() {
     const p = players[0]
     const totalQuizzes = p.quizzes + p.wrongQuizzes
     const accuracy = totalQuizzes > 0 ? Math.round(p.quizzes / totalQuizzes * 100) : 100
+    const movesPerPair = p.pairs > 0 ? (soloMoves / p.pairs).toFixed(1) : '—'
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.winOverlayBg }}>
         <div className="pop-in rounded-2xl p-10 text-center"
@@ -52,8 +53,9 @@ export default function WinModal() {
           <div className="flex flex-col gap-4 text-left mb-2">
             <div className="flex items-center justify-between gap-8">
               <span style={{ color: tc.textMuted }}>{tr.soloMovesLabel}</span>
-              <span className="text-xl font-bold" style={{ color: tc.accent }}>
-                {pluralize(soloMoves, tr, 'moveOne', 'moveFew', 'moveMany')}
+              <span>
+                <span className="text-xl font-bold" style={{ color: tc.accent }}>{soloMoves}</span>
+                <span className="text-sm ml-2" style={{ color: tc.textDim }}>({movesPerPair} / pár)</span>
               </span>
             </div>
             <div className="flex items-center justify-between gap-8">
@@ -76,7 +78,7 @@ export default function WinModal() {
             onClick={resetToSetup}
             className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"
           >
-            {tr.playerSettings}
+            {tr.chooseDeck}
           </button>
         </div>
       </div>
