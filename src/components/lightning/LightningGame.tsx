@@ -401,7 +401,7 @@ export default function LightningGame() {
       </div>
 
       {/* Reveal feedback / answered counter */}
-      <div className="text-center text-sm mb-4 h-5 flex items-center justify-center">
+      <div className="text-center text-sm mb-2 h-5 flex items-center justify-center">
         {isReveal ? (
           isTimedOut
             ? <span style={{ color: '#ef4444' }}>{tr.lightningTimeUp}</span>
@@ -411,6 +411,30 @@ export default function LightningGame() {
         ) : isOnline ? (
           <span style={{ color: tc.textMuted }}>{answeredCount}/{playerIds.length} {tr.lightningAnswered}</span>
         ) : null}
+      </div>
+
+      {/* Player answer dots — always reserved (online only) to prevent layout shift */}
+      <div className="flex justify-center gap-1.5 mb-3 h-3">
+        {isOnline && players.map((p, i) => {
+          const answered = lightningPlayerAnswers[playerIds[i]] !== undefined
+          const correct = lightningPlayerAnswers[playerIds[i]]?.correct
+          const borderColor = isReveal
+            ? (correct ? '#22c55e' : answered ? '#ef4444' : p.color)
+            : p.color
+          return (
+            <div
+              key={i}
+              className="rounded-full transition-all duration-300"
+              style={{
+                width: 12,
+                height: 12,
+                background: answered ? (isReveal ? (correct ? '#22c55e' : '#ef4444') : p.color) : 'transparent',
+                border: `2px solid ${answered ? borderColor : p.color}`,
+                opacity: answered ? 1 : 0.3,
+              }}
+            />
+          )
+        })}
       </div>
 
       {/* Answer options 2x2 */}
