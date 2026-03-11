@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useGameStore } from './store/gameStore'
 import { THEMES } from './data/themes'
 import { TRANSLATIONS } from './data/translations'
@@ -19,11 +19,29 @@ export default function App() {
   const disconnectedPlayer = useGameStore(s => s.disconnectedPlayer)
   const leaveRoom          = useGameStore(s => s.leaveRoom)
   const goToLobby          = useGameStore(s => s.goToLobby)
+  const resetToSetup       = useGameStore(s => s.resetToSetup)
   const tc = THEMES[theme]
   const tr = TRANSLATIONS[language]
 
   const inGame  = phase === 'playing' || phase === 'quiz'
   const isAlone = isOnline && inGame && lobbyPlayers.length < 2
+
+  // Back button → return to setup instead of leaving the app
+  const prevPhaseRef = useRef(phase)
+  useEffect(() => {
+    if (prevPhaseRef.current === 'setup' && phase !== 'setup') {
+      history.pushState({ pexedu: true }, '')
+    }
+    prevPhaseRef.current = phase
+  }, [phase])
+
+  useEffect(() => {
+    const handler = () => {
+      if (phase !== 'setup') resetToSetup()
+    }
+    window.addEventListener('popstate', handler)
+    return () => window.removeEventListener('popstate', handler)
+  }, [phase, resetToSetup])
 
   // Auto-navigate to lobby if ?room= param is present
   useEffect(() => {
