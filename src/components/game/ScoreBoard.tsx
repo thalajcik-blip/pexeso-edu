@@ -133,9 +133,14 @@ export default function ScoreBoard() {
             >
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
               <span className="font-medium">{trunc(p.name)}</span>
-              <span key={`${i}-${p.score}`} className="score-pop font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>
-                {p.score} b.
-              </span>
+              {players.length === 1
+                ? <span key={`${i}-${p.quizzes}-${p.wrongQuizzes}`} className="score-pop font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>
+                    🧠 {p.quizzes}/{p.quizzes + p.wrongQuizzes}
+                  </span>
+                : <span key={`${i}-${p.score}`} className="score-pop font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>
+                    {p.score} b.
+                  </span>
+              }
               {floatingEmojis.filter(fe => fe.playerIndex === i).map(fe => (
                 <span key={fe.id} className="emoji-float">{fe.emoji}</span>
               ))}
