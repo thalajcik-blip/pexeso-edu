@@ -136,6 +136,12 @@ button, a { cursor: pointer; }
   to   { width: 100%; }
 }
 
+/* Lightning quiz timer bar */
+@keyframes lightning-timer {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
 /* Quiz/Win overlay animations */
 @keyframes pop-in {
   from { transform: scale(0.7); opacity: 0; }

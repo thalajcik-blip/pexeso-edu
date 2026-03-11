@@ -143,7 +143,6 @@ export default function LightningGame() {
 
   if (!question) return null
 
-  const timerPct = ((lightningTimeLimit - timeLeft) / lightningTimeLimit) * 100
   const timerColor = timeLeft <= 5 ? '#ef4444' : timeLeft <= 10 ? '#f97316' : tc.accent
   const isTimedOut = selectedAnswer === '' && isReveal
   const lastAnswer = lightningAnswers[lightningAnswers.length - 1]
@@ -161,12 +160,17 @@ export default function LightningGame() {
         <div className="flex items-center gap-2">
           <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: tc.scorePillBg }}>
             <div
-              className="h-full rounded-full transition-all duration-100"
-              style={{ width: `${timerPct}%`, background: timerColor }}
+              key={lightningCurrentIndex}
+              className="h-full rounded-full"
+              style={{
+                background: timerColor,
+                animation: `lightning-timer ${lightningTimeLimit}s linear forwards`,
+                animationPlayState: isReveal ? 'paused' : 'running',
+              }}
             />
           </div>
-          <span className="text-sm font-bold tabular-nums w-7 text-right" style={{ color: timerColor }}>
-            {isReveal ? '' : Math.ceil(timeLeft)}
+          <span className="text-sm font-bold tabular-nums w-7 text-right" style={{ color: timerColor, visibility: isReveal ? 'hidden' : 'visible' }}>
+            {Math.ceil(timeLeft)}
           </span>
         </div>
       </div>
