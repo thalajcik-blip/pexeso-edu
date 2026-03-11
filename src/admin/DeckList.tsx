@@ -3,6 +3,7 @@ import { supabase } from '../services/supabase'
 import type { AdminRole } from './useAuth'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type Deck = {
   id: string
@@ -212,7 +213,35 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
 
   useEffect(() => { load() }, [])
 
-  if (loading) return <div className="text-gray-400 text-sm p-8">Načítání…</div>
+  if (loading) return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <Skeleton className="h-7 w-32" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-9 w-32" />
+          <Skeleton className="h-9 w-28" />
+        </div>
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-4">
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-8" />
+                <Skeleton className="h-8 w-14" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 
   return (
     <div>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ChevronDown } from 'lucide-react'
 
 type Deck = {
@@ -203,7 +204,49 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
     return a.sort_order - b.sort_order  // default
   })
 
-  if (loading) return <div className="text-gray-400 text-sm p-8">Načítání…</div>
+  if (loading) return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <Skeleton className="h-4 w-12" />
+        <Skeleton className="h-6 w-48" />
+      </div>
+
+      {/* Form */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8 space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-20 w-full" />
+        <div className="flex gap-4 flex-wrap">
+          <Skeleton className="h-9 w-44" />
+          <Skeleton className="h-9 w-44" />
+          <Skeleton className="h-9 w-44" />
+        </div>
+        <Skeleton className="h-9 w-36" />
+      </div>
+
+      {/* Cards grid */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <Skeleton className="h-5 w-24" />
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-28" />
+            <Skeleton className="h-8 w-24" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <Skeleton className="aspect-square w-full" />
+              <div className="p-2 space-y-1.5">
+                <Skeleton className="h-3.5 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div>
