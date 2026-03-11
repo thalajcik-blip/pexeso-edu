@@ -345,9 +345,9 @@ export default function SetupScreen() {
                 {tr.soloQuizBtn}
               </button>
               <button
-                disabled
-                className="flex-1 py-3.5 rounded-xl text-base font-bold cursor-not-allowed opacity-40"
-                style={{ background: tc.accentGradient, color: tc.accentText }}
+                onClick={goToLobby}
+                className="flex-1 py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
+                style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
               >
                 {tr.createGameBtn}
               </button>
