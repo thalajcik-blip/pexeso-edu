@@ -143,7 +143,7 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
   return (
     <>
       <Dialog open onOpenChange={open => { if (!open) onClose() }}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto overscroll-contain">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto overscroll-contain" style={{ overscrollBehavior: 'contain' }}>
           <DialogHeader>
             <DialogTitle>{card ? 'Upravit kartičku' : 'Nová kartička'}</DialogTitle>
           </DialogHeader>
