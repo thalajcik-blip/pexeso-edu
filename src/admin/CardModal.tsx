@@ -52,11 +52,22 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
     document.body.style.position = 'fixed'
     document.body.style.top = `-${scrollY}px`
     document.body.style.width = '100%'
+
+    const preventScroll = (e: WheelEvent | TouchEvent) => {
+      const dialog = document.querySelector('[data-slot="dialog-content"]')
+      if (dialog?.contains(e.target as Node)) return
+      e.preventDefault()
+    }
+    document.addEventListener('wheel', preventScroll, { passive: false })
+    document.addEventListener('touchmove', preventScroll, { passive: false })
+
     return () => {
       document.body.style.position = ''
       document.body.style.top = ''
       document.body.style.width = ''
       window.scrollTo(0, scrollY)
+      document.removeEventListener('wheel', preventScroll)
+      document.removeEventListener('touchmove', preventScroll)
     }
   }, [])
 
