@@ -16,7 +16,7 @@ html, body {
 }
 
 body.with-scroll-bars-hidden,
-html:has([data-radix-dialog-overlay]) {
+html:has([data-slot="dialog-content"][data-state="open"]) {
   overflow: hidden !important;
 }
 
