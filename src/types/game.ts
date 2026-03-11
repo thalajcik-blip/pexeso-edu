@@ -9,6 +9,7 @@ export interface LightningQuestion {
   question: string
   options: string[]    // 4 shuffled options
   correct: string
+  funFact?: string     // shown after reveal
 }
 
 export interface LightningAnswer {

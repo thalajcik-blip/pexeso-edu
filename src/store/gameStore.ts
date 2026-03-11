@@ -47,6 +47,7 @@ function buildLightningQuestions(
         question: item.quiz_question || item.label,
         options: item.quiz_options ? shuffle([...item.quiz_options]) : [],
         correct: item.quiz_correct || '',
+        funFact: item.fun_fact || undefined,
       }
     }).filter(q => q.options.length === 4 && q.correct)
   }
@@ -79,12 +80,14 @@ function buildLightningQuestions(
         .filter(a => a !== correct)
     ).slice(0, 3)
 
+    const funFact = isEn ? (item.factEn ?? undefined) : (language === 'sk' && item.factSk ? item.factSk : item.fact) || undefined
     return {
       symbol,
       label: symbol,
       question,
       options: shuffle([correct, ...distractors]),
       correct,
+      funFact,
     }
   })
 }

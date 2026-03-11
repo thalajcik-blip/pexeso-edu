@@ -65,6 +65,8 @@ export interface Translations {
   createGameBtn: string
   lightningAvgTime: string
   lightningTimeUp: string
+  lightningPause: string
+  lightningResume: string
   // Lobby / online
   localBtn: string
   onlineBtn: string
@@ -196,6 +198,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     createGameBtn: 'Vytvořit hru',
     lightningAvgTime: 'Průměrný čas',
     lightningTimeUp: 'Čas vypršel!',
+    lightningPause: '⏸ Pauza',
+    lightningResume: '▶ Pokračovat',
   },
 
   sk: {
@@ -300,6 +304,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     createGameBtn: 'Vytvoriť hru',
     lightningAvgTime: 'Priemerný čas',
     lightningTimeUp: 'Čas vypršal!',
+    lightningPause: '⏸ Pauza',
+    lightningResume: '▶ Pokračovať',
   },
 
   en: {
@@ -404,6 +410,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     createGameBtn: 'Create game',
     lightningAvgTime: 'Avg. time',
     lightningTimeUp: "Time's up!",
+    lightningPause: '⏸ Pause',
+    lightningResume: '▶ Resume',
   },
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS } from '../../data/translations'
@@ -23,39 +23,55 @@ export default function LightningGame() {
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState(lightningTimeLimit)
+  const [isPaused, setIsPaused] = useState(false)
+  const isPausedRef = useRef(false)
+  const remainingRef = useRef(lightningTimeLimit)
+
+  isPausedRef.current = isPaused
 
   const question = lightningQuestions[lightningCurrentIndex]
   const isReveal  = phase === 'lightning_reveal'
   const isResults = phase === 'lightning_results'
   const total     = lightningQuestions.length
 
-  // Timer countdown
+  // Reset on new question
   useEffect(() => {
-    if (phase !== 'lightning_playing') return
+    remainingRef.current = lightningTimeLimit
     setTimeLeft(lightningTimeLimit)
     setSelectedAnswer(null)
-    const start = Date.now()
-    let rafId: number
-    const tick = () => {
-      const remaining = lightningTimeLimit - (Date.now() - start) / 1000
-      if (remaining <= 0) {
+    setIsPaused(false)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightningCurrentIndex])
+
+  // Timer countdown — interval respects pause via ref
+  useEffect(() => {
+    if (phase !== 'lightning_playing') return
+    let lastTick = Date.now()
+    const interval = setInterval(() => {
+      if (isPausedRef.current) {
+        lastTick = Date.now()
+        return
+      }
+      const now = Date.now()
+      remainingRef.current -= (now - lastTick) / 1000
+      lastTick = now
+      if (remainingRef.current <= 0) {
+        clearInterval(interval)
         setTimeLeft(0)
         setSelectedAnswer('')
         answerLightningQuestion('')
       } else {
-        setTimeLeft(remaining)
-        rafId = requestAnimationFrame(tick)
+        setTimeLeft(remainingRef.current)
       }
-    }
-    rafId = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(rafId)
+    }, 50)
+    return () => clearInterval(interval)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightningCurrentIndex, phase])
 
   // Auto-advance after reveal
   useEffect(() => {
     if (phase !== 'lightning_reveal') return
-    const timer = setTimeout(() => nextLightningQuestion(), 1500)
+    const timer = setTimeout(() => nextLightningQuestion(), 2500)
     return () => clearTimeout(timer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, lightningCurrentIndex])
@@ -77,7 +93,7 @@ export default function LightningGame() {
   }, [phase])
 
   function handleAnswer(answer: string) {
-    if (phase !== 'lightning_playing' || selectedAnswer !== null) return
+    if (phase !== 'lightning_playing' || selectedAnswer !== null || isPaused) return
     setSelectedAnswer(answer)
     answerLightningQuestion(answer)
   }
@@ -165,7 +181,7 @@ export default function LightningGame() {
               style={{
                 background: timerColor,
                 animation: `lightning-timer ${lightningTimeLimit}s linear forwards`,
-                animationPlayState: isReveal ? 'paused' : 'running',
+                animationPlayState: isReveal || isPaused ? 'paused' : 'running',
               }}
             />
           </div>
@@ -204,8 +220,8 @@ export default function LightningGame() {
         {question.question}
       </div>
 
-      {/* Timed out / reveal feedback */}
-      <div className="text-center text-sm mb-4 h-5 flex items-center justify-center" style={{ color: tc.textMuted }}>
+      {/* Reveal feedback */}
+      <div className="text-center text-sm mb-4 h-5 flex items-center justify-center">
         {isReveal && (
           isTimedOut
             ? <span style={{ color: '#ef4444' }}>{tr.lightningTimeUp}</span>
@@ -221,7 +237,7 @@ export default function LightningGame() {
           <button
             key={i}
             onClick={() => handleAnswer(option)}
-            disabled={isReveal || selectedAnswer !== null}
+            disabled={isReveal || selectedAnswer !== null || isPaused}
             className="py-3 px-3 rounded-xl border-2 font-semibold text-sm text-left transition-all cursor-pointer disabled:cursor-default"
             style={getOptionStyle(option)}
           >
@@ -230,6 +246,29 @@ export default function LightningGame() {
           </button>
         ))}
       </div>
+
+      {/* Fun fact */}
+      {isReveal && question.funFact && (
+        <div
+          className="max-w-lg mx-auto w-full mt-4 px-4 py-3 rounded-xl text-sm"
+          style={{ background: tc.surface, border: `1px solid ${tc.surfaceBorder}`, color: tc.textDim }}
+        >
+          💡 {question.funFact}
+        </div>
+      )}
+
+      {/* Pause button (solo only) */}
+      {!isReveal && (
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={() => setIsPaused(p => !p)}
+            className="px-5 py-2 rounded-xl text-sm font-medium transition-all opacity-40 hover:opacity-80"
+            style={{ background: tc.btnInactiveBg, border: `1px solid ${tc.btnInactiveBorder}`, color: tc.btnInactiveText }}
+          >
+            {isPaused ? tr.lightningResume : tr.lightningPause}
+          </button>
+        </div>
+      )}
 
     </div>
   )
