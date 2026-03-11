@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
   SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
-  SidebarProvider, SidebarTrigger,
+  SidebarProvider, SidebarTrigger, useSidebar,
 } from '@/components/ui/sidebar'
 
 function SetNewPasswordScreen({ updatePassword }: { updatePassword: ReturnType<typeof UseAuthType>['updatePassword'] }) {
@@ -67,6 +67,66 @@ function DeckEditorRoute({ isSuperadmin }: { isSuperadmin: boolean }) {
   )
 }
 
+type NavItem = { path: string; label: string; icon: string; exact: boolean; superadminOnly: boolean }
+
+function AdminSidebarContents({ isSuperadmin, email, signOut, visibleItems, navigate, location }: {
+  isSuperadmin: boolean
+  email: string
+  signOut: () => void
+  visibleItems: NavItem[]
+  navigate: (path: string) => void
+  location: { pathname: string }
+}) {
+  const { state } = useSidebar()
+  const collapsed = state === 'collapsed'
+
+  return (
+    <>
+      <SidebarHeader className="px-4 py-4 border-b border-sidebar-border overflow-hidden">
+        <div className="font-bold text-base text-sidebar-foreground truncate">
+          {collapsed ? 'P' : 'Pexedu Admin'}
+        </div>
+        {!collapsed && (
+          <div className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium w-fit mt-1">
+            {isSuperadmin ? 'Superadmin' : 'Učitel'}
+          </div>
+        )}
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {visibleItems.map(item => {
+                const active = item.exact
+                  ? location.pathname === item.path
+                  : location.pathname.startsWith(item.path)
+                return (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton isActive={active} onClick={() => navigate(item.path)} tooltip={item.label}>
+                      <span>{item.icon}</span>
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="px-4 py-3 border-t border-sidebar-border overflow-hidden">
+        {!collapsed && (
+          <div className="text-xs text-sidebar-foreground/50 truncate mb-2">{email}</div>
+        )}
+        <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500 px-0 h-auto w-full justify-start">
+          {collapsed ? '→' : 'Odhlásit se'}
+        </Button>
+      </SidebarFooter>
+    </>
+  )
+}
+
 const NAV_ITEMS = [
   { path: '/admin', label: 'Sady', icon: '🃏', exact: true, superadminOnly: false },
   { path: '/admin/users', label: 'Uživatelé', icon: '👥', exact: false, superadminOnly: true },
@@ -82,42 +142,15 @@ function AdminLayout({ role, email, signOut }: { role: AdminRole; email: string;
 
   return (
     <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader className="px-4 py-4 border-b border-sidebar-border">
-          <div className="font-bold text-base text-sidebar-foreground">Pexedu Admin</div>
-          <div className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium w-fit mt-1">
-            {isSuperadmin ? 'Superadmin' : 'Učitel'}
-          </div>
-        </SidebarHeader>
-
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {visibleItems.map(item => {
-                  const active = item.exact
-                    ? location.pathname === item.path
-                    : location.pathname.startsWith(item.path)
-                  return (
-                    <SidebarMenuItem key={item.path}>
-                      <SidebarMenuButton isActive={active} onClick={() => navigate(item.path)}>
-                        <span>{item.icon}</span>
-                        <span>{item.label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-
-        <SidebarFooter className="px-4 py-3 border-t border-sidebar-border">
-          <div className="text-xs text-sidebar-foreground/50 truncate mb-2">{email}</div>
-          <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500 px-0 h-auto">
-            Odhlásit se
-          </Button>
-        </SidebarFooter>
+      <Sidebar collapsible="icon">
+        <AdminSidebarContents
+          isSuperadmin={isSuperadmin}
+          email={email}
+          signOut={signOut}
+          visibleItems={visibleItems}
+          navigate={navigate}
+          location={location}
+        />
       </Sidebar>
 
       <SidebarInset>
