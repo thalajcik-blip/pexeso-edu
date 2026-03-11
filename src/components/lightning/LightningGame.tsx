@@ -149,17 +149,9 @@ export default function LightningGame() {
   return (
     <div className="min-h-screen flex flex-col px-4 pt-4 pb-6" style={{ background: tc.bg, color: tc.text }}>
 
-      {/* Progress + question number */}
-      <div className="flex items-center gap-3 mb-3 max-w-lg mx-auto w-full">
-        <span className="text-sm font-bold tabular-nums" style={{ color: tc.textMuted }}>
-          {lightningCurrentIndex + 1}/{total}
-        </span>
-        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: tc.scorePillBg }}>
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{ width: `${((lightningCurrentIndex) / total) * 100}%`, background: tc.accent }}
-          />
-        </div>
+      {/* Question number */}
+      <div className="text-center text-sm font-bold tabular-nums mb-3" style={{ color: tc.textMuted }}>
+        {lightningCurrentIndex + 1}/{total}
       </div>
 
       {/* Timer bar */}
