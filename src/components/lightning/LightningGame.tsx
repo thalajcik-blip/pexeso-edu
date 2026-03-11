@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
 import { TRANSLATIONS } from '../../data/translations'
 import { THEMES } from '../../data/themes'
+import { soundQuizSelect, soundQuizCorrect, soundQuizWrong, soundQuizTimeout, soundTick, soundWin } from '../../services/audioService'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D']
 
@@ -26,6 +27,7 @@ export default function LightningGame() {
   const [isPaused, setIsPaused] = useState(false)
   const isPausedRef = useRef(false)
   const remainingRef = useRef(lightningTimeLimit)
+  const lastTickSecRef = useRef(lightningTimeLimit + 1)
 
   isPausedRef.current = isPaused
 
@@ -37,6 +39,7 @@ export default function LightningGame() {
   // Reset on new question
   useEffect(() => {
     remainingRef.current = lightningTimeLimit
+    lastTickSecRef.current = lightningTimeLimit + 1
     setTimeLeft(lightningTimeLimit)
     setSelectedAnswer(null)
     setIsPaused(false)
@@ -60,28 +63,40 @@ export default function LightningGame() {
         setTimeLeft(0)
         setSelectedAnswer('')
         answerLightningQuestion('')
+        soundQuizTimeout()
       } else {
         setTimeLeft(remainingRef.current)
+        // Urgent tick once per second when ≤5s left
+        const sec = Math.ceil(remainingRef.current)
+        if (sec <= 5 && sec < lastTickSecRef.current) {
+          lastTickSecRef.current = sec
+          soundTick(true)
+        }
       }
     }, 50)
     return () => clearInterval(interval)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightningCurrentIndex, phase])
 
-  // Auto-advance after reveal
+  // Auto-advance after reveal + play reveal sound
   useEffect(() => {
     if (phase !== 'lightning_reveal') return
+    const lastAns = lightningAnswers[lightningAnswers.length - 1]
+    if (lastAns) {
+      lastAns.correct ? soundQuizCorrect() : soundQuizWrong()
+    }
     const timer = setTimeout(() => nextLightningQuestion(), 2500)
     return () => clearTimeout(timer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, lightningCurrentIndex])
 
-  // Confetti on results
+  // Confetti + win sound on results
   useEffect(() => {
     if (phase !== 'lightning_results') return
     const correct = lightningAnswers.filter(a => a.correct).length
     const accuracy = total > 0 ? correct / total : 0
     if (accuracy < 0.5) return
+    soundWin()
     const colors = theme === 'light' ? ['#6d41a1', '#ffffff', '#c4a8e8'] : ['#f9d74e', '#ffffff', '#1a237e']
     const end = Date.now() + 2000
     const frame = () => {
@@ -95,6 +110,7 @@ export default function LightningGame() {
   function handleAnswer(answer: string) {
     if (phase !== 'lightning_playing' || selectedAnswer !== null || isPaused) return
     setSelectedAnswer(answer)
+    soundQuizSelect()
     answerLightningQuestion(answer)
   }
 
