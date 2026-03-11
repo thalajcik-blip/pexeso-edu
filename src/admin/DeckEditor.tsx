@@ -5,7 +5,8 @@ import BulkUploadModal from './BulkUploadModal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { ChevronDown } from 'lucide-react'
 
 type Deck = {
   id: string
@@ -270,46 +271,55 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         <div className="flex items-end gap-4 flex-wrap">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Jazyk sady</label>
-            <Select value={language} onValueChange={v => setLanguage(v as Deck['language'])}>
-              <SelectTrigger className="w-44">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cs">🇨🇿 Čeština</SelectItem>
-                <SelectItem value="sk">🇸🇰 Slovenčina</SelectItem>
-                <SelectItem value="en">🇬🇧 English</SelectItem>
-              </SelectContent>
-            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-44 justify-between font-normal">
+                  {({ cs: '🇨🇿 Čeština', sk: '🇸🇰 Slovenčina', en: '🇬🇧 English' } as Record<string, string>)[language]}
+                  <ChevronDown className="size-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-44">
+                <DropdownMenuItem onClick={() => setLanguage('cs')}>🇨🇿 Čeština</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('sk')}>🇸🇰 Slovenčina</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Obtížnost kvízu</label>
-            <Select value={difficulty} onValueChange={v => setDifficulty(v as Deck['difficulty'])}>
-              <SelectTrigger className="w-44">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="easy">🟢 Snadná</SelectItem>
-                <SelectItem value="medium">🟡 Střední</SelectItem>
-                <SelectItem value="hard">🔴 Těžká</SelectItem>
-              </SelectContent>
-            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-44 justify-between font-normal">
+                  {({ easy: '🟢 Snadná', medium: '🟡 Střední', hard: '🔴 Těžká' } as Record<string, string>)[difficulty]}
+                  <ChevronDown className="size-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-44">
+                <DropdownMenuItem onClick={() => setDifficulty('easy')}>🟢 Snadná</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDifficulty('medium')}>🟡 Střední</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDifficulty('hard')}>🔴 Těžká</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {isSuperadmin && (
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
-              <Select value={status} onValueChange={v => setStatus(v as Deck['status'])}>
-                <SelectTrigger className="w-44">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Koncept</SelectItem>
-                  <SelectItem value="pending">Čeká na schválení</SelectItem>
-                  <SelectItem value="approved">Schváleno</SelectItem>
-                  <SelectItem value="rejected">Zamítnuto</SelectItem>
-                </SelectContent>
-              </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-44 justify-between font-normal">
+                    {({ draft: 'Koncept', pending: 'Čeká na schválení', approved: 'Schváleno', rejected: 'Zamítnuto' } as Record<string, string>)[status]}
+                    <ChevronDown className="size-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-44">
+                  <DropdownMenuItem onClick={() => setStatus('draft')}>Koncept</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatus('pending')}>Čeká na schválení</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatus('approved')}>Schváleno</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatus('rejected')}>Zamítnuto</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
 
@@ -342,18 +352,21 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             </h2>
             <div className="flex items-center gap-2">
               {cards.length > 1 && (
-                <Select value={sort} onValueChange={v => setSort(v as typeof sort)}>
-                  <SelectTrigger className="w-44 text-xs text-gray-600">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">Pořadí (výchozí)</SelectItem>
-                    <SelectItem value="newest">Nejnovější první</SelectItem>
-                    <SelectItem value="oldest">Nejstarší první</SelectItem>
-                    <SelectItem value="az">Abecedně A–Z</SelectItem>
-                    <SelectItem value="za">Abecedně Z–A</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-44 justify-between font-normal text-xs text-gray-600">
+                      {({ default: 'Pořadí (výchozí)', newest: 'Nejnovější první', oldest: 'Nejstarší první', az: 'Abecedně A–Z', za: 'Abecedně Z–A' } as Record<string, string>)[sort]}
+                      <ChevronDown className="size-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-44">
+                    <DropdownMenuItem onClick={() => setSort('default')}>Pořadí (výchozí)</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSort('newest')}>Nejnovější první</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSort('oldest')}>Nejstarší první</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSort('az')}>Abecedně A–Z</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSort('za')}>Abecedně Z–A</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               <Button variant="outline" onClick={() => setBulkOpen(true)} className="text-indigo-600 border-indigo-200 hover:bg-indigo-50">
                 + Hromadně

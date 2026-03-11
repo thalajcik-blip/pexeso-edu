@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from './useAuth'
 import LoginScreen from './LoginScreen'
 import DeckList from './DeckList'
@@ -48,21 +49,120 @@ function SetNewPasswordScreen({ updatePassword }: { updatePassword: ReturnType<t
   )
 }
 
-type AdminView =
-  | { type: 'decks' }
-  | { type: 'editor'; deckId: string | null }
-  | { type: 'users' }
-  | { type: 'settings' }
+function DeckEditorRoute({ isSuperadmin }: { isSuperadmin: boolean }) {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  return (
+    <DeckEditor
+      deckId={id === 'new' ? null : (id ?? null)}
+      isSuperadmin={isSuperadmin}
+      onBack={() => navigate('/admin')}
+    />
+  )
+}
+
+function AdminLayout({ role, email, signOut }: { role: string; email: string; signOut: () => void }) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  const isSuperadmin = role === 'superadmin'
+
+  function navTo(path: string) {
+    navigate(path)
+    setDrawerOpen(false)
+  }
+
+  function navItem(path: string, label: string, exact = false) {
+    const active = exact ? location.pathname === path : location.pathname.startsWith(path)
+    return (
+      <button
+        onClick={() => navTo(path)}
+        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${active ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
+      >
+        {label}
+      </button>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Topbar */}
+      <div className="bg-white border-b border-gray-100 px-4 md:px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="md:hidden p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+            aria-label="Otevřít menu"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <span className="font-bold text-gray-800">Pexedu Admin</span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium">
+            {isSuperadmin ? 'Superadmin' : 'Učitel'}
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-xs text-gray-400 hidden sm:block">{email}</span>
+          <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500">
+            Odhlásit se
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile drawer */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-40 md:hidden flex">
+          <div className="fixed inset-0 bg-black/30" onClick={() => setDrawerOpen(false)} />
+          <nav className="relative z-50 w-64 bg-white h-full shadow-xl p-4 space-y-1 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-bold text-gray-800">Menu</span>
+              <button onClick={() => setDrawerOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            </div>
+            {navItem('/admin', '🃏 Sady', true)}
+            {isSuperadmin && navItem('/admin/users', '👥 Uživatelé')}
+            {isSuperadmin && navItem('/admin/settings', '⚙️ Nastavení')}
+            <div className="mt-auto pt-4 border-t border-gray-100">
+              <div className="text-xs text-gray-400 mb-2 truncate">{email}</div>
+              <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500 px-0">
+                Odhlásit se
+              </Button>
+            </div>
+          </nav>
+        </div>
+      )}
+
+      {/* Sidebar + content */}
+      <div className="flex">
+        <nav className="hidden md:block w-52 shrink-0 p-4 space-y-1">
+          {navItem('/admin', '🃏 Sady', true)}
+          {isSuperadmin && navItem('/admin/users', '👥 Uživatelé')}
+          {isSuperadmin && navItem('/admin/settings', '⚙️ Nastavení')}
+        </nav>
+
+        <main className="flex-1 p-4 md:p-8 max-w-4xl">
+          <Routes>
+            <Route path="/admin" element={
+              <DeckList
+                role={role}
+                onNew={() => navigate('/admin/decks/new')}
+                onEdit={deck => navigate(`/admin/decks/${deck.id}`)}
+              />
+            } />
+            <Route path="/admin/decks/:id" element={<DeckEditorRoute isSuperadmin={isSuperadmin} />} />
+            {isSuperadmin && <Route path="/admin/users" element={<UsersManager />} />}
+            {isSuperadmin && <Route path="/admin/settings" element={<AdminSettings />} />}
+          </Routes>
+        </main>
+      </div>
+    </div>
+  )
+}
 
 export default function AdminApp() {
   const { user, role, loading, isRecovery, signIn, signUp, resetPassword, updatePassword, signInWithGoogle, signOut } = useAuth()
-  const [view, setView] = useState<AdminView>({ type: 'decks' })
-  const [drawerOpen, setDrawerOpen] = useState(false)
-
-  function navigate(v: AdminView) {
-    setView(v)
-    setDrawerOpen(false)
-  }
 
   if (loading) {
     return (
@@ -91,134 +191,5 @@ export default function AdminApp() {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Topbar */}
-      <div className="bg-white border-b border-gray-100 px-4 md:px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {/* Hamburger — mobile only */}
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="md:hidden p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
-            aria-label="Otevřít menu"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <span className="font-bold text-gray-800">Pexedu Admin</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium">
-            {role === 'superadmin' ? 'Superadmin' : 'Učitel'}
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-gray-400 hidden sm:block">{user.email}</span>
-          <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500">
-            Odhlásit se
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile drawer overlay */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-40 md:hidden flex">
-          <div className="fixed inset-0 bg-black/30" onClick={() => setDrawerOpen(false)} />
-          <nav className="relative z-50 w-64 bg-white h-full shadow-xl p-4 space-y-1 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <span className="font-bold text-gray-800">Menu</span>
-              <button onClick={() => setDrawerOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
-            </div>
-            <button
-              onClick={() => navigate({ type: 'decks' })}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${view.type === 'decks' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
-            >
-              🃏 Sady
-            </button>
-            {role === 'superadmin' && (
-              <button
-                onClick={() => navigate({ type: 'users' })}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${view.type === 'users' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
-              >
-                👥 Uživatelé
-              </button>
-            )}
-            {role === 'superadmin' && (
-              <button
-                onClick={() => navigate({ type: 'settings' })}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${view.type === 'settings' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
-              >
-                ⚙️ Nastavení
-              </button>
-            )}
-            <div className="mt-auto pt-4 border-t border-gray-100">
-              <div className="text-xs text-gray-400 mb-2 truncate">{user.email}</div>
-              <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500 px-0">
-                Odhlásit se
-              </Button>
-            </div>
-          </nav>
-        </div>
-      )}
-
-      {/* Sidebar + content */}
-      <div className="flex">
-        {/* Sidebar — desktop only */}
-        <nav className="hidden md:block w-52 shrink-0 p-4 space-y-1">
-          <button
-            onClick={() => navigate({ type: 'decks' })}
-            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-              view.type === 'decks'
-                ? 'bg-indigo-50 text-indigo-700 font-semibold'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            🃏 Sady
-          </button>
-          {role === 'superadmin' && (
-            <button
-              onClick={() => navigate({ type: 'users' })}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                view.type === 'users'
-                  ? 'bg-indigo-50 text-indigo-700 font-semibold'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              👥 Uživatelé
-            </button>
-          )}
-          {role === 'superadmin' && (
-            <button
-              onClick={() => navigate({ type: 'settings' })}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                view.type === 'settings'
-                  ? 'bg-indigo-50 text-indigo-700 font-semibold'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              ⚙️ Nastavení
-            </button>
-          )}
-        </nav>
-
-        <main className="flex-1 p-4 md:p-8 max-w-4xl">
-          {view.type === 'decks' && (
-            <DeckList
-              role={role}
-              onNew={() => navigate({ type: 'editor', deckId: null })}
-              onEdit={deck => navigate({ type: 'editor', deckId: deck.id })}
-            />
-          )}
-          {view.type === 'editor' && (
-            <DeckEditor
-              deckId={view.deckId}
-              isSuperadmin={role === 'superadmin'}
-              onBack={() => navigate({ type: 'decks' })}
-            />
-          )}
-          {view.type === 'users' && role === 'superadmin' && <UsersManager />}
-          {view.type === 'settings' && role === 'superadmin' && <AdminSettings />}
-        </main>
-      </div>
-    </div>
-  )
+  return <AdminLayout role={role} email={user.email ?? ''} signOut={signOut} />
 }

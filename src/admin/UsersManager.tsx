@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { ChevronDown } from 'lucide-react'
 
 type UserRow = {
   user_id: string
@@ -68,20 +70,19 @@ export default function UsersManager() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <Select
-                        value={u.role ?? ''}
-                        disabled={saving === u.user_id}
-                        onValueChange={v => setRole(u.user_id, v || null)}
-                      >
-                        <SelectTrigger className="h-8 text-xs w-44">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">Čeká na schválení</SelectItem>
-                          <SelectItem value="teacher">Učitel</SelectItem>
-                          <SelectItem value="superadmin">Superadmin</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="w-44 justify-between font-normal text-xs" disabled={saving === u.user_id}>
+                            {u.role === 'teacher' ? 'Učitel' : u.role === 'superadmin' ? 'Superadmin' : 'Čeká na schválení'}
+                            <ChevronDown className="size-4 opacity-50" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-44">
+                          <DropdownMenuItem onClick={() => setRole(u.user_id, null)}>Čeká na schválení</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setRole(u.user_id, 'teacher')}>Učitel</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setRole(u.user_id, 'superadmin')}>Superadmin</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       {u.role && (
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                           u.role === 'superadmin'
