@@ -119,12 +119,12 @@ export default function LightningGame() {
 
   function getOptionStyle(option: string) {
     if (!isReveal) {
-      if (selectedAnswer === option) return { background: tc.accentGradient, color: tc.accentText, border: `2px solid ${tc.accent}` }
-      return { background: tc.btnInactiveBg, color: tc.btnInactiveText, border: `2px solid ${tc.btnInactiveBorder}` }
+      if (selectedAnswer === option) return { background: tc.accentBgActive, border: `2px solid ${tc.accentBorderActive}`, color: tc.accent }
+      return { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.text }
     }
-    if (option === question.correct) return { background: '#22c55e', color: '#fff', border: '2px solid #16a34a' }
-    if (option === selectedAnswer) return { background: '#ef4444', color: '#fff', border: '2px solid #dc2626' }
-    return { background: tc.btnInactiveBg, color: tc.btnInactiveText, border: `2px solid ${tc.btnInactiveBorder}`, opacity: '0.35' }
+    if (option === question.correct) return { background: tc.successBg, border: `2px solid ${tc.successColor}`, color: tc.successColor }
+    if (option === selectedAnswer)   return { background: tc.errorBg,   border: `2px solid ${tc.errorColor}`,   color: tc.errorColor }
+    return { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.textFaint }
   }
 
   // Results screen
