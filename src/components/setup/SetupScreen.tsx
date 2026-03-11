@@ -161,7 +161,7 @@ export default function SetupScreen() {
         <div>
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.gameModeLabel}</div>
           <div className="flex gap-3">
-            {([['pexequiz', '🃏', tr.modePexeQuiz], ['lightning', '⚡', tr.modeLightning]] as const).map(([mode, icon, label]) => (
+            {([['pexequiz', '🃏', tr.modePexeQuiz], ['lightning', '🔥', tr.modeLightning]] as const).map(([mode, icon, label]) => (
               <button
                 key={mode}
                 onClick={() => setGameMode(mode)}
