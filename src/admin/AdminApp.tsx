@@ -6,6 +6,8 @@ import DeckEditor from './DeckEditor'
 import UsersManager from './UsersManager'
 import AdminSettings from './AdminSettings'
 import type { useAuth as UseAuthType } from './useAuth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 function SetNewPasswordScreen({ updatePassword }: { updatePassword: ReturnType<typeof UseAuthType>['updatePassword'] }) {
   const [password, setPassword]   = useState('')
@@ -30,19 +32,16 @@ function SetNewPasswordScreen({ updatePassword }: { updatePassword: ReturnType<t
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Nové heslo</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
+            <Input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Heslo znovu</label>
-            <input type="password" value={password2} onChange={e => setPassword2(e.target.value)} required
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
+            <Input type="password" value={password2} onChange={e => setPassword2(e.target.value)} required />
           </div>
           {error && <div className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</div>}
-          <button type="submit" disabled={loading}
-            className="w-full py-2.5 rounded-lg bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+          <Button type="submit" disabled={loading} className="w-full">
             {loading ? 'Ukládání…' : 'Uložit heslo'}
-          </button>
+          </Button>
         </form>
       </div>
     </div>
@@ -86,7 +85,7 @@ export default function AdminApp() {
           <div className="text-sm text-gray-500 mb-1">Váš účet byl zaregistrován jako</div>
           <div className="text-sm font-medium text-gray-700 mb-4">{user.email}</div>
           <div className="text-sm text-gray-500 mb-6">Administrátor vám brzy přidělí přístup. Zkuste se přihlásit znovu za chvíli.</div>
-          <button onClick={signOut} className="text-sm text-indigo-500 hover:underline">Odhlásit se</button>
+          <Button variant="link" onClick={signOut} className="text-sm text-indigo-500 p-0 h-auto">Odhlásit se</Button>
         </div>
       </div>
     )
@@ -114,9 +113,9 @@ export default function AdminApp() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-xs text-gray-400 hidden sm:block">{user.email}</span>
-          <button onClick={signOut} className="text-xs text-gray-500 hover:text-gray-700 transition-colors">
+          <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500">
             Odhlásit se
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -153,9 +152,9 @@ export default function AdminApp() {
             )}
             <div className="mt-auto pt-4 border-t border-gray-100">
               <div className="text-xs text-gray-400 mb-2 truncate">{user.email}</div>
-              <button onClick={signOut} className="text-xs text-gray-500 hover:text-gray-700 transition-colors">
+              <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500 px-0">
                 Odhlásit se
-              </button>
+              </Button>
             </div>
           </nav>
         </div>
