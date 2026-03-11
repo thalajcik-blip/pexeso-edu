@@ -4,7 +4,7 @@ import { useGameStore, getSavedSession } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
 import type { ThemeColors } from '../../data/themes'
 import { TRANSLATIONS } from '../../data/translations'
-import { PLAYER_COLORS } from '../../types/game'
+import { PLAYER_COLORS, MAX_LIGHTNING_PLAYERS } from '../../types/game'
 
 function TimePicker({ label, value, options, offLabel, onChange, tc }: {
   label: string
@@ -51,12 +51,16 @@ export default function LobbyScreen() {
   const quizTime        = useGameStore(s => s.quizTime)
   const setTurnTime     = useGameStore(s => s.setTurnTime)
   const setQuizTime     = useGameStore(s => s.setQuizTime)
-  const openRules       = useGameStore(s => s.openRules)
-  const createRoom      = useGameStore(s => s.createRoom)
-  const joinRoom        = useGameStore(s => s.joinRoom)
-  const leaveRoom       = useGameStore(s => s.leaveRoom)
-  const startOnlineGame = useGameStore(s => s.startOnlineGame)
-  const resetToSetup    = useGameStore(s => s.resetToSetup)
+  const openRules                 = useGameStore(s => s.openRules)
+  const createRoom                = useGameStore(s => s.createRoom)
+  const joinRoom                  = useGameStore(s => s.joinRoom)
+  const leaveRoom                 = useGameStore(s => s.leaveRoom)
+  const startOnlineGame           = useGameStore(s => s.startOnlineGame)
+  const startOnlineLightningGame  = useGameStore(s => s.startOnlineLightningGame)
+  const resetToSetup              = useGameStore(s => s.resetToSetup)
+  const gameMode                  = useGameStore(s => s.gameMode)
+  const lightningQuestionCount    = useGameStore(s => s.lightningQuestionCount)
+  const lightningTimeLimit        = useGameStore(s => s.lightningTimeLimit)
 
   const tc = THEMES[theme]
   const tr = TRANSLATIONS[language]
@@ -279,8 +283,8 @@ export default function LobbyScreen() {
                     )}
                   </div>
                 ))}
-                {/* Empty slot if < 6 players */}
-                {sortedPlayers.length < 6 && (
+                {/* Empty slot */}
+                {sortedPlayers.length < (gameMode === 'lightning' ? MAX_LIGHTNING_PLAYERS : 6) && (
                   <div
                     className="flex items-center gap-3 px-4 py-3 rounded-xl"
                     style={{ background: tc.inputBg, border: `1px dashed ${tc.inputBorder}`, opacity: 0.5 }}
@@ -293,7 +297,11 @@ export default function LobbyScreen() {
             </div>
 
             {/* Time settings */}
-            {isHost ? (
+            {gameMode === 'lightning' ? (
+              <div className="text-xs text-center py-1 px-3 rounded-xl" style={{ background: tc.accentBgActive, color: tc.accent }}>
+                🔥 {tr.modeLightning} · {lightningQuestionCount === 0 ? tr.questionCountAll : lightningQuestionCount} {tr.questionCountLabel.toLowerCase()} · {lightningTimeLimit}s
+              </div>
+            ) : isHost ? (
               <div className="space-y-3">
                 <TimePicker
                   label={tr.turnTimeLabel}
@@ -326,7 +334,7 @@ export default function LobbyScreen() {
             {/* Start (host only) */}
             {isHost && (
               <button
-                onClick={startOnlineGame}
+                onClick={gameMode === 'lightning' ? startOnlineLightningGame : startOnlineGame}
                 disabled={!canStart}
                 className="w-full py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: canStart ? `0 4px 20px ${tc.accentGlow}` : 'none' }}

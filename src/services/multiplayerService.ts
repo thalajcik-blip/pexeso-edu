@@ -15,7 +15,7 @@
 
 import { supabase } from './supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
-import type { CardData, GamePhase } from '../types/game'
+import type { CardData, GamePhase, LightningQuestion } from '../types/game'
 import type { Player } from '../types/game'
 
 export type LobbyPlayer = {
@@ -31,6 +31,9 @@ export type RoomSettings = {
   language: string
   turnTime: number
   quizTime: number
+  gameMode: 'pexequiz' | 'lightning'
+  lightningQuestionCount?: number
+  lightningTimeLimit?: number
 }
 
 export type GameAction =
@@ -42,6 +45,8 @@ export type GameAction =
   | { type: 'game_start'; cards: CardData[]; playerIds: string[]; playerNames: string[]; deckId: string; size: string; turnTime: number; quizTime: number; startingPlayer: number }
   | { type: 'state_snapshot'; phase: GamePhase; cards: CardData[]; players: Player[]; currentPlayer: number; quizSymbol: string | null; playerIds: string[] }
   | { type: 'rematch_request' }
+  | { type: 'lightning_start'; questions: LightningQuestion[]; playerIds: string[]; playerNames: string[]; questionEndTime: number }
+  | { type: 'lightning_answer'; playerId: string; answer: string; timeMs: number }
 
 let channel: RealtimeChannel | null = null
 

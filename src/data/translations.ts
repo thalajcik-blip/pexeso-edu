@@ -68,6 +68,8 @@ export interface Translations {
   lightningAvgTime: string
   lightningTimeUp: string
   lightningNext: string
+  lightningAnswered: string
+  lightningWaitingForHost: string
   // Lobby / online
   localBtn: string
   onlineBtn: string
@@ -208,6 +210,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningAvgTime: 'Průměrný čas',
     lightningTimeUp: 'Čas vypršel!',
     lightningNext: 'Další →',
+    lightningAnswered: 'odpovědělo',
+    lightningWaitingForHost: 'Čekám na spuštění nového kola...',
   },
 
   sk: {
@@ -321,6 +325,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningAvgTime: 'Priemerný čas',
     lightningTimeUp: 'Čas vypršal!',
     lightningNext: 'Ďalej →',
+    lightningAnswered: 'odpovedalo',
+    lightningWaitingForHost: 'Čakám na spustenie nového kola...',
   },
 
   en: {
@@ -434,6 +440,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningAvgTime: 'Avg. time',
     lightningTimeUp: "Time's up!",
     lightningNext: 'Next →',
+    lightningAnswered: 'answered',
+    lightningWaitingForHost: 'Waiting for host to start a new round...',
   },
 }
 

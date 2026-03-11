@@ -137,6 +137,8 @@ interface GameStore {
   lightningCurrentIndex: number
   lightningAnswers: LightningAnswer[]
   lightningQuestionStart: number
+  lightningQuestionEndTime: number
+  lightningPlayerAnswers: Record<string, { answer: string; timeMs: number; correct: boolean }>
 
   // Quiz
   quizSymbol: string | null
@@ -171,7 +173,10 @@ interface GameStore {
   setLightningQuestionCount: (n: number) => void
   setLightningTimeLimit: (t: number) => void
   startLightningGame: () => void
+  startOnlineLightningGame: () => void
   answerLightningQuestion: (answer: string) => void
+  answerOnlineLightning: (answer: string) => void
+  transitionToLightningReveal: () => void
   nextLightningQuestion: () => void
   startGame: () => void
   flipCard: (index: number) => void
@@ -202,6 +207,8 @@ interface GameStore {
   _flipCard: (index: number) => void
   _answerQuiz: (correct: boolean) => void
   _applyGameStart: (cards: CardData[], playerIds: string[], playerNames: string[], deckId: string, size: string, turnTime: number, quizTime: number, startingPlayer: number) => Promise<void>
+  _applyLightningStart: (questions: LightningQuestion[], playerIds: string[], playerNames: string[], questionEndTime: number) => void
+  _applyLightningAnswer: (playerId: string, answer: string, timeMs: number) => void
   _applyTurnTimeout: () => void
   _applyEmojiReact: (playerId: string, emoji: string) => void
   _broadcastStateIfHost: () => void
@@ -244,6 +251,8 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   lightningCurrentIndex: 0,
   lightningAnswers: [],
   lightningQuestionStart: 0,
+  lightningQuestionEndTime: 0,
+  lightningPlayerAnswers: {},
   quizSymbol: null,
   rulesOpen: false,
   isOnline: false,
@@ -276,14 +285,17 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   setLightningTimeLimit: (t) => set({ lightningTimeLimit: t }),
 
   startLightningGame: () => {
-    const { selectedDeckId, customDeck, lightningQuestionCount, language } = get()
+    const { selectedDeckId, customDeck, lightningQuestionCount, language, lightningTimeLimit } = get()
     const questions = buildLightningQuestions(selectedDeckId, customDeck, language, lightningQuestionCount)
+    const now = Date.now()
     set({
       phase: 'lightning_playing',
       lightningQuestions: questions,
       lightningCurrentIndex: 0,
       lightningAnswers: [],
-      lightningQuestionStart: Date.now(),
+      lightningPlayerAnswers: {},
+      lightningQuestionStart: now,
+      lightningQuestionEndTime: now + lightningTimeLimit * 1000,
     })
   },
 
@@ -299,14 +311,105 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   nextLightningQuestion: () => {
-    const { lightningCurrentIndex, lightningQuestions } = get()
+    const { lightningCurrentIndex, lightningQuestions, lightningTimeLimit, lightningQuestionEndTime, isOnline } = get()
     const next = lightningCurrentIndex + 1
     if (next >= lightningQuestions.length) {
       soundWin()
       set({ phase: 'lightning_results' })
     } else {
-      set({ phase: 'lightning_playing', lightningCurrentIndex: next, lightningQuestionStart: Date.now() })
+      const REVEAL_DURATION = 4000
+      // Online: derive next end time deterministically from previous (all clients compute same value)
+      // Solo: use current time
+      const now = Date.now()
+      const nextEndTime = isOnline
+        ? lightningQuestionEndTime + REVEAL_DURATION + lightningTimeLimit * 1000
+        : now + lightningTimeLimit * 1000
+      set({
+        phase: 'lightning_playing',
+        lightningCurrentIndex: next,
+        lightningQuestionStart: now,
+        lightningQuestionEndTime: nextEndTime,
+        lightningPlayerAnswers: {},
+      })
     }
+  },
+
+  startOnlineLightningGame: () => {
+    const { lobbyPlayers, selectedDeckId, customDeck, lightningQuestionCount, language, lightningTimeLimit } = get()
+    const sorted = [...lobbyPlayers].sort((a, b) => {
+      if (a.isHost && !b.isHost) return -1
+      if (!a.isHost && b.isHost) return 1
+      return a.joinedAt - b.joinedAt
+    })
+    const playerIds = sorted.map(p => p.id)
+    const playerNames = sorted.map(p => p.name)
+    const questions = buildLightningQuestions(selectedDeckId, customDeck, language, lightningQuestionCount)
+    const questionEndTime = Date.now() + lightningTimeLimit * 1000
+    broadcastGameAction({ type: 'lightning_start', questions, playerIds, playerNames, questionEndTime })
+    get()._applyLightningStart(questions, playerIds, playerNames, questionEndTime)
+  },
+
+  answerOnlineLightning: (answer) => {
+    const { myPlayerId, lightningQuestionStart } = get()
+    const timeMs = Date.now() - lightningQuestionStart
+    broadcastGameAction({ type: 'lightning_answer', playerId: myPlayerId, answer, timeMs })
+    get()._applyLightningAnswer(myPlayerId, answer, timeMs)
+  },
+
+  transitionToLightningReveal: () => {
+    const { lightningPlayerAnswers, players, playerIds, myPlayerId, lightningAnswers, lightningQuestionStart } = get()
+    // Update cumulative scores for all players
+    const updatedPlayers = players.map((p, i) => {
+      const ans = lightningPlayerAnswers[playerIds[i]]
+      if (!ans) return p
+      return ans.correct ? { ...p, score: p.score + 1 } : p
+    })
+    // Track my own answer for results stats
+    const myAns = lightningPlayerAnswers[myPlayerId]
+    const myEntry = {
+      correct: myAns?.correct ?? false,
+      timeMs: myAns?.timeMs ?? (Date.now() - lightningQuestionStart),
+    }
+    set({
+      phase: 'lightning_reveal',
+      players: updatedPlayers,
+      lightningAnswers: [...lightningAnswers, myEntry],
+    })
+  },
+
+  _applyLightningStart: (questions, playerIds, playerNames, questionEndTime) => {
+    const { language, myPlayerId } = get()
+    const players: Player[] = playerNames.map((name, i) => ({
+      name: name.trim() || TRANSLATIONS[language].defaultPlayerNames[i] || `Player ${i + 1}`,
+      color: PLAYER_COLORS[i] ?? PLAYER_COLORS[0],
+      score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
+    }))
+    const myIndex = playerIds.indexOf(myPlayerId)
+    set({
+      phase: 'lightning_playing',
+      lightningQuestions: questions,
+      lightningCurrentIndex: 0,
+      lightningAnswers: [],
+      lightningPlayerAnswers: {},
+      lightningQuestionStart: Date.now(),
+      lightningQuestionEndTime: questionEndTime,
+      players,
+      playerIds,
+      ...(myIndex >= 0 ? { myPlayerIndex: myIndex } : {}),
+    })
+  },
+
+  _applyLightningAnswer: (playerId, answer, timeMs) => {
+    const { lightningQuestions, lightningCurrentIndex } = get()
+    const question = lightningQuestions[lightningCurrentIndex]
+    if (!question) return
+    const correct = answer !== '' && answer === question.correct
+    set(s => ({
+      lightningPlayerAnswers: {
+        ...s.lightningPlayerAnswers,
+        [playerId]: { answer, timeMs, correct },
+      },
+    }))
   },
 
   setTurnTime: (t) => set({ turnTime: t }),
@@ -489,6 +592,12 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       case 'rematch_request':
         set({ rematchRequested: true })
         break
+      case 'lightning_start':
+        get()._applyLightningStart(action.questions, action.playerIds, action.playerNames, action.questionEndTime)
+        break
+      case 'lightning_answer':
+        get()._applyLightningAnswer(action.playerId, action.answer, action.timeMs)
+        break
       case 'game_start':
         get()._applyGameStart(action.cards, action.playerIds, action.playerNames, action.deckId, action.size, action.turnTime, action.quizTime, action.startingPlayer)
         break
@@ -590,10 +699,10 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   goToLobby: () => set({ phase: 'lobby' }),
 
   createRoom: async (myName) => {
-    const { selectedDeckId, selectedSize, language, turnTime, quizTime } = get()
+    const { selectedDeckId, selectedSize, language, turnTime, quizTime, gameMode, lightningQuestionCount, lightningTimeLimit } = get()
     const code = generateRoomCode()
     const playerId = getPlayerId()
-    await createRoomInDb(code, playerId, { deckId: selectedDeckId, size: selectedSize, language, turnTime, quizTime })
+    await createRoomInDb(code, playerId, { deckId: selectedDeckId, size: selectedSize, language, turnTime, quizTime, gameMode, lightningQuestionCount, lightningTimeLimit })
     const myPresence: LobbyPlayer = { id: playerId, name: myName, isHost: true, joinedAt: Date.now() }
     await joinRealtimeChannel(
       code,
@@ -630,6 +739,9 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       language: room.settings.language as Language,
       turnTime: room.settings.turnTime ?? 20,
       quizTime: room.settings.quizTime ?? 5,
+      gameMode: (room.settings.gameMode ?? 'pexequiz') as 'pexequiz' | 'lightning',
+      lightningQuestionCount: room.settings.lightningQuestionCount ?? 10,
+      lightningTimeLimit: room.settings.lightningTimeLimit ?? 20,
     })
   },
 
@@ -643,6 +755,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       isHost: false, lobbyPlayers: [], playerIds: [],
       phase: 'setup', cards: [], players: [], quizSymbol: null,
       quizVotes: {}, quizCountdownEnd: null, quizRevealCorrect: null, disconnectedPlayer: null, emojiReactions: {},
+      lightningPlayerAnswers: {}, lightningQuestionEndTime: 0,
     })
   },
 

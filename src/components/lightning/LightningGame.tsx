@@ -6,21 +6,33 @@ import { THEMES } from '../../data/themes'
 import { soundQuizSelect, soundQuizCorrect, soundQuizWrong, soundQuizTimeout, soundTick, soundWin, isMuted, toggleMuted } from '../../services/audioService'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D']
+const REVEAL_DURATION = 4000
+const MEDALS = ['🥇', '🥈', '🥉']
 
 export default function LightningGame() {
-  const phase                    = useGameStore(s => s.phase)
-  const lightningQuestions       = useGameStore(s => s.lightningQuestions)
-  const lightningCurrentIndex    = useGameStore(s => s.lightningCurrentIndex)
-  const lightningAnswers         = useGameStore(s => s.lightningAnswers)
-  const lightningTimeLimit       = useGameStore(s => s.lightningTimeLimit)
-  const answerLightningQuestion  = useGameStore(s => s.answerLightningQuestion)
-  const nextLightningQuestion    = useGameStore(s => s.nextLightningQuestion)
-  const startLightningGame       = useGameStore(s => s.startLightningGame)
-  const resetToSetup             = useGameStore(s => s.resetToSetup)
-  const toggleTheme              = useGameStore(s => s.toggleTheme)
-  const openRules                = useGameStore(s => s.openRules)
-  const language                 = useGameStore(s => s.language)
-  const theme                    = useGameStore(s => s.theme)
+  const phase                     = useGameStore(s => s.phase)
+  const lightningQuestions        = useGameStore(s => s.lightningQuestions)
+  const lightningCurrentIndex     = useGameStore(s => s.lightningCurrentIndex)
+  const lightningAnswers          = useGameStore(s => s.lightningAnswers)
+  const lightningTimeLimit        = useGameStore(s => s.lightningTimeLimit)
+  const lightningQuestionEndTime  = useGameStore(s => s.lightningQuestionEndTime)
+  const lightningPlayerAnswers    = useGameStore(s => s.lightningPlayerAnswers)
+  const answerLightningQuestion   = useGameStore(s => s.answerLightningQuestion)
+  const answerOnlineLightning     = useGameStore(s => s.answerOnlineLightning)
+  const transitionToLightningReveal = useGameStore(s => s.transitionToLightningReveal)
+  const nextLightningQuestion     = useGameStore(s => s.nextLightningQuestion)
+  const startLightningGame        = useGameStore(s => s.startLightningGame)
+  const startOnlineLightningGame  = useGameStore(s => s.startOnlineLightningGame)
+  const resetToSetup              = useGameStore(s => s.resetToSetup)
+  const toggleTheme               = useGameStore(s => s.toggleTheme)
+  const openRules                 = useGameStore(s => s.openRules)
+  const language                  = useGameStore(s => s.language)
+  const theme                     = useGameStore(s => s.theme)
+  const isOnline                  = useGameStore(s => s.isOnline)
+  const isHost                    = useGameStore(s => s.isHost)
+  const players                   = useGameStore(s => s.players)
+  const playerIds                 = useGameStore(s => s.playerIds)
+  const myPlayerId                = useGameStore(s => s.myPlayerId)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
@@ -29,8 +41,11 @@ export default function LightningGame() {
   const [feedbackClass, setFeedbackClass] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [muted, setMuted] = useState(isMuted)
+  const [revealSecondsLeft, setRevealSecondsLeft] = useState(REVEAL_DURATION / 1000)
+
   const remainingRef = useRef(lightningTimeLimit)
   const lastTickSecRef = useRef(lightningTimeLimit + 1)
+  const hasAnsweredRef = useRef(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close menu on outside click
@@ -50,11 +65,15 @@ export default function LightningGame() {
 
   // Reset on new question
   useEffect(() => {
-    remainingRef.current = lightningTimeLimit
-    lastTickSecRef.current = lightningTimeLimit + 1
-    setTimeLeft(lightningTimeLimit)
+    const initRemaining = lightningQuestionEndTime > 0
+      ? Math.max(0, (lightningQuestionEndTime - Date.now()) / 1000)
+      : lightningTimeLimit
+    remainingRef.current = initRemaining
+    lastTickSecRef.current = initRemaining + 1
+    setTimeLeft(initRemaining)
     setSelectedAnswer(null)
     setFeedbackClass('')
+    hasAnsweredRef.current = false
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightningCurrentIndex])
 
@@ -69,9 +88,17 @@ export default function LightningGame() {
       if (remainingRef.current <= 0) {
         clearInterval(interval)
         setTimeLeft(0)
-        setSelectedAnswer('')
-        answerLightningQuestion('')
-        soundQuizTimeout()
+        if (isOnline) {
+          if (!hasAnsweredRef.current) {
+            answerOnlineLightning('')
+            soundQuizTimeout()
+          }
+          transitionToLightningReveal()
+        } else {
+          setSelectedAnswer('')
+          answerLightningQuestion('')
+          soundQuizTimeout()
+        }
       } else {
         setTimeLeft(remainingRef.current)
         const sec = Math.ceil(remainingRef.current)
@@ -98,13 +125,29 @@ export default function LightningGame() {
         setFeedbackClass('answer-shake')
       }
     } else {
-      // timeout — shake
       setFeedbackClass('answer-shake')
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, lightningCurrentIndex])
 
-  // Keyboard shortcuts: 1-4 = answer, Enter = next
+  // Auto-advance in online mode during reveal
+  useEffect(() => {
+    if (!isOnline || phase !== 'lightning_reveal') return
+    setRevealSecondsLeft(REVEAL_DURATION / 1000)
+    const countdownInterval = setInterval(() => {
+      setRevealSecondsLeft(s => Math.max(0, s - 1))
+    }, 1000)
+    const advanceTimer = setTimeout(() => {
+      nextLightningQuestion()
+    }, REVEAL_DURATION)
+    return () => {
+      clearTimeout(advanceTimer)
+      clearInterval(countdownInterval)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, lightningCurrentIndex, isOnline])
+
+  // Keyboard shortcuts: 1-4 = answer, Enter = next (solo only)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (phase === 'lightning_playing') {
@@ -113,7 +156,7 @@ export default function LightningGame() {
           handleAnswer(question.options[idx])
         }
       }
-      if (e.key === 'Enter' && phase === 'lightning_reveal') {
+      if (e.key === 'Enter' && phase === 'lightning_reveal' && !isOnline) {
         e.preventDefault()
         nextLightningQuestion()
       }
@@ -121,7 +164,7 @@ export default function LightningGame() {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, lightningCurrentIndex])
+  }, [phase, lightningCurrentIndex, isOnline])
 
   // Confetti + win sound on results
   useEffect(() => {
@@ -144,7 +187,12 @@ export default function LightningGame() {
     if (phase !== 'lightning_playing' || selectedAnswer !== null) return
     setSelectedAnswer(answer)
     soundQuizSelect()
-    answerLightningQuestion(answer)
+    hasAnsweredRef.current = true
+    if (isOnline) {
+      answerOnlineLightning(answer)
+    } else {
+      answerLightningQuestion(answer)
+    }
   }
 
   function getOptionStyle(option: string) {
@@ -157,7 +205,7 @@ export default function LightningGame() {
     return { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.textFaint }
   }
 
-  // Results screen
+  // ── Results screen ──
   if (isResults) {
     const correctCount = lightningAnswers.filter(a => a.correct).length
     const accuracy = total > 0 ? Math.round(correctCount / total * 100) : 0
@@ -165,41 +213,81 @@ export default function LightningGame() {
       ? (lightningAnswers.reduce((s, a) => s + a.timeMs, 0) / lightningAnswers.length / 1000).toFixed(1)
       : '—'
 
+    // Online: sort all players by score for leaderboard
+    const sortedPlayers = isOnline
+      ? [...players].map((p, i) => ({ ...p, idx: i })).sort((a, b) => b.score - a.score)
+      : []
+
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.winOverlayBg }}>
-        <div className="pop-in rounded-2xl p-10 text-center w-full max-w-sm"
+        <div className="pop-in rounded-2xl p-8 text-center w-full max-w-sm overflow-y-auto max-h-[90vh]"
           style={{ background: tc.modalSurface, border: `2px solid ${tc.accent}`, boxShadow: `0 0 60px ${tc.accentGlow}`, color: tc.text }}>
 
-          <div className="text-4xl mb-1">⚡</div>
+          <div className="text-4xl mb-1">🔥</div>
           <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tr.soloGameOver}</div>
-          <div className="text-xs uppercase tracking-widest mb-8" style={{ color: tc.textMuted }}>{tr.results}</div>
+          <div className="text-xs uppercase tracking-widest mb-6" style={{ color: tc.textMuted }}>{tr.results}</div>
 
-          <div className="flex flex-col gap-4 text-left mb-2">
-            <div className="flex items-center justify-between gap-8">
-              <span style={{ color: tc.textMuted }}>{tr.soloQuizLabel}</span>
-              <span>
-                <span className="text-xl font-bold" style={{ color: tc.accent }}>{correctCount}/{total}</span>
-                <span className="text-sm ml-1.5" style={{ color: tc.textDim }}>({accuracy}%)</span>
-              </span>
+          {/* Online: full leaderboard */}
+          {isOnline && sortedPlayers.length > 0 ? (
+            <div className="flex flex-col gap-2 mb-6 text-left">
+              {sortedPlayers.map((p, rank) => {
+                const isMe = playerIds[p.idx] === myPlayerId
+                return (
+                  <div
+                    key={p.idx}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                    style={{
+                      background: isMe ? tc.accentBgActive : tc.scorePillBg,
+                      border: isMe ? `1.5px solid ${tc.accentBorderActive}` : '1.5px solid transparent',
+                    }}
+                  >
+                    <span className="text-lg w-6 text-center shrink-0">
+                      {rank < 3 ? MEDALS[rank] : `${rank + 1}.`}
+                    </span>
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: p.color }} />
+                    <span className="flex-1 text-sm font-medium truncate" style={{ color: isMe ? tc.accent : tc.text }}>
+                      {p.name}{isMe ? ` ${tr.you}` : ''}
+                    </span>
+                    <span className="text-base font-bold tabular-nums" style={{ color: tc.accent }}>{p.score}</span>
+                  </div>
+                )
+              })}
             </div>
-            <div className="flex items-center justify-between gap-8">
-              <span style={{ color: tc.textMuted }}>{tr.lightningAvgTime}</span>
-              <span className="text-xl font-bold" style={{ color: tc.accent }}>{avgTimeS}s</span>
+          ) : (
+            /* Solo: accuracy + avg time */
+            <div className="flex flex-col gap-4 text-left mb-4">
+              <div className="flex items-center justify-between gap-8">
+                <span style={{ color: tc.textMuted }}>{tr.soloQuizLabel}</span>
+                <span>
+                  <span className="text-xl font-bold" style={{ color: tc.accent }}>{correctCount}/{total}</span>
+                  <span className="text-sm ml-1.5" style={{ color: tc.textDim }}>({accuracy}%)</span>
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-8">
+                <span style={{ color: tc.textMuted }}>{tr.lightningAvgTime}</span>
+                <span className="text-xl font-bold" style={{ color: tc.accent }}>{avgTimeS}s</span>
+              </div>
             </div>
-          </div>
+          )}
 
-          <button
-            onClick={startLightningGame}
-            className="mt-8 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105 w-full"
-            style={{ background: tc.accentGradient, color: tc.accentText }}
-          >
-            {tr.playAgain}
-          </button>
+          {/* Play Again */}
+          {(!isOnline || isHost) ? (
+            <button
+              onClick={isOnline ? startOnlineLightningGame : startLightningGame}
+              className="mt-2 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105 w-full"
+              style={{ background: tc.accentGradient, color: tc.accentText }}
+            >
+              {tr.playAgain}
+            </button>
+          ) : (
+            <p className="mt-2 text-sm" style={{ color: tc.textMuted }}>{tr.lightningWaitingForHost}</p>
+          )}
+
           <button
             onClick={resetToSetup}
             className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"
           >
-            {tr.chooseDeck}
+            {isOnline ? tr.leaveRoom : tr.chooseDeck}
           </button>
         </div>
       </div>
@@ -211,6 +299,16 @@ export default function LightningGame() {
   const timerColor = timeLeft <= 5 ? '#ef4444' : timeLeft <= 10 ? '#f97316' : tc.accent
   const isTimedOut = selectedAnswer === '' && isReveal
   const lastAnswer = lightningAnswers[lightningAnswers.length - 1]
+
+  // Online leaderboard during reveal: top 5, sorted by score
+  const leaderboardPlayers = isOnline && isReveal
+    ? [...players]
+        .map((p, i) => ({ ...p, idx: i, answeredCorrect: lightningPlayerAnswers[playerIds[i]]?.correct ?? null }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5)
+    : []
+
+  const answeredCount = Object.keys(lightningPlayerAnswers).length
 
   return (
     <div className="min-h-screen flex flex-col px-4 pt-4 pb-6" style={{ background: tc.bg, color: tc.text }}>
@@ -302,15 +400,17 @@ export default function LightningGame() {
         {question.question}
       </div>
 
-      {/* Reveal feedback */}
+      {/* Reveal feedback / answered counter */}
       <div className="text-center text-sm mb-4 h-5 flex items-center justify-center">
-        {isReveal && (
+        {isReveal ? (
           isTimedOut
             ? <span style={{ color: '#ef4444' }}>{tr.lightningTimeUp}</span>
             : lastAnswer?.correct
               ? <span style={{ color: '#22c55e' }}>✓ {language === 'cs' ? 'Správně!' : language === 'sk' ? 'Správne!' : 'Correct!'}</span>
               : <span style={{ color: '#ef4444' }}>✗ {language === 'cs' ? 'Špatně.' : language === 'sk' ? 'Zle.' : 'Wrong.'}</span>
-        )}
+        ) : isOnline ? (
+          <span style={{ color: tc.textMuted }}>{answeredCount}/{playerIds.length} {tr.lightningAnswered}</span>
+        ) : null}
       </div>
 
       {/* Answer options 2x2 */}
@@ -343,9 +443,46 @@ export default function LightningGame() {
         </div>
       )}
 
-      {/* Next button (reveal) or spacer */}
+      {/* Online reveal: mini leaderboard */}
+      {isReveal && isOnline && leaderboardPlayers.length > 0 && (
+        <div className="max-w-lg mx-auto w-full mt-4">
+          <div className="flex flex-col gap-1.5">
+            {leaderboardPlayers.map((p, rank) => {
+              const isMe = playerIds[p.idx] === myPlayerId
+              const delta = p.answeredCorrect === true ? '+1' : null
+              return (
+                <div
+                  key={p.idx}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl"
+                  style={{
+                    background: isMe ? tc.accentBgActive : tc.scorePillBg,
+                    border: isMe ? `1.5px solid ${tc.accentBorderActive}` : '1.5px solid transparent',
+                  }}
+                >
+                  <span className="text-sm w-5 text-center shrink-0" style={{ color: tc.textMuted }}>
+                    {rank < 3 ? MEDALS[rank] : `${rank + 1}.`}
+                  </span>
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
+                  <span className="flex-1 text-sm font-medium truncate" style={{ color: isMe ? tc.accent : tc.text }}>
+                    {p.name}
+                  </span>
+                  {delta && (
+                    <span className="text-xs font-bold" style={{ color: '#22c55e' }}>{delta}</span>
+                  )}
+                  <span className="text-sm font-bold tabular-nums" style={{ color: tc.accent }}>{p.score}</span>
+                </div>
+              )
+            })}
+          </div>
+          <div className="text-center text-xs mt-2" style={{ color: tc.textFaint }}>
+            {revealSecondsLeft}s
+          </div>
+        </div>
+      )}
+
+      {/* Next button (solo reveal only) or spacer */}
       <div className="flex justify-center mt-6">
-        {isReveal ? (
+        {!isOnline && isReveal ? (
           <button
             onClick={nextLightningQuestion}
             className="px-8 py-2.5 rounded-xl font-bold transition-all hover:-translate-y-0.5"
