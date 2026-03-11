@@ -1,6 +1,20 @@
 export type DeckId = 'animals' | 'flags' | 'fruits' | 'jobs'
 export type BoardSize = 'large' | 'medium' | 'small'
-export type GamePhase = 'setup' | 'lobby' | 'playing' | 'quiz' | 'win'
+export type GamePhase = 'setup' | 'lobby' | 'playing' | 'quiz' | 'win' | 'lightning_playing' | 'lightning_reveal' | 'lightning_results'
+
+export interface LightningQuestion {
+  symbol: string       // emoji for static, pool key for custom
+  label: string        // display name
+  imageUrl?: string    // custom deck image
+  question: string
+  options: string[]    // 4 shuffled options
+  correct: string
+}
+
+export interface LightningAnswer {
+  correct: boolean
+  timeMs: number
+}
 
 export interface CustomDeckCard {
   image_url: string

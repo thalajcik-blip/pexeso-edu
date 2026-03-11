@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { DeckId, BoardSize, GamePhase, CardData, Player, CustomDeckData } from '../types/game'
+import type { DeckId, BoardSize, GamePhase, CardData, Player, CustomDeckData, LightningQuestion, LightningAnswer } from '../types/game'
 import { SIZE_CONFIG, PLAYER_COLORS, DEFAULT_NAMES } from '../types/game'
 import { DECKS } from '../data/decks'
 import { EN_QUIZ } from '../data/enQuiz'
@@ -25,6 +25,69 @@ import { fetchCustomDeckFull } from '../services/supabase'
 import type { LobbyPlayer, GameAction } from '../services/multiplayerService'
 
 const SESSION_ROOM_KEY = 'qm_last_room'
+
+function buildLightningQuestions(
+  deckId: string,
+  customDeck: CustomDeckData | null,
+  language: Language,
+  count: number,
+): LightningQuestion[] {
+  const isCustom = customDeck && customDeck.id === deckId
+  const isEn = language === 'en'
+
+  if (isCustom) {
+    const symbols = shuffle(Object.keys(customDeck.pool))
+    const selected = count === 0 ? symbols : symbols.slice(0, count)
+    return selected.map(symbol => {
+      const item = customDeck.pool[symbol]
+      return {
+        symbol,
+        label: item.label,
+        imageUrl: item.image_url || undefined,
+        question: item.quiz_question || item.label,
+        options: item.quiz_options ? shuffle([...item.quiz_options]) : [],
+        correct: item.quiz_correct || '',
+      }
+    }).filter(q => q.options.length === 4 && q.correct)
+  }
+
+  const deck = DECKS.find(d => d.id === deckId) ?? DECKS[0]
+  const tr = TRANSLATIONS[language]
+  const allSymbols = shuffle(Object.keys(deck.pool))
+  const selected = count === 0 ? allSymbols : allSymbols.slice(0, count)
+
+  return selected.map(symbol => {
+    const item = deck.pool[symbol]
+    const enData = isEn ? EN_QUIZ[symbol] : null
+
+    if (isEn && enData) {
+      return {
+        symbol,
+        label: symbol,
+        question: tr.factQuestion,
+        options: shuffle([enData.correct, ...enData.wrong]),
+        correct: enData.correct,
+      }
+    }
+
+    const correct = isEn ? (item.answerEn ?? item.answer) : item.answer
+    const question = tr.deckQuestions[deck.id as DeckId]
+    const distractors = shuffle(
+      allSymbols
+        .filter(s => s !== symbol)
+        .map(s => isEn ? (deck.pool[s].answerEn ?? deck.pool[s].answer) : deck.pool[s].answer)
+        .filter(a => a !== correct)
+    ).slice(0, 3)
+
+    return {
+      symbol,
+      label: symbol,
+      question,
+      options: shuffle([correct, ...distractors]),
+      correct,
+    }
+  })
+}
 
 
 function computeCorrectAnswer(quizSymbol: string, selectedDeckId: string, language: string, customDeck: CustomDeckData | null): string {
@@ -66,6 +129,12 @@ interface GameStore {
   // Solo
   soloMoves: number
 
+  // Lightning
+  lightningQuestions: LightningQuestion[]
+  lightningCurrentIndex: number
+  lightningAnswers: LightningAnswer[]
+  lightningQuestionStart: number
+
   // Quiz
   quizSymbol: string | null
 
@@ -98,6 +167,9 @@ interface GameStore {
   setGameMode: (mode: 'pexequiz' | 'lightning') => void
   setLightningQuestionCount: (n: number) => void
   setLightningTimeLimit: (t: number) => void
+  startLightningGame: () => void
+  answerLightningQuestion: (answer: string) => void
+  nextLightningQuestion: () => void
   startGame: () => void
   flipCard: (index: number) => void
   answerQuiz: (correct: boolean) => void
@@ -165,6 +237,10 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   locked: false,
   turnMessage: '',
   soloMoves: 0,
+  lightningQuestions: [],
+  lightningCurrentIndex: 0,
+  lightningAnswers: [],
+  lightningQuestionStart: 0,
   quizSymbol: null,
   rulesOpen: false,
   isOnline: false,
@@ -195,6 +271,40 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   setGameMode: (mode) => set({ gameMode: mode }),
   setLightningQuestionCount: (n) => set({ lightningQuestionCount: n }),
   setLightningTimeLimit: (t) => set({ lightningTimeLimit: t }),
+
+  startLightningGame: () => {
+    const { selectedDeckId, customDeck, lightningQuestionCount, language } = get()
+    const questions = buildLightningQuestions(selectedDeckId, customDeck, language, lightningQuestionCount)
+    set({
+      phase: 'lightning_playing',
+      lightningQuestions: questions,
+      lightningCurrentIndex: 0,
+      lightningAnswers: [],
+      lightningQuestionStart: Date.now(),
+    })
+  },
+
+  answerLightningQuestion: (answer) => {
+    const { lightningQuestions, lightningCurrentIndex, lightningQuestionStart, lightningAnswers } = get()
+    const question = lightningQuestions[lightningCurrentIndex]
+    const isCorrect = answer !== '' && answer === question.correct
+    const timeMs = Date.now() - lightningQuestionStart
+    set({
+      phase: 'lightning_reveal',
+      lightningAnswers: [...lightningAnswers, { correct: isCorrect, timeMs }],
+    })
+  },
+
+  nextLightningQuestion: () => {
+    const { lightningCurrentIndex, lightningQuestions } = get()
+    const next = lightningCurrentIndex + 1
+    if (next >= lightningQuestions.length) {
+      soundWin()
+      set({ phase: 'lightning_results' })
+    } else {
+      set({ phase: 'lightning_playing', lightningCurrentIndex: next, lightningQuestionStart: Date.now() })
+    }
+  },
 
   setTurnTime: (t) => set({ turnTime: t }),
   setQuizTime: (t) => set({ quizTime: t }),

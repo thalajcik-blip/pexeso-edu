@@ -63,6 +63,8 @@ export interface Translations {
   questionCountAll: string
   soloQuizBtn: string
   createGameBtn: string
+  lightningAvgTime: string
+  lightningTimeUp: string
   // Lobby / online
   localBtn: string
   onlineBtn: string
@@ -192,6 +194,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     questionCountAll: 'Vše',
     soloQuizBtn: 'Solo kvíz',
     createGameBtn: 'Vytvořit hru',
+    lightningAvgTime: 'Průměrný čas',
+    lightningTimeUp: 'Čas vypršel!',
   },
 
   sk: {
@@ -294,6 +298,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     questionCountAll: 'Všetky',
     soloQuizBtn: 'Solo kvíz',
     createGameBtn: 'Vytvoriť hru',
+    lightningAvgTime: 'Priemerný čas',
+    lightningTimeUp: 'Čas vypršal!',
   },
 
   en: {
@@ -396,6 +402,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     questionCountAll: 'All',
     soloQuizBtn: 'Solo quiz',
     createGameBtn: 'Create game',
+    lightningAvgTime: 'Avg. time',
+    lightningTimeUp: "Time's up!",
   },
 }
 

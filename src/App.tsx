@@ -8,6 +8,7 @@ import GameBoard from './components/game/GameBoard'
 import QuizModal from './components/modals/QuizModal'
 import WinModal from './components/modals/WinModal'
 import RulesModal from './components/modals/RulesModal'
+import LightningGame from './components/lightning/LightningGame'
 
 export default function App() {
   const phase              = useGameStore(s => s.phase)
@@ -76,6 +77,7 @@ export default function App() {
       {(inGame || phase === 'win') && <GameBoard />}
       {phase === 'quiz' && <QuizModal />}
       {phase === 'win' && <WinModal />}
+      {(phase === 'lightning_playing' || phase === 'lightning_reveal' || phase === 'lightning_results') && <LightningGame />}
       <RulesModal />
 
       {/* Player left — brief banner */}
