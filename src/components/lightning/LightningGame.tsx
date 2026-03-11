@@ -314,13 +314,13 @@ export default function LightningGame() {
       </div>
 
       {/* Answer options 2x2 */}
-      <div className={`grid grid-cols-2 gap-3 max-w-lg mx-auto w-full ${feedbackClass}`}>
+      <div className={`grid grid-cols-2 gap-3 max-w-lg mx-auto w-full ${isReveal && feedbackClass === 'answer-shake' ? 'answer-shake' : ''}`}>
         {question.options.map((option, i) => (
           <button
             key={i}
             onClick={() => handleAnswer(option)}
             disabled={isReveal || selectedAnswer !== null}
-            className="py-3 px-3 rounded-xl border-2 font-semibold text-sm text-left transition-all cursor-pointer disabled:cursor-default"
+            className={`py-3 px-3 rounded-xl border-2 font-semibold text-sm text-left transition-all cursor-pointer disabled:cursor-default ${isReveal && feedbackClass === 'answer-correct' && option === question.correct ? 'answer-correct' : ''}`}
             style={getOptionStyle(option)}
           >
             <span className="opacity-60 mr-1.5 text-xs font-bold">{OPTION_LABELS[i]}</span>
