@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../services/supabase'
 import type { AdminRole } from './useAuth'
 import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ChevronDown } from 'lucide-react'
 
 type Deck = {
   id: string
@@ -278,15 +280,19 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                     )}
                   </div>
 
-                  <select
-                    value={deck.status}
-                    onChange={e => updateStatus(deck.id, e.target.value as Deck['status'])}
-                    className="shrink-0 text-sm rounded-lg border border-gray-200 bg-white px-3 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                  >
-                    {Object.entries(STATUS_LABEL).map(([val, label]) => (
-                      <option key={val} value={val}>{label}</option>
-                    ))}
-                  </select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="shrink-0 justify-between font-normal gap-2 min-w-32">
+                        {STATUS_LABEL[deck.status]}
+                        <ChevronDown className="size-3.5 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {(Object.entries(STATUS_LABEL) as [Deck['status'], string][]).map(([val, label]) => (
+                        <DropdownMenuItem key={val} onClick={() => updateStatus(deck.id, val)}>{label}</DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
                   {deck.is_private && (
                     <span className="text-xs text-indigo-500 font-mono shrink-0">🔒 {deck.private_code}</span>
