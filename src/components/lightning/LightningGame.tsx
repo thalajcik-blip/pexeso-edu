@@ -35,19 +35,20 @@ export default function LightningGame() {
     setTimeLeft(lightningTimeLimit)
     setSelectedAnswer(null)
     const start = Date.now()
-    const interval = setInterval(() => {
-      const elapsedS = (Date.now() - start) / 1000
-      const remaining = lightningTimeLimit - elapsedS
+    let rafId: number
+    const tick = () => {
+      const remaining = lightningTimeLimit - (Date.now() - start) / 1000
       if (remaining <= 0) {
-        clearInterval(interval)
         setTimeLeft(0)
         setSelectedAnswer('')
         answerLightningQuestion('')
       } else {
         setTimeLeft(remaining)
+        rafId = requestAnimationFrame(tick)
       }
-    }, 100)
-    return () => clearInterval(interval)
+    }
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightningCurrentIndex, phase])
 
