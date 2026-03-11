@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../services/supabase'
 import type { AdminRole } from './useAuth'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 
 type Deck = {
@@ -34,11 +33,11 @@ const STATUS_LABEL: Record<Deck['status'], string> = {
   rejected: 'Zamítnuto',
 }
 
-const STATUS_CLASS: Record<Deck['status'], string> = {
-  draft:    'bg-gray-100 text-gray-600 hover:bg-gray-100',
-  pending:  'bg-yellow-100 text-yellow-700 hover:bg-yellow-100',
-  approved: 'bg-green-100 text-green-700 hover:bg-green-100',
-  rejected: 'bg-red-100 text-red-600 hover:bg-red-100',
+const STATUS_SELECT_CLASS: Record<Deck['status'], string> = {
+  draft:    'bg-gray-100 text-gray-600',
+  pending:  'bg-yellow-100 text-yellow-700',
+  approved: 'bg-green-100 text-green-700',
+  rejected: 'bg-red-100 text-red-600',
 }
 
 type DeckJson = {
@@ -285,9 +284,16 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                     )}
                   </div>
 
-                  <Badge className={`shrink-0 ${STATUS_CLASS[deck.status]}`}>
-                    {STATUS_LABEL[deck.status]}
-                  </Badge>
+                  <select
+                    value={deck.status}
+                    onChange={e => updateStatus(deck.id, e.target.value as Deck['status'])}
+                    className={`shrink-0 text-xs font-medium rounded-full px-2.5 py-1 border-0 cursor-pointer appearance-none pr-6 bg-no-repeat focus:outline-none focus:ring-2 focus:ring-indigo-300 ${STATUS_SELECT_CLASS[deck.status]}`}
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundPosition: 'right 6px center' }}
+                  >
+                    {Object.entries(STATUS_LABEL).map(([val, label]) => (
+                      <option key={val} value={val}>{label}</option>
+                    ))}
+                  </select>
 
                   {deck.is_private && (
                     <span className="text-xs text-indigo-500 font-mono shrink-0">🔒 {deck.private_code}</span>
@@ -307,13 +313,6 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                       >
                         🌐
                       </Button>
-                    )}
-
-                    {role === 'superadmin' && deck.status === 'pending' && (
-                      <>
-                        <Button variant="outline" size="sm" onClick={() => updateStatus(deck.id, 'approved')} className="text-green-700 border-green-200 hover:bg-green-50">Schválit</Button>
-                        <Button variant="outline" size="sm" onClick={() => updateStatus(deck.id, 'rejected')} className="text-red-600 border-red-200 hover:bg-red-50">Zamítnout</Button>
-                      </>
                     )}
 
                     <Button variant="ghost" size="sm" onClick={() => deleteDeck(deck.id)} className="text-red-500 hover:bg-red-50">Smazat</Button>
