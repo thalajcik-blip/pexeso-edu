@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useGameStore } from '../../store/gameStore'
-import { TRANSLATIONS, t } from '../../data/translations'
+import { TRANSLATIONS, t, pluralize } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { soundTick } from '../../services/audioService'
 import { trunc } from '../../utils'
 
 export default function ScoreBoard() {
   const players        = useGameStore(s => s.players)
+  const soloMoves      = useGameStore(s => s.soloMoves)
   const currentPlayer  = useGameStore(s => s.currentPlayer)
   const turnMessage    = useGameStore(s => s.turnMessage)
   const language       = useGameStore(s => s.language)
@@ -144,11 +145,15 @@ export default function ScoreBoard() {
       </div>
 
       <div className="text-center mb-1 text-sm min-h-[1.4em]" style={{ color: tc.textDim }}>
-        {turnMessage
-          ? <span dangerouslySetInnerHTML={{ __html: turnMessage }} />
-          : isMyTurn
-            ? <span dangerouslySetInnerHTML={{ __html: t(tr, 'onTurn', { name: `<strong style="color:${players[currentPlayer]?.color}">${trunc(players[currentPlayer]?.name ?? '')}</strong>` }) }} />
-            : <span style={{ color: tc.textFaint }}>{tr.waitingForTurn.replace('{name}', trunc(players[currentPlayer]?.name ?? ''))}</span>
+        {players.length === 1
+          ? <span style={{ color: tc.textMuted }}>
+              🔄 {pluralize(soloMoves, tr, 'moveOne', 'moveFew', 'moveMany')}
+            </span>
+          : turnMessage
+            ? <span dangerouslySetInnerHTML={{ __html: turnMessage }} />
+            : isMyTurn
+              ? <span dangerouslySetInnerHTML={{ __html: t(tr, 'onTurn', { name: `<strong style="color:${players[currentPlayer]?.color}">${trunc(players[currentPlayer]?.name ?? '')}</strong>` }) }} />
+              : <span style={{ color: tc.textFaint }}>{tr.waitingForTurn.replace('{name}', trunc(players[currentPlayer]?.name ?? ''))}</span>
         }
       </div>
 
