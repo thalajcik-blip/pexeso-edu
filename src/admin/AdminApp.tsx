@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from './useAuth'
+import type { AdminRole } from './useAuth'
 import LoginScreen from './LoginScreen'
 import DeckList from './DeckList'
 import DeckEditor from './DeckEditor'
@@ -61,7 +62,7 @@ function DeckEditorRoute({ isSuperadmin }: { isSuperadmin: boolean }) {
   )
 }
 
-function AdminLayout({ role, email, signOut }: { role: string; email: string; signOut: () => void }) {
+function AdminLayout({ role, email, signOut }: { role: AdminRole; email: string; signOut: () => void }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [drawerOpen, setDrawerOpen] = useState(false)
