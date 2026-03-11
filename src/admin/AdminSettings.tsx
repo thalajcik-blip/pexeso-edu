@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
+import { Button } from '@/components/ui/button'
 
 type AiProviderSettings = {
   primary: 'claude' | 'gemini'
@@ -102,13 +103,9 @@ export default function AdminSettings() {
           {error && <div className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</div>}
           {saved && <div className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">Nastavení uloženo.</div>}
 
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full py-2.5 rounded-lg bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-          >
+          <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? 'Ukládání…' : 'Uložit nastavení'}
-          </button>
+          </Button>
         </div>
       )}
     </div>

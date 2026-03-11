@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type UserRow = {
   user_id: string
@@ -67,16 +68,20 @@ export default function UsersManager() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <select
+                      <Select
                         value={u.role ?? ''}
                         disabled={saving === u.user_id}
-                        onChange={e => setRole(u.user_id, e.target.value || null)}
-                        className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-indigo-400 disabled:opacity-50 bg-white"
+                        onValueChange={v => setRole(u.user_id, v || null)}
                       >
-                        <option value="">Čeká na schválení</option>
-                        <option value="teacher">Učitel</option>
-                        <option value="superadmin">Superadmin</option>
-                      </select>
+                        <SelectTrigger className="h-8 text-xs w-44">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Čeká na schválení</SelectItem>
+                          <SelectItem value="teacher">Učitel</SelectItem>
+                          <SelectItem value="superadmin">Superadmin</SelectItem>
+                        </SelectContent>
+                      </Select>
                       {u.role && (
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                           u.role === 'superadmin'
