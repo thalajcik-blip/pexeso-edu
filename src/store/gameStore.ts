@@ -94,7 +94,7 @@ function computeCorrectAnswer(quizSymbol: string, selectedDeckId: string, langua
   if (customDeck && customDeck.id === selectedDeckId) {
     return customDeck.pool[quizSymbol]?.quiz_correct ?? ''
   }
-  const deck = DECKS.find(d => d.id === selectedDeckId)!
+  const deck = DECKS.find(d => d.id === selectedDeckId) ?? DECKS[0]
   const item = deck.pool[quizSymbol]
   const isEn = language === 'en'
   const enData = isEn ? EN_QUIZ[quizSymbol] : null
@@ -329,7 +329,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const size = SIZE_CONFIG[selectedSize]
     const poolKeys = customDeck && customDeck.id === selectedDeckId
       ? Object.keys(customDeck.pool)
-      : Object.keys(DECKS.find(d => d.id === selectedDeckId)!.pool)
+      : Object.keys((DECKS.find(d => d.id === selectedDeckId) ?? DECKS[0]).pool)
     const symbols = shuffle(poolKeys).slice(0, size.pairs)
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
@@ -540,7 +540,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const size = SIZE_CONFIG[selectedSize]
     const poolKeys = customDeck && customDeck.id === selectedDeckId
       ? Object.keys(customDeck.pool)
-      : Object.keys(DECKS.find(d => d.id === selectedDeckId)!.pool)
+      : Object.keys((DECKS.find(d => d.id === selectedDeckId) ?? DECKS[0]).pool)
     const symbols = shuffle(poolKeys).slice(0, size.pairs)
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
@@ -656,7 +656,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const size = SIZE_CONFIG[selectedSize]
     const poolKeys = customDeck && customDeck.id === selectedDeckId
       ? Object.keys(customDeck.pool)
-      : Object.keys(DECKS.find(d => d.id === selectedDeckId)!.pool)
+      : Object.keys((DECKS.find(d => d.id === selectedDeckId) ?? DECKS[0]).pool)
     const symbols = shuffle(poolKeys).slice(0, size.pairs)
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
