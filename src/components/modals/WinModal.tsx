@@ -55,7 +55,7 @@ export default function WinModal() {
               <span style={{ color: tc.textMuted }}>{tr.soloMovesLabel}</span>
               <span>
                 <span className="text-xl font-bold" style={{ color: tc.accent }}>{soloMoves}</span>
-                <span className="text-sm ml-2" style={{ color: tc.textDim }}>({movesPerPair} / pár)</span>
+                <span className="text-sm ml-2" style={{ color: tc.textDim }}>({movesPerPair}/pár)</span>
               </span>
             </div>
             <div className="flex items-center justify-between gap-8">
