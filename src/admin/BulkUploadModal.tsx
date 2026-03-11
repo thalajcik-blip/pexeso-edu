@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
 import { supabase } from '../services/supabase'
 import CropModal from './CropModal'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 type PendingCard = {
   file: File
@@ -168,23 +170,16 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
           <div className="font-bold text-gray-800">Hromadné přidání kartiček</div>
           <div className="flex items-center gap-3">
             {anyLabel && allCropped && (
-              <button
-                onClick={generateAll}
-                className="text-sm px-4 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 font-medium hover:bg-indigo-100 transition-colors"
-              >
+              <Button variant="outline" size="sm" onClick={generateAll} className="text-indigo-600 border-indigo-200 hover:bg-indigo-50">
                 ✨ Generovat AI pro všechny
-              </button>
+              </Button>
             )}
             {cards.length > 0 && (
-              <button
-                onClick={saveAll}
-                disabled={savingAll || !allCropped}
-                className="text-sm px-5 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-              >
+              <Button size="sm" onClick={saveAll} disabled={savingAll || !allCropped}>
                 {savingAll ? 'Ukládání…' : `Uložit vše (${cards.filter(c => !c.saved).length})`}
-              </button>
+              </Button>
             )}
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 hover:text-gray-600">×</Button>
           </div>
         </div>
 
@@ -208,12 +203,9 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
           {cards.some(c => !c.croppedBlob) && (
             <div className="mb-4 text-sm text-amber-700 bg-amber-50 rounded-lg px-4 py-2 flex items-center justify-between">
               <span>⚠️ Některé obrázky ještě nejsou oříznuty.</span>
-              <button
-                onClick={() => setCropIndex(cards.findIndex(c => !c.croppedBlob))}
-                className="text-xs font-semibold text-amber-700 underline"
-              >
+              <Button variant="link" size="sm" onClick={() => setCropIndex(cards.findIndex(c => !c.croppedBlob))} className="text-amber-700 h-auto p-0 text-xs font-semibold">
                 Oříznout
-              </button>
+              </Button>
             </div>
           )}
 
@@ -255,22 +247,23 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
                   {/* Fields */}
                   <div className="p-2 space-y-1.5">
                     <div className="flex gap-1">
-                      <input
-                        type="text"
+                      <Input
                         value={card.label}
                         onChange={e => update(i, { label: e.target.value })}
                         placeholder="Label…"
                         disabled={card.saved}
-                        className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs outline-none focus:border-indigo-400 min-w-0"
+                        className="flex-1 h-7 text-xs min-w-0"
                       />
-                      <button
+                      <Button
+                        size="icon"
+                        variant="outline"
                         onClick={() => generate(i)}
                         disabled={card.generating || !card.label.trim() || card.saved}
                         title="Generovat kvíz pomocí AI"
-                        className="shrink-0 px-2 py-1 rounded bg-indigo-50 text-indigo-600 text-xs hover:bg-indigo-100 disabled:opacity-40 transition-colors"
+                        className="shrink-0 h-7 w-7 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
                       >
                         {card.generating ? '⏳' : '✨'}
-                      </button>
+                      </Button>
                     </div>
 
                     {card.question && (
