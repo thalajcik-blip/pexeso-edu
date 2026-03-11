@@ -26,6 +26,7 @@ export default function LightningGame() {
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState(lightningTimeLimit)
+  const [feedbackClass, setFeedbackClass] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [muted, setMuted] = useState(isMuted)
   const remainingRef = useRef(lightningTimeLimit)
@@ -53,6 +54,7 @@ export default function LightningGame() {
     lastTickSecRef.current = lightningTimeLimit + 1
     setTimeLeft(lightningTimeLimit)
     setSelectedAnswer(null)
+    setFeedbackClass('')
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightningCurrentIndex])
 
@@ -83,13 +85,41 @@ export default function LightningGame() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightningCurrentIndex, phase])
 
-  // Play reveal sound
+  // Play reveal sound + trigger feedback animation
   useEffect(() => {
     if (phase !== 'lightning_reveal') return
     const lastAns = lightningAnswers[lightningAnswers.length - 1]
     if (lastAns) {
-      lastAns.correct ? soundQuizCorrect() : soundQuizWrong()
+      if (lastAns.correct) {
+        soundQuizCorrect()
+        setFeedbackClass('answer-correct')
+      } else {
+        soundQuizWrong()
+        setFeedbackClass('answer-shake')
+      }
+    } else {
+      // timeout — shake
+      setFeedbackClass('answer-shake')
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, lightningCurrentIndex])
+
+  // Keyboard shortcuts: 1-4 = answer, Enter = next
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (phase === 'lightning_playing') {
+        const idx = parseInt(e.key) - 1
+        if (idx >= 0 && idx < 4 && question?.options[idx] !== undefined) {
+          handleAnswer(question.options[idx])
+        }
+      }
+      if (e.key === 'Enter' && phase === 'lightning_reveal') {
+        e.preventDefault()
+        nextLightningQuestion()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, lightningCurrentIndex])
 
@@ -284,7 +314,7 @@ export default function LightningGame() {
       </div>
 
       {/* Answer options 2x2 */}
-      <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto w-full">
+      <div className={`grid grid-cols-2 gap-3 max-w-lg mx-auto w-full ${feedbackClass}`}>
         {question.options.map((option, i) => (
           <button
             key={i}

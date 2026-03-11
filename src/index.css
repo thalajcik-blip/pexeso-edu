@@ -142,6 +142,23 @@ button, a { cursor: pointer; }
   to   { width: 100%; }
 }
 
+/* Lightning quiz answer feedback */
+@keyframes answer-shake {
+  0%   { transform: translateX(0); }
+  18%  { transform: translateX(-6px); }
+  36%  { transform: translateX(5px); }
+  54%  { transform: translateX(-4px); }
+  72%  { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+@keyframes answer-correct {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.answer-shake   { animation: answer-shake 0.4s ease; }
+.answer-correct { animation: answer-correct 0.35s ease; }
+
 /* Quiz/Win overlay animations */
 @keyframes pop-in {
   from { transform: scale(0.7); opacity: 0; }
