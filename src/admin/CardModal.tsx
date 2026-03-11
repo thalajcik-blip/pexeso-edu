@@ -155,7 +155,7 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
 
   return (
     <>
-      <Dialog open onOpenChange={open => { if (!open) onClose() }}>
+      <Dialog open modal={false} onOpenChange={open => { if (!open) onClose() }}>
         <DialogContent className="max-w-lg p-0">
           <div className="max-h-[90vh] overflow-y-auto overscroll-contain p-6" style={{ overscrollBehavior: 'contain' }}>
           <DialogHeader>
