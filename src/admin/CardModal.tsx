@@ -48,13 +48,15 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const prevBody = document.body.style.overflow
-    const prevHtml = document.documentElement.style.overflow
-    document.body.style.overflow = 'hidden'
-    document.documentElement.style.overflow = 'hidden'
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
     return () => {
-      document.body.style.overflow = prevBody
-      document.documentElement.style.overflow = prevHtml
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, scrollY)
     }
   }, [])
 
