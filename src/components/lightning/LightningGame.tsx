@@ -417,10 +417,6 @@ export default function LightningGame() {
       <div className="flex justify-center gap-1.5 mb-3 h-3">
         {isOnline && players.map((p, i) => {
           const answered = lightningPlayerAnswers[playerIds[i]] !== undefined
-          const correct = lightningPlayerAnswers[playerIds[i]]?.correct
-          const borderColor = isReveal
-            ? (correct ? '#22c55e' : answered ? '#ef4444' : p.color)
-            : p.color
           return (
             <div
               key={i}
@@ -428,8 +424,8 @@ export default function LightningGame() {
               style={{
                 width: 12,
                 height: 12,
-                background: answered ? (isReveal ? (correct ? '#22c55e' : '#ef4444') : p.color) : 'transparent',
-                border: `2px solid ${answered ? borderColor : p.color}`,
+                background: answered ? p.color : 'transparent',
+                border: `2px solid ${p.color}`,
                 opacity: answered ? 1 : 0.3,
               }}
             />
