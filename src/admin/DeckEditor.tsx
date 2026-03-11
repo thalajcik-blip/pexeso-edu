@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
 import CardModal, { type CardData } from './CardModal'
 import BulkUploadModal from './BulkUploadModal'
-import AdminSelect from './AdminSelect'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type Deck = {
   id: string
@@ -221,19 +224,23 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             {translateError && (
               <span className="text-xs text-red-500">{translateError}</span>
             )}
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={translateAll}
               disabled={translating || cards.filter(c => c.quiz_question).length === 0}
-              className="text-xs px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 disabled:opacity-40 transition-colors"
+              className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
             >
               {translating ? '⏳ Překládám…' : '🌐 Přeložit vše'}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleExport}
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+              className="text-gray-500"
             >
               ↓ Export JSON
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -242,54 +249,67 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6 space-y-4">
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Název *</label>
-          <input
-            type="text"
+          <Input
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder="např. Dinosauři"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
           />
         </div>
 
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Popis <span className="text-gray-300">(volitelné)</span></label>
-          <textarea
+          <Textarea
             value={desc}
             onChange={e => setDesc(e.target.value)}
             rows={2}
             placeholder="Krátký popis sady…"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 resize-none"
+            className="resize-none"
           />
         </div>
 
         <div className="flex items-end gap-4 flex-wrap">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Jazyk sady</label>
-            <AdminSelect value={language} onChange={e => setLanguage(e.target.value as Deck['language'])}>
-              <option value="cs">🇨🇿 Čeština</option>
-              <option value="sk">🇸🇰 Slovenčina</option>
-              <option value="en">🇬🇧 English</option>
-            </AdminSelect>
+            <Select value={language} onValueChange={v => setLanguage(v as Deck['language'])}>
+              <SelectTrigger className="w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cs">🇨🇿 Čeština</SelectItem>
+                <SelectItem value="sk">🇸🇰 Slovenčina</SelectItem>
+                <SelectItem value="en">🇬🇧 English</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Obtížnost kvízu</label>
-            <AdminSelect value={difficulty} onChange={e => setDifficulty(e.target.value as Deck['difficulty'])}>
-              <option value="easy">🟢 Snadná</option>
-              <option value="medium">🟡 Střední</option>
-              <option value="hard">🔴 Těžká</option>
-            </AdminSelect>
+            <Select value={difficulty} onValueChange={v => setDifficulty(v as Deck['difficulty'])}>
+              <SelectTrigger className="w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="easy">🟢 Snadná</SelectItem>
+                <SelectItem value="medium">🟡 Střední</SelectItem>
+                <SelectItem value="hard">🔴 Těžká</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {isSuperadmin && (
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
-              <AdminSelect value={status} onChange={e => setStatus(e.target.value as Deck['status'])}>
-                <option value="draft">Koncept</option>
-                <option value="pending">Čeká na schválení</option>
-                <option value="approved">Schváleno</option>
-                <option value="rejected">Zamítnuto</option>
-              </AdminSelect>
+              <Select value={status} onValueChange={v => setStatus(v as Deck['status'])}>
+                <SelectTrigger className="w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Koncept</SelectItem>
+                  <SelectItem value="pending">Čeká na schválení</SelectItem>
+                  <SelectItem value="approved">Schváleno</SelectItem>
+                  <SelectItem value="rejected">Zamítnuto</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
 
@@ -306,13 +326,9 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         </div>
 
         <div className="flex items-center gap-3 pt-1">
-          <button
-            onClick={saveDeck}
-            disabled={saving || !title.trim()}
-            className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-          >
+          <Button onClick={saveDeck} disabled={saving || !title.trim()}>
             {saving ? 'Ukládání…' : deck ? 'Uložit změny' : 'Vytvořit sadu'}
-          </button>
+          </Button>
           {saved && <span className="text-xs text-green-600">✓ Uloženo</span>}
         </div>
       </div>
@@ -326,30 +342,25 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             </h2>
             <div className="flex items-center gap-2">
               {cards.length > 1 && (
-                <AdminSelect
-                  value={sort}
-                  onChange={e => setSort(e.target.value as typeof sort)}
-                  className="text-xs text-gray-600"
-                >
-                  <option value="default">Pořadí (výchozí)</option>
-                  <option value="newest">Nejnovější první</option>
-                  <option value="oldest">Nejstarší první</option>
-                  <option value="az">Abecedně A–Z</option>
-                  <option value="za">Abecedně Z–A</option>
-                </AdminSelect>
+                <Select value={sort} onValueChange={v => setSort(v as typeof sort)}>
+                  <SelectTrigger className="w-44 text-xs text-gray-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Pořadí (výchozí)</SelectItem>
+                    <SelectItem value="newest">Nejnovější první</SelectItem>
+                    <SelectItem value="oldest">Nejstarší první</SelectItem>
+                    <SelectItem value="az">Abecedně A–Z</SelectItem>
+                    <SelectItem value="za">Abecedně Z–A</SelectItem>
+                  </SelectContent>
+                </Select>
               )}
-              <button
-                onClick={() => setBulkOpen(true)}
-                className="px-4 py-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition-colors"
-              >
+              <Button variant="outline" onClick={() => setBulkOpen(true)} className="text-indigo-600 border-indigo-200 hover:bg-indigo-50">
                 + Hromadně
-              </button>
-              <button
-                onClick={() => setEditCard('new')}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
-              >
+              </Button>
+              <Button onClick={() => setEditCard('new')}>
                 + Kartičku
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -369,18 +380,12 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
                     {card.label && <div className="text-xs font-medium text-gray-700 truncate">{card.label}</div>}
                     {card.quiz_question && <div className="text-xs text-gray-400 truncate mt-0.5">🧠 {card.quiz_question}</div>}
                     <div className="flex gap-1 mt-2">
-                      <button
-                        onClick={() => setEditCard(card)}
-                        className="flex-1 text-xs py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-                      >
+                      <Button variant="outline" size="sm" onClick={() => setEditCard(card)} className="flex-1 text-xs">
                         Upravit
-                      </button>
-                      <button
-                        onClick={() => card.id && deleteCard(card.id)}
-                        className="text-xs px-2 py-1 rounded-lg text-red-400 hover:bg-red-50 transition-colors"
-                      >
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => card.id && deleteCard(card.id)} className="text-red-400 hover:bg-red-50 px-2">
                         ×
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
