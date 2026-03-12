@@ -142,6 +142,7 @@ interface GameStore {
   lightningQuestionStart: number
   lightningQuestionEndTime: number
   lightningPlayerAnswers: Record<string, { answer: string; timeMs: number; correct: boolean }>
+  lightningPlayerStats: Record<string, { correct: number; totalCorrectMs: number }>
 
   // Quiz
   quizSymbol: string | null
@@ -256,6 +257,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   lightningQuestionStart: 0,
   lightningQuestionEndTime: 0,
   lightningPlayerAnswers: {},
+  lightningPlayerStats: {},
   quizSymbol: null,
   rulesOpen: false,
   isOnline: false,
@@ -297,6 +299,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       lightningCurrentIndex: 0,
       lightningAnswers: [],
       lightningPlayerAnswers: {},
+      lightningPlayerStats: {},
       lightningQuestionStart: now,
       lightningQuestionEndTime: now + lightningTimeLimit * 1000,
     })
@@ -395,6 +398,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       lightningCurrentIndex: 0,
       lightningAnswers: [],
       lightningPlayerAnswers: {},
+      lightningPlayerStats: {},
       lightningQuestionStart: Date.now(),
       lightningQuestionEndTime: questionEndTime,
       players,
@@ -412,6 +416,13 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       lightningPlayerAnswers: {
         ...s.lightningPlayerAnswers,
         [playerId]: { answer, timeMs, correct },
+      },
+      lightningPlayerStats: {
+        ...s.lightningPlayerStats,
+        [playerId]: {
+          correct: (s.lightningPlayerStats[playerId]?.correct ?? 0) + (correct ? 1 : 0),
+          totalCorrectMs: (s.lightningPlayerStats[playerId]?.totalCorrectMs ?? 0) + (correct ? timeMs : 0),
+        },
       },
     }))
     // If all players answered, transition to reveal immediately (don't wait for timer)
@@ -764,7 +775,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       isHost: false, lobbyPlayers: [], playerIds: [],
       phase: 'setup', cards: [], players: [], quizSymbol: null,
       quizVotes: {}, quizCountdownEnd: null, quizRevealCorrect: null, disconnectedPlayer: null, emojiReactions: {},
-      lightningPlayerAnswers: {}, lightningQuestionEndTime: 0,
+      lightningPlayerAnswers: {}, lightningPlayerStats: {}, lightningQuestionEndTime: 0,
     })
   },
 

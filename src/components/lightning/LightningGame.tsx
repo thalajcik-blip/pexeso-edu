@@ -80,6 +80,55 @@ function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
+type MultiResult = 'champion' | 'winner' | 'close_loss' | 'loss' | 'tie'
+const LIGHTNING_MULTI: Record<MultiResult, LightningTier> = {
+  champion: {
+    icon: '🏆',
+    title: { cs: 'Šampión!', sk: 'Šampión!', en: 'Champion!' },
+    messages: {
+      cs: ['Dominantní výkon — soupeř neměl šanci!', 'Tohle byl rozdíl třídy. Gratulujeme!', 'Bleskový mozek v akci — vyhráno!'],
+      sk: ['Dominantný výkon — súper nemal šancu!', 'Toto bol rozdiel triedy. Gratulujeme!', 'Bleskový mozog v akcii — vyhraté!'],
+      en: ['Dominant performance — the opponent had no chance!', 'That was a class apart. Congrats!', 'Lightning brain in action — victory!'],
+    },
+  },
+  winner: {
+    icon: '🥇',
+    title: { cs: 'Vítěz!', sk: 'Víťaz!', en: 'Winner!' },
+    messages: {
+      cs: ['Těsné, ale vítězství se počítá!', 'O chlup, ale vyhrál jsi. Skvělé nervy!', 'Dramatická výhra — to byl boj!'],
+      sk: ['Tesné, ale víťazstvo sa počíta!', 'O vlas, ale vyhral si. Skvelé nervy!', 'Dramatická výhra — to bol boj!'],
+      en: ['Close, but a win is a win!', 'Just barely, but you won. Great nerves!', 'Dramatic victory — what a battle!'],
+    },
+  },
+  close_loss: {
+    icon: '🥈',
+    title: { cs: 'Těsně!', sk: 'Tesne!', en: 'So close!' },
+    messages: {
+      cs: ['Jen kousek! Příště to otočíš.', 'Tak blízko! Mozek příště zabere víc.', 'O vlásek — příště to bude tvoje!'],
+      sk: ['Len kúsok! Nabudúce to otočíš.', 'Tak blízko! Mozog nabudúce zabre viac.', 'O vlas — nabudúce to bude tvoje!'],
+      en: ["Just a hair away! You'll turn it around next time.", 'So close! Brain will deliver more next time.', "By a thread — next time it's yours!"],
+    },
+  },
+  loss: {
+    icon: '💪',
+    title: { cs: 'Příště lépe!', sk: 'Nabudúce lepšie!', en: 'Better next time!' },
+    messages: {
+      cs: ['Tentokrát to nevyšlo — ale příště!', 'Soupeř byl rychlý, mozek se učí.', 'Každá prohra tě posouvá dál. Nevzdávej!'],
+      sk: ['Tentokrát to nevyšlo — ale nabudúce!', 'Súper bol rýchly, mozog sa učí.', 'Každá prehra ťa posúva ďalej. Nevzdávaj!'],
+      en: ["Didn't work out this time — but next time!", 'The opponent was quick, brain is learning.', 'Every loss moves you forward. Keep going!'],
+    },
+  },
+  tie: {
+    icon: '🤝',
+    title: { cs: 'Remíza!', sk: 'Remíza!', en: "It's a tie!" },
+    messages: {
+      cs: ['Přesně stejně dobří — to se jen tak nevidí!', 'Nerozhodně! Mozky v rovnováze.', 'Spravedlivá dělba — příště rozhodne jedna otázka!'],
+      sk: ['Presne rovnako dobrí — to sa tak ľahko nevidí!', 'Nerozhodne! Mozgy v rovnováhe.', 'Spravodlivá deľba — nabudúce rozhodne jedna otázka!'],
+      en: ["Exactly the same — you don't see that every day!", 'A draw! Brains in perfect balance.', 'Fair split — next time one question decides it!'],
+    },
+  },
+}
+
 export default function LightningGame() {
   const phase                     = useGameStore(s => s.phase)
   const lightningQuestions        = useGameStore(s => s.lightningQuestions)
@@ -88,6 +137,7 @@ export default function LightningGame() {
   const lightningTimeLimit        = useGameStore(s => s.lightningTimeLimit)
   const lightningQuestionEndTime  = useGameStore(s => s.lightningQuestionEndTime)
   const lightningPlayerAnswers    = useGameStore(s => s.lightningPlayerAnswers)
+  const lightningPlayerStats      = useGameStore(s => s.lightningPlayerStats)
   const answerLightningQuestion   = useGameStore(s => s.answerLightningQuestion)
   const answerOnlineLightning     = useGameStore(s => s.answerOnlineLightning)
   const transitionToLightningReveal = useGameStore(s => s.transitionToLightningReveal)
@@ -240,17 +290,34 @@ export default function LightningGame() {
   // Confetti + win sound on results
   useEffect(() => {
     if (phase !== 'lightning_results') return
-    const correct = lightningAnswers.filter(a => a.correct).length
-    const accuracy = total > 0 ? correct / total : 0
-    soundWin()
     const colors = theme === 'light' ? ['#6d41a1', '#ffffff', '#c4a8e8'] : ['#f9d74e', '#ffffff', '#1a237e']
-    // Intensity scales with accuracy: low score = short burst, high score = 2s
-    const duration = Math.max(500, accuracy * 2000)
-    const particleCount = Math.max(2, Math.round(accuracy * 5))
-    const end = Date.now() + duration
+    if (isOnline) {
+      // Only fire confetti for winner/tie
+      const maxScore = Math.max(...players.map(p => p.score))
+      const myIdx = players.findIndex((_, i) => playerIds[i] === myPlayerId)
+      const myScore = players[myIdx]?.score ?? 0
+      const isTie = players.filter(p => p.score === maxScore).length > 1
+      if (myScore < maxScore && !isTie) return // loser: no confetti
+      soundWin()
+    } else {
+      const correct = lightningAnswers.filter(a => a.correct).length
+      const accuracy = total > 0 ? correct / total : 0
+      const duration = Math.max(500, accuracy * 2000)
+      const particleCount = Math.max(2, Math.round(accuracy * 5))
+      soundWin()
+      const end = Date.now() + duration
+      const frame = () => {
+        confetti({ particleCount, angle: 60, spread: 55, origin: { x: 0 }, colors })
+        confetti({ particleCount, angle: 120, spread: 55, origin: { x: 1 }, colors })
+        if (Date.now() < end) requestAnimationFrame(frame)
+      }
+      frame()
+      return
+    }
+    const end = Date.now() + 2000
     const frame = () => {
-      confetti({ particleCount, angle: 60, spread: 55, origin: { x: 0 }, colors })
-      confetti({ particleCount, angle: 120, spread: 55, origin: { x: 1 }, colors })
+      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors })
+      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors })
       if (Date.now() < end) requestAnimationFrame(frame)
     }
     frame()
@@ -297,59 +364,80 @@ export default function LightningGame() {
     const tier = getLightningTier(accuracy)
     const tierMessage = pickRandom(tier.messages[language] ?? tier.messages['cs'])
 
-    // Online: sort all players by score for leaderboard
-    const sortedPlayers = isOnline
-      ? [...players].map((p, i) => ({ ...p, idx: i })).sort((a, b) => b.score - a.score)
-      : []
+    // Online: compute my result + leaderboard
+    const sortedPlayers = [...players].map((p, i) => ({ ...p, idx: i })).sort((a, b) => b.score - a.score)
+    const maxScore = isOnline ? (sortedPlayers[0]?.score ?? 0) : 0
+    const isTie = isOnline && sortedPlayers.filter(p => p.score === maxScore).length > 1
+    const myIdx = isOnline ? players.findIndex((_, i) => playerIds[i] === myPlayerId) : -1
+    const myScore = isOnline ? (players[myIdx]?.score ?? 0) : 0
+
+    function getOnlineResult(): MultiResult {
+      if (isTie) return 'tie'
+      if (myScore < maxScore) return (maxScore - myScore) <= 2 ? 'close_loss' : 'loss'
+      const secondScore = sortedPlayers.find(p => p.score < myScore)?.score ?? myScore
+      return (myScore - secondScore) <= 2 ? 'winner' : 'champion'
+    }
+    const onlineResult = isOnline ? getOnlineResult() : null
+    const onlineResultData = onlineResult ? LIGHTNING_MULTI[onlineResult] : null
+    const onlineMessage = onlineResultData ? pickRandom(onlineResultData.messages[language] ?? onlineResultData.messages['cs']) : ''
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.winOverlayBg }}>
         <div className="pop-in rounded-2xl p-8 text-center w-full max-w-sm overflow-y-auto max-h-[90vh]"
           style={{ background: tc.modalSurface, border: `2px solid ${tc.accent}`, boxShadow: `0 0 60px ${tc.accentGlow}`, color: tc.text }}>
 
-          {/* Tier header */}
-          {!isOnline ? (
+          {/* Header */}
+          {isOnline && onlineResultData ? (
+            <>
+              <div className="text-4xl mb-1">{onlineResultData.icon}</div>
+              <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{onlineResultData.title[language]}</div>
+              <div className="text-sm mb-6" style={{ color: tc.textMuted }}>{onlineMessage}</div>
+            </>
+          ) : (
             <>
               <div className="text-4xl mb-1">{tier.icon}</div>
               <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tier.title[language]}</div>
               <div className="text-sm mb-6" style={{ color: tc.textMuted }}>{tierMessage}</div>
             </>
-          ) : (
-            <>
-              <div className="text-4xl mb-1">🔥</div>
-              <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tr.soloGameOver}</div>
-              <div className="text-xs uppercase tracking-widest mb-6" style={{ color: tc.textMuted }}>{tr.results}</div>
-            </>
           )}
 
-          {/* Online: full leaderboard */}
-          {isOnline && sortedPlayers.length > 0 ? (
-            <div className="flex flex-col gap-2 mb-6 text-left">
+          {/* Online leaderboard */}
+          {isOnline ? (
+            <div className="flex flex-col gap-2 mb-5 text-left">
               {sortedPlayers.map((p, rank) => {
                 const isMe = playerIds[p.idx] === myPlayerId
+                const stats = lightningPlayerStats[playerIds[p.idx]]
+                const pCorrect = stats?.correct ?? p.score
+                const pAvgMs = stats && pCorrect > 0 ? (stats.totalCorrectMs / pCorrect / 1000).toFixed(1) : null
+                const pTied = isTie && p.score === maxScore
                 return (
-                  <div
-                    key={p.idx}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                  <div key={p.idx}
+                    className="px-3 py-2.5 rounded-xl"
                     style={{
                       background: isMe ? tc.accentBgActive : tc.scorePillBg,
                       border: isMe ? `1.5px solid ${tc.accentBorderActive}` : '1.5px solid transparent',
                     }}
                   >
-                    <span className="text-lg w-6 text-center shrink-0">
-                      {rank < 3 ? MEDALS[rank] : `${rank + 1}.`}
-                    </span>
-                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: p.color }} />
-                    <span className="flex-1 text-sm font-medium truncate" style={{ color: isMe ? tc.accent : tc.text }}>
-                      {p.name}{isMe ? ` ${tr.you}` : ''}
-                    </span>
-                    <span className="text-base font-bold tabular-nums" style={{ color: tc.accent }}>{p.score}</span>
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base w-6 text-center shrink-0">
+                        {pTied ? '🤝' : rank < 3 ? MEDALS[rank] : `${rank + 1}.`}
+                      </span>
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: p.color }} />
+                      <span className="flex-1 text-sm font-semibold truncate" style={{ color: isMe ? tc.accent : tc.text }}>
+                        {p.name}{isMe ? ` ${tr.you}` : ''}
+                      </span>
+                      <span className="text-base font-bold tabular-nums" style={{ color: tc.accent }}>{p.score}</span>
+                    </div>
+                    <div className="text-xs mt-0.5 pl-9" style={{ color: tc.textDim }}>
+                      {pCorrect}/{total} · {total > 0 ? Math.round(pCorrect / total * 100) : 0}%
+                      {pAvgMs && <span style={{ color: tc.textMuted }}> · ⌀ {pAvgMs}s</span>}
+                    </div>
                   </div>
                 )
               })}
             </div>
           ) : (
-            /* Solo: stats */
+            /* Solo stats */
             <div className="flex flex-col gap-3 text-left mb-5">
               <div className="flex items-center justify-between gap-8">
                 <span style={{ color: tc.textMuted }}>{tr.soloQuizLabel}</span>
@@ -371,7 +459,7 @@ export default function LightningGame() {
             </div>
           )}
 
-          {/* CTA buttons */}
+          {/* CTA */}
           {(!isOnline || isHost) ? (
             <button
               onClick={isOnline ? startOnlineLightningGame : startLightningGame}
@@ -388,8 +476,17 @@ export default function LightningGame() {
             onClick={resetToSetup}
             className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"
           >
-            {isOnline ? tr.leaveRoom : tr.lightningChooseOther}
+            {isOnline ? tr.lightningChooseOther : tr.lightningChooseOther}
           </button>
+
+          {isOnline && (
+            <button
+              onClick={resetToSetup}
+              className="block mx-auto mt-1.5 text-sm transition-opacity opacity-35 hover:opacity-70"
+            >
+              {tr.leaveRoom}
+            </button>
+          )}
         </div>
       </div>
     )
