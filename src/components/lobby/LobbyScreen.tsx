@@ -274,7 +274,7 @@ export default function LobbyScreen() {
                 {sortedPlayers.map((p, displayIdx) => {
                   const isMe = p.id === myPlayerId
                   const rowStyle = isMe && editingName
-                    ? { background: tc.inputBg, border: `1.5px solid ${tc.accent}`, boxShadow: `0 0 0 3px ${tc.accentBgActive}` }
+                    ? { background: tc.inputBg, border: `1px solid ${tc.accent}` }
                     : { background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }
                   return (
                     <div
