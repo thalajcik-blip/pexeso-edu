@@ -330,11 +330,11 @@ export default function LobbyScreen() {
 
             {/* Settings info pill */}
             {gameMode === 'lightning' ? (
-              <div className="text-xs text-center py-1.5 px-3 rounded-xl" style={{ color: tc.textMuted, border: `1px solid ${tc.btnInactiveBorder}` }}>
+              <div className="text-xs text-center py-1" style={{ color: tc.accent }}>
                 🔥 {tr.modeLightning} · {lightningQuestionCount === 0 ? tr.questionCountAll : lightningQuestionCount} {tr.questionCountLabel.toLowerCase()} · {lightningTimeLimit}s
               </div>
             ) : (
-              <div className="text-xs text-center py-1.5 px-3 rounded-xl" style={{ color: tc.textMuted, border: `1px solid ${tc.btnInactiveBorder}` }}>
+              <div className="text-xs text-center py-1" style={{ color: tc.accent }}>
                 🃏 {tr.modePexeQuiz} · {tr.turnTimeLabel.toLowerCase()}: {turnTime === 0 ? tr.turnTimeOff : `${turnTime}s`} · {tr.quizTimeLabel.toLowerCase()}: {quizTime}s
               </div>
             )}
