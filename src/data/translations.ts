@@ -57,6 +57,7 @@ export interface Translations {
   soloQuizLabel: string
   moveOne: string; moveFew: string; moveMany: string
   chooseDeck: string
+  perPair: string
   gameModeLabel: string
   modePexeQuiz: string
   modeLightning: string
@@ -202,6 +203,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     soloQuizLabel: 'Úspěšnost v kvízu',
     moveOne: 'tah', moveFew: 'tahy', moveMany: 'tahů',
     chooseDeck: 'Vybrat jinou sadu',
+    perPair: 'tahu/pár',
     gameModeLabel: 'Herní mód',
     modePexeQuiz: 'PexeQuiz',
     modeLightning: 'Bleskový kvíz',
@@ -320,6 +322,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     soloQuizLabel: 'Úspešnosť v kvíze',
     moveOne: 'ťah', moveFew: 'ťahy', moveMany: 'ťahov',
     chooseDeck: 'Vybrať inú sadu',
+    perPair: 'ťahu/pár',
     gameModeLabel: 'Herný mód',
     modePexeQuiz: 'PexeQuiz',
     modeLightning: 'Bleskový kvíz',
@@ -438,6 +441,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     soloQuizLabel: 'Quiz accuracy',
     moveOne: 'move', moveFew: 'moves', moveMany: 'moves',
     chooseDeck: 'Choose a different deck',
+    perPair: 'moves/pair',
     gameModeLabel: 'Game mode',
     modePexeQuiz: 'MemQuiz',
     modeLightning: 'Lightning Quiz',

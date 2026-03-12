@@ -7,13 +7,139 @@ import { trunc } from '../../utils'
 
 const MEDALS = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣']
 
+// ── Tier data ──────────────────────────────────────────────────────────────
+type Tier = { icon: string; title: Record<string, string>; messages: Record<string, string[]> }
+
+const PEXE_TIERS: Tier[] = [
+  {
+    icon: '🧠',
+    title: { cs: 'Génius!', sk: 'Génius!', en: 'Genius!' },
+    messages: {
+      cs: ['Perfektní paměť i znalosti — to je kombinace!', 'Na 100 % správně! Mozek pracuje naplno.', 'Bezchybný výkon. Tebe se nic nevyhne!'],
+      sk: ['Perfektná pamäť aj znalosti — to je kombinácia!', 'Na 100 % správne! Mozog pracuje naplno.', 'Bezchybný výkon. Teba sa nič nevyhne!'],
+      en: ['Perfect memory and knowledge — what a combo!', '100% correct! Brain firing on all cylinders.', 'Flawless performance. Nothing gets past you!'],
+    },
+  },
+  {
+    icon: '🔥',
+    title: { cs: 'Výborně!', sk: 'Výborne!', en: 'Excellent!' },
+    messages: {
+      cs: ['Skoro dokonalý! Jen kousek od maxima.', 'Skvělá paměť i znalosti — gratulujeme!', 'Téměř perfektní. Příště to dotáhneš!'],
+      sk: ['Skoro dokonalý! Len kúsok od maxima.', 'Skvelá pamäť aj znalosti — gratulujeme!', 'Takmer perfektný. Nabudúce to dotiahneš!'],
+      en: ['Almost perfect! Just a step from the top.', 'Great memory and knowledge — well done!', 'Nearly perfect. You\'ll get there next time!'],
+    },
+  },
+  {
+    icon: '⭐',
+    title: { cs: 'Skvělé!', sk: 'Skvelé!', en: 'Great!' },
+    messages: {
+      cs: ['Dobrá práce! Mozek se zahřívá.', 'Tři čtvrtiny na výbornou — příště víc!', 'Solid výkon, paměť i kvíz šly dobře.'],
+      sk: ['Dobrá práca! Mozog sa zahrieva.', 'Tri štvrtiny na výbornú — nabudúce viac!', 'Solid výkon, pamäť aj kvíz išli dobre.'],
+      en: ['Good work! Brain warming up.', 'Three quarters excellent — more next time!', 'Solid performance, memory and quiz both good.'],
+    },
+  },
+  {
+    icon: '💪',
+    title: { cs: 'Dobrý pokus!', sk: 'Dobrý pokus!', en: 'Good try!' },
+    messages: {
+      cs: ['Půlka tam — procvič a příště to zlomíš!', 'Rozehřívačka se povedla, příště víc!', 'Mozek se zahřívá. Zkus to znovu!'],
+      sk: ['Polovica tam — precvič a nabudúce to zlomíš!', 'Rozcvička sa podarila, nabudúce viac!', 'Mozog sa zahrieva. Skús to znovu!'],
+      en: ['Halfway there — practice and break through next time!', 'Good warm-up, go for more next time!', 'Brain warming up. Try again!'],
+    },
+  },
+  {
+    icon: '📚',
+    title: { cs: 'Nevzdávej to!', sk: 'Nevzdávaj to!', en: "Don't give up!" },
+    messages: {
+      cs: ['Tohle téma chce trochu procvičit — dáš to!', 'Každý pokus tě posouvá blíž k cíli.', 'Zkus to znovu, mozek potřebuje čas!'],
+      sk: ['Táto téma chce trochu precvičiť — dáš to!', 'Každý pokus ťa posúva bližšie k cieľu.', 'Skús to znovu, mozog potrebuje čas!'],
+      en: ['This topic needs a bit more practice — you got this!', 'Every attempt gets you closer to the goal.', 'Try again, the brain needs time!'],
+    },
+  },
+  {
+    icon: '🚀',
+    title: { cs: 'Výzva přijata!', sk: 'Výzva prijatá!', en: 'Challenge accepted!' },
+    messages: {
+      cs: ['Každý šampion začínal od nuly. Zkus to znovu!', 'Mozek se právě něco naučil. To se počítá!', 'Tuhle sadu ještě dobydneš, jen tak nevzdávej!'],
+      sk: ['Každý šampión začínal od nuly. Skús to znovu!', 'Mozog sa práve niečo naučil. To sa počíta!', 'Túto sadu ešte dobydieš, tak nevzdávaj!'],
+      en: ['Every champion started from zero. Try again!', 'Your brain just learned something. That counts!', "You'll conquer this deck yet — don't give up!"],
+    },
+  },
+]
+
+function getPexeTier(accuracy: number): Tier {
+  if (accuracy === 100) return PEXE_TIERS[0]
+  if (accuracy >= 90)   return PEXE_TIERS[1]
+  if (accuracy >= 75)   return PEXE_TIERS[2]
+  if (accuracy >= 50)   return PEXE_TIERS[3]
+  if (accuracy >= 25)   return PEXE_TIERS[4]
+  return PEXE_TIERS[5]
+}
+
+// ── Multiplayer contextual result data ─────────────────────────────────────
+type MultiResult = 'champion' | 'winner' | 'close_loss' | 'loss' | 'tie'
+
+const MULTI_RESULT_DATA: Record<MultiResult, Tier> = {
+  champion: {
+    icon: '🏆',
+    title: { cs: 'Šampión!', sk: 'Šampión!', en: 'Champion!' },
+    messages: {
+      cs: ['Tohle byl rozdíl třídy — gratulujem!', 'Dominantní výkon. Soupeř nestačil!', 'Mozek na plný výkon — vyhráno!'],
+      sk: ['Toto bol rozdiel triedy — gratulujeme!', 'Dominantný výkon. Súper nestačil!', 'Mozog na plný výkon — vyhraté!'],
+      en: ['That was a class apart — congrats!', 'Dominant performance. The opponent had no chance!', 'Brain at full power — victory!'],
+    },
+  },
+  winner: {
+    icon: '🥇',
+    title: { cs: 'Vítěz!', sk: 'Víťaz!', en: 'Winner!' },
+    messages: {
+      cs: ['Těsné, ale vítězství se počítá!', 'O chlup, ale vyhrál jsi. Skvělé nervy!', 'Dramatická výhra — to byl boj!'],
+      sk: ['Tesné, ale víťazstvo sa počíta!', 'O vlas, ale vyhral si. Skvelé nervy!', 'Dramatická výhra — to bol boj!'],
+      en: ['Close, but a win is a win!', 'Just barely, but you won. Great nerves!', 'Dramatic victory — what a battle!'],
+    },
+  },
+  close_loss: {
+    icon: '🥈',
+    title: { cs: 'Těsně!', sk: 'Tesne!', en: 'So close!' },
+    messages: {
+      cs: ['Jen kousek! Příště to otočíš.', 'Tak blízko! Mozek příště zabere víc.', 'O vlásek — příště to bude tvoje!'],
+      sk: ['Len kúsok! Nabudúce to otočíš.', 'Tak blízko! Mozog nabudúce zabre viac.', 'O vlas — nabudúce to bude tvoje!'],
+      en: ["Just a hair away! You'll turn it around next time.", 'So close! Brain will deliver more next time.', "By a thread — next time it's yours!"],
+    },
+  },
+  loss: {
+    icon: '💪',
+    title: { cs: 'Příště lépe!', sk: 'Nabudúce lepšie!', en: 'Better next time!' },
+    messages: {
+      cs: ['Tentokrát to nevyšlo — ale příště!', 'Soupeř byl silný, mozek se učí.', 'Každá prohra tě posouvá dál. Nevzdávej!'],
+      sk: ['Tentokrát to nevyšlo — ale nabudúce!', 'Súper bol silný, mozog sa učí.', 'Každá prehra ťa posúva ďalej. Nevzdávaj!'],
+      en: ["Didn't work out this time — but next time!", 'The opponent was strong, brain is learning.', 'Every loss moves you forward. Keep going!'],
+    },
+  },
+  tie: {
+    icon: '🤝',
+    title: { cs: 'Remíza!', sk: 'Remíza!', en: 'It\'s a tie!' },
+    messages: {
+      cs: ['Přesně stejně dobří — to se jen tak nevidí!', 'Nerozhodně! Mozky v rovnováze.', 'Spravedlivá dělba — příště rozhodne jeden bod!'],
+      sk: ['Presne rovnako dobrí — to sa tak ľahko nevidí!', 'Nerozhodne! Mozgy v rovnováhe.', 'Spravodlivá deľba — nabudúce rozhodne jeden bod!'],
+      en: ["Exactly the same — you don't see that every day!", 'A draw! Brains in perfect balance.', 'Fair split — next time one point decides it!'],
+    },
+  },
+}
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
 export default function WinModal() {
   const players          = useGameStore(s => s.players)
+  const playerIds        = useGameStore(s => s.playerIds)
   const soloMoves        = useGameStore(s => s.soloMoves)
   const language         = useGameStore(s => s.language)
   const theme            = useGameStore(s => s.theme)
   const isOnline         = useGameStore(s => s.isOnline)
   const isHost           = useGameStore(s => s.isHost)
+  const myPlayerId       = useGameStore(s => s.myPlayerId)
   const playAgain        = useGameStore(s => s.playAgain)
   const resetToSetup     = useGameStore(s => s.resetToSetup)
   const requestRematch   = useGameStore(s => s.requestRematch)
@@ -36,26 +162,30 @@ export default function WinModal() {
     frame()
   }, [])
 
+  // ── Solo ──────────────────────────────────────────────────────────────────
   if (isSolo) {
     const p = players[0]
     const totalQuizzes = p.quizzes + p.wrongQuizzes
     const accuracy = totalQuizzes > 0 ? Math.round(p.quizzes / totalQuizzes * 100) : 100
     const movesPerPair = p.pairs > 0 ? (soloMoves / p.pairs).toFixed(1) : '—'
+    const tier = getPexeTier(accuracy)
+    const tierMessage = pickRandom(tier.messages[language] ?? tier.messages['cs'])
+
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.winOverlayBg }}>
         <div className="pop-in rounded-2xl p-10 text-center"
           style={{ background: tc.modalSurface, border: `2px solid ${tc.accent}`, boxShadow: `0 0 60px ${tc.accentGlow}`, color: tc.text }}>
 
-          <div className="text-4xl mb-1">🎉</div>
-          <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tr.soloGameOver}</div>
-          <div className="text-xs uppercase tracking-widest mb-8" style={{ color: tc.textMuted }}>{trunc(p.name)}</div>
+          <div className="text-4xl mb-1">{tier.icon}</div>
+          <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tier.title[language]}</div>
+          <div className="text-sm mb-8" style={{ color: tc.textMuted }}>{tierMessage}</div>
 
           <div className="flex flex-col gap-4 text-left mb-2">
             <div className="flex items-center justify-between gap-8">
               <span style={{ color: tc.textMuted }}>{tr.soloMovesLabel}</span>
               <span>
                 <span className="text-xl font-bold" style={{ color: tc.accent }}>{soloMoves}</span>
-                <span className="text-sm ml-2" style={{ color: tc.textDim }}>({movesPerPair}/pár)</span>
+                <span className="text-sm ml-2" style={{ color: tc.textDim }}>({movesPerPair} {tr.perPair})</span>
               </span>
             </div>
             <div className="flex items-center justify-between gap-8">
@@ -68,7 +198,7 @@ export default function WinModal() {
 
           <button
             onClick={playAgain}
-            className="mt-8 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105"
+            className="mt-8 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105 w-full"
             style={{ background: tc.accentGradient, color: tc.accentText }}
           >
             {tr.playAgain}
@@ -85,50 +215,86 @@ export default function WinModal() {
     )
   }
 
-  const sorted = [...players].sort((a, b) => b.score - a.score)
+  // ── Multiplayer ───────────────────────────────────────────────────────────
+  const sorted = [...players].map((p, i) => ({ ...p, origIdx: i })).sort((a, b) => b.score - a.score)
   const maxScore = sorted[0]?.score ?? 0
-  const winners = sorted.filter(p => p.score === maxScore)
+  const isTie = sorted.filter(p => p.score === maxScore).length > 1
+
+  // Determine personal result for online (myPlayerId) or local (show winner perspective)
+  function getMyResult(): MultiResult {
+    if (isTie) return 'tie'
+    const myIdx = isOnline
+      ? players.findIndex((_, i) => playerIds[i] === myPlayerId)
+      : 0 // local: show from winner's perspective
+    const myScore = players[myIdx]?.score ?? 0
+    const topScore = maxScore
+    if (myScore < topScore) {
+      const diff = topScore - myScore
+      return diff <= 2 ? 'close_loss' : 'loss'
+    }
+    // I'm the winner
+    const secondScore = sorted.find(p => p.score < myScore)?.score ?? myScore
+    const diff = myScore - secondScore
+    return diff <= 2 ? 'winner' : 'champion'
+  }
+
+  const resultKey = getMyResult()
+  const resultData = MULTI_RESULT_DATA[resultKey]
+  const resultMessage = pickRandom(resultData.messages[language] ?? resultData.messages['cs'])
+  const showMedals = players.length >= 3
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.winOverlayBg }}>
-      <div className="pop-in rounded-2xl p-10 text-center"
+      <div className="pop-in rounded-2xl p-8 text-center w-full max-w-sm overflow-y-auto max-h-[90vh]"
         style={{ background: tc.modalSurface, border: `2px solid ${tc.accent}`, boxShadow: `0 0 60px ${tc.accentGlow}`, color: tc.text }}>
 
-        <div className="text-4xl mb-1">🎉</div>
-        <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tr.gameOver}</div>
-        <div className="text-xs uppercase tracking-widest mb-6" style={{ color: tc.textMuted }}>{tr.results}</div>
+        {/* Contextual result header */}
+        <div className="text-4xl mb-1">{resultData.icon}</div>
+        <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{resultData.title[language]}</div>
+        <div className="text-sm mb-6" style={{ color: tc.textMuted }}>{resultMessage}</div>
 
-        {winners.length > 1
-          ? <div className="text-lg mb-4" style={{ color: tc.accent }}>{tr.tie}</div>
-          : <div className="text-lg mb-4" style={{ color: tc.accent }}
-              dangerouslySetInnerHTML={{ __html: tr.winner.replace('{name}', `<strong>${trunc(winners[0].name)}</strong>`) }}
-            />
-        }
-
-        <div className="space-y-3 text-left">
-          {sorted.map((p, i) => {
-            const rank = sorted.filter(other => other.score > p.score).length
-            return (<div key={i}>
-              <div className="text-base">
-                {MEDALS[rank]} <span style={{ color: p.color }}>{trunc(p.name)}</span>: <strong>{p.score} {language === 'en' ? 'pts' : 'bodů'}</strong>
-              </div>
-              <div className="text-xs pl-6 mt-0.5" style={{ color: tc.textDim }}>
-                🃏 {pluralize(p.pairs, tr, 'pairOne', 'pairFew', 'pairMany')} &nbsp;+&nbsp; 🧠 {pluralize(p.quizzes, tr, 'quizOne', 'quizFew', 'quizMany')}
-                {(p.quizzes + p.wrongQuizzes) > 0 && (
-                  <span style={{ color: tc.textMuted }}>
-                    {' '}· {Math.round(p.quizzes / (p.quizzes + p.wrongQuizzes) * 100)}%
+        {/* Leaderboard */}
+        <div className="flex flex-col gap-2.5 text-left mb-6">
+          {sorted.map((p, rank) => {
+            const totalQ = p.quizzes + p.wrongQuizzes
+            const acc = totalQ > 0 ? Math.round(p.quizzes / totalQ * 100) : 100
+            const isMe = isOnline && playerIds[p.origIdx] === myPlayerId
+            return (
+              <div key={p.origIdx}
+                className="px-3 py-2.5 rounded-xl"
+                style={{
+                  background: isMe ? tc.accentBgActive : tc.scorePillBg,
+                  border: isMe ? `1.5px solid ${tc.accentBorderActive}` : '1.5px solid transparent',
+                }}
+              >
+                <div className="flex items-center gap-2.5">
+                  {showMedals && (
+                    <span className="text-base w-6 text-center shrink-0">
+                      {rank < 3 ? MEDALS[rank] : `${rank + 1}.`}
+                    </span>
+                  )}
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: p.color }} />
+                  <span className="flex-1 text-sm font-semibold truncate" style={{ color: isMe ? tc.accent : tc.text }}>
+                    {trunc(p.name)}
                   </span>
-                )}
+                  <span className="text-base font-bold tabular-nums" style={{ color: tc.accent }}>{p.score}</span>
+                </div>
+                <div className="text-xs mt-0.5 pl-9" style={{ color: tc.textDim }}>
+                  🃏 {pluralize(p.pairs, tr, 'pairOne', 'pairFew', 'pairMany')}
+                  {' '}+{' '}
+                  🧠 {pluralize(p.quizzes, tr, 'quizOne', 'quizFew', 'quizMany')}
+                  {totalQ > 0 && <span style={{ color: tc.textMuted }}> · {acc}%</span>}
+                </div>
               </div>
-            </div>)
+            )
           })}
         </div>
 
-        {/* Host: Play Again (highlighted if guest requested rematch) */}
+        {/* CTA — host / local */}
         {(!isOnline || isHost) && (
           <button
             onClick={playAgain}
-            className="mt-8 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105"
+            className="px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105 w-full"
             style={{
               background: rematchRequested ? tc.text : tc.accentGradient,
               color: rematchRequested ? tc.bg : tc.accentText,
@@ -139,27 +305,36 @@ export default function WinModal() {
           </button>
         )}
 
-        {/* Guest: Rematch request button */}
+        {/* CTA — online guest */}
         {isOnline && !isHost && (
           rematchRequested
-            ? <div className="mt-8 text-sm" style={{ color: tc.textMuted }}>
-                {tr.rematchWaiting}
-              </div>
+            ? <div className="text-sm" style={{ color: tc.textMuted }}>{tr.rematchWaiting}</div>
             : <button
                 onClick={requestRematch}
-                className="mt-8 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105"
+                className="px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105 w-full"
                 style={{ background: tc.accentGradient, color: tc.accentText }}
               >
                 {tr.rematchRequest}
               </button>
         )}
 
+        {/* Secondary: choose another deck */}
         <button
           onClick={resetToSetup}
           className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"
         >
-          {isOnline ? tr.leaveRoom : tr.playerSettings}
+          {isOnline ? tr.leaveRoom : tr.chooseDeck}
         </button>
+
+        {/* Tertiary: player settings (local only) */}
+        {!isOnline && (
+          <button
+            onClick={resetToSetup}
+            className="block mx-auto mt-1.5 text-sm transition-opacity opacity-35 hover:opacity-70"
+          >
+            {tr.playerSettings}
+          </button>
+        )}
       </div>
     </div>
   )
