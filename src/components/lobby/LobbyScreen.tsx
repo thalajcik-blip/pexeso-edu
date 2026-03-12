@@ -328,12 +328,19 @@ export default function LobbyScreen() {
               </div>
             </div>
 
-            {/* Time settings */}
+            {/* Settings info pill */}
             {gameMode === 'lightning' ? (
-              <div className="text-xs text-center py-1 px-3 rounded-xl" style={{ background: tc.accentBgActive, color: tc.accent }}>
+              <div className="text-xs text-center py-1.5 px-3 rounded-xl" style={{ color: tc.textMuted, border: `1px solid ${tc.btnInactiveBorder}` }}>
                 🔥 {tr.modeLightning} · {lightningQuestionCount === 0 ? tr.questionCountAll : lightningQuestionCount} {tr.questionCountLabel.toLowerCase()} · {lightningTimeLimit}s
               </div>
-            ) : isHost ? (
+            ) : (
+              <div className="text-xs text-center py-1.5 px-3 rounded-xl" style={{ color: tc.textMuted, border: `1px solid ${tc.btnInactiveBorder}` }}>
+                🃏 {tr.modePexeQuiz} · {tr.turnTimeLabel.toLowerCase()}: {turnTime === 0 ? tr.turnTimeOff : `${turnTime}s`} · {tr.quizTimeLabel.toLowerCase()}: {quizTime}s
+              </div>
+            )}
+
+            {/* Time pickers (host, pexequiz only) */}
+            {gameMode === 'pexequiz' && isHost && (
               <div className="space-y-3">
                 <TimePicker
                   label={tr.turnTimeLabel}
@@ -350,11 +357,6 @@ export default function LobbyScreen() {
                   onChange={setQuizTime}
                   tc={tc}
                 />
-              </div>
-            ) : (
-              <div className="flex gap-4 text-xs justify-center" style={{ color: tc.textFaint }}>
-                <span>{tr.turnTimeLabel}: {turnTime === 0 ? tr.turnTimeOff : `${turnTime}s`}</span>
-                <span>{tr.quizTimeLabel}: {quizTime}s</span>
               </div>
             )}
 
