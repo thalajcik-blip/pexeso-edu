@@ -279,7 +279,7 @@ export default function LobbyScreen() {
                     <div key={p.id} className="flex items-center gap-2">
                       <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[displayIdx] }} />
                       <div
-                        className="flex flex-1 items-center gap-2 px-3 py-2.5 rounded-xl transition-colors"
+                        className="flex flex-1 items-center gap-2 px-3 py-2.5 rounded-[10px] transition-colors"
                         style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }}
                         onFocus={isMe ? e => (e.currentTarget.style.borderColor = tc.accent) : undefined}
                         onBlur={isMe ? e => (e.currentTarget.style.borderColor = tc.inputBorder) : undefined}
@@ -318,7 +318,7 @@ export default function LobbyScreen() {
                   <div className="flex items-center gap-2 opacity-40">
                     <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: tc.textFaint }} />
                     <div
-                      className="flex flex-1 items-center px-3 py-2.5 rounded-xl"
+                      className="flex flex-1 items-center px-3 py-2.5 rounded-[10px]"
                       style={{ background: tc.inputBg, border: `1px dashed ${tc.inputBorder}` }}
                     >
                       <span className="text-sm" style={{ color: tc.textFaint }}>...</span>
