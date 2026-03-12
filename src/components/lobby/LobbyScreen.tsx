@@ -2,42 +2,9 @@ import { useState, useEffect } from 'react'
 import QRCode from 'react-qr-code'
 import { useGameStore, getSavedSession } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
-import type { ThemeColors } from '../../data/themes'
 import { TRANSLATIONS } from '../../data/translations'
 import { PLAYER_COLORS, MAX_LIGHTNING_PLAYERS } from '../../types/game'
 
-function TimePicker({ label, value, options, offLabel, onChange, tc }: {
-  label: string
-  value: number
-  options: number[]
-  offLabel?: string
-  onChange: (v: number) => void
-  tc: ThemeColors
-}) {
-  return (
-    <div>
-      <div className="text-xs uppercase tracking-widest mb-1.5" style={{ color: tc.textMuted }}>{label}</div>
-      <div className="flex gap-1.5 flex-wrap">
-        {options.map(opt => {
-          const active = value === opt
-          return (
-            <button
-              key={opt}
-              onClick={() => onChange(opt)}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
-              style={active
-                ? { background: tc.accentBgActive, border: `1.5px solid ${tc.accentBorderActive}`, color: tc.accent }
-                : { background: tc.inputBg, border: `1.5px solid ${tc.inputBorder}`, color: tc.textDim }
-              }
-            >
-              {opt === 0 && offLabel ? offLabel : `${opt}s`}
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
 export default function LobbyScreen() {
   const theme           = useGameStore(s => s.theme)
@@ -49,8 +16,6 @@ export default function LobbyScreen() {
   const playerNames     = useGameStore(s => s.playerNames)
   const turnTime        = useGameStore(s => s.turnTime)
   const quizTime        = useGameStore(s => s.quizTime)
-  const setTurnTime     = useGameStore(s => s.setTurnTime)
-  const setQuizTime     = useGameStore(s => s.setQuizTime)
   const openRules                 = useGameStore(s => s.openRules)
   const createRoom                = useGameStore(s => s.createRoom)
   const joinRoom                  = useGameStore(s => s.joinRoom)
@@ -339,26 +304,6 @@ export default function LobbyScreen() {
               </div>
             )}
 
-            {/* Time pickers (host, pexequiz only) */}
-            {gameMode === 'pexequiz' && isHost && (
-              <div className="space-y-3">
-                <TimePicker
-                  label={tr.turnTimeLabel}
-                  value={turnTime}
-                  options={[0, 10, 20, 30, 60]}
-                  offLabel={tr.turnTimeOff}
-                  onChange={setTurnTime}
-                  tc={tc}
-                />
-                <TimePicker
-                  label={tr.quizTimeLabel}
-                  value={quizTime}
-                  options={[3, 5, 10, 15]}
-                  onChange={setQuizTime}
-                  tc={tc}
-                />
-              </div>
-            )}
 
             {/* Status / waiting badge */}
             {!isHost && hostOpeningSettings ? (
