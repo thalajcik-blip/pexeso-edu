@@ -327,15 +327,6 @@ export default function WinModal() {
           {isOnline ? tr.leaveRoom : tr.chooseDeck}
         </button>
 
-        {/* Tertiary: player settings (local only) */}
-        {!isOnline && (
-          <button
-            onClick={resetToSetup}
-            className="block mx-auto mt-1.5 text-sm transition-opacity opacity-35 hover:opacity-70"
-          >
-            {tr.playerSettings}
-          </button>
-        )}
       </div>
     </div>
   )
