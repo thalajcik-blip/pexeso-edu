@@ -44,7 +44,8 @@ export default function LobbyScreen() {
   const [copied, setCopied]   = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
 
-  // Pre-fill from URL param ?room=CODE or sessionStorage
+  // Pre-fill from URL param ?room=CODE (auto-switch to join view)
+  // or sessionStorage (pre-fill only, stay on choice view)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const urlRoom = params.get('room')
@@ -56,7 +57,7 @@ export default function LobbyScreen() {
       if (saved) {
         setCodeInput(saved.roomId)
         setMyName(saved.myName)
-        setView('join-code')
+        // don't auto-switch — user can choose create or join
       }
     }
   }, [])
