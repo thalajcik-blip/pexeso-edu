@@ -96,10 +96,10 @@ export default function QuizModal() {
     if (isEn && enData) {
       return { correct: enData.correct, options: shuffle([enData.correct, ...enData.wrong]), hint: item.answer }
     }
-    const useEn   = isEn && !enData
-    const correct = useEn ? (item.answerEn ?? item.answer) : item.answer
+    const isSk    = language === 'sk'
+    const correct = isEn ? (item.answerEn ?? item.answer) : isSk ? (item.answerSk ?? item.answer) : item.answer
     const others  = Object.values(deck.pool)
-      .map(d => useEn ? (d.answerEn ?? d.answer) : d.answer)
+      .map(d => isEn ? (d.answerEn ?? d.answer) : isSk ? (d.answerSk ?? d.answer) : d.answer)
       .filter(a => a !== correct)
     return {
       correct,

@@ -38,6 +38,7 @@ export interface DeckItem {
   hint: string | null
   hintSk?: string
   answer: string
+  answerSk?: string
   answerEn?: string
   fact: string
   factSk?: string

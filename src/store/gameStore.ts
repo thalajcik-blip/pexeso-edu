@@ -71,12 +71,13 @@ function buildLightningQuestions(
       }
     }
 
-    const correct = isEn ? (item.answerEn ?? item.answer) : item.answer
+    const isSk = language === 'sk'
+    const correct = isEn ? (item.answerEn ?? item.answer) : isSk ? (item.answerSk ?? item.answer) : item.answer
     const question = tr.deckQuestions[deck.id as DeckId]
     const distractors = shuffle(
       allSymbols
         .filter(s => s !== symbol)
-        .map(s => isEn ? (deck.pool[s].answerEn ?? deck.pool[s].answer) : deck.pool[s].answer)
+        .map(s => isEn ? (deck.pool[s].answerEn ?? deck.pool[s].answer) : isSk ? (deck.pool[s].answerSk ?? deck.pool[s].answer) : deck.pool[s].answer)
         .filter(a => a !== correct)
     ).slice(0, 3)
 
@@ -100,10 +101,12 @@ function computeCorrectAnswer(quizSymbol: string, selectedDeckId: string, langua
   const deck = DECKS.find(d => d.id === selectedDeckId) ?? DECKS[0]
   const item = deck.pool[quizSymbol]
   const isEn = language === 'en'
+  const isSk = language === 'sk'
   const enData = isEn ? EN_QUIZ[quizSymbol] : null
   if (isEn && enData) return enData.correct
-  const useEn = isEn && !enData
-  return useEn ? (item.answerEn ?? item.answer) : item.answer
+  if (isEn) return item.answerEn ?? item.answer
+  if (isSk) return item.answerSk ?? item.answer
+  return item.answer
 }
 
 interface GameStore {

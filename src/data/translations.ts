@@ -279,7 +279,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     ],
     deckQuestions: {
       animals: 'Ako sa toto zvieratko povie po anglicky?',
-      flags:   'Čia je to vlajka?',
+      flags:   'Ktorej krajine patrí táto vlajka?',
       fruits:  'Ako sa táto potravina povie po anglicky?',
       jobs:    'Ako sa toto povolanie povie po anglicky?',
     },
