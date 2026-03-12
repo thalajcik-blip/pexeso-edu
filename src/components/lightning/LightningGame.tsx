@@ -372,16 +372,6 @@ export default function LightningGame() {
                   <span className="text-xl font-bold" style={{ color: tc.accent }}>{fastestS}s</span>
                 </div>
               )}
-              {practiceQuestion && (
-                <div
-                  className="mt-1 px-3 py-2.5 rounded-xl text-sm text-left"
-                  style={{ background: tc.factBg, color: tc.factText }}
-                >
-                  <div className="font-semibold mb-0.5">{tr.lightningPractice}</div>
-                  <div className="opacity-80">{practiceQuestion.question}</div>
-                  <div className="font-bold mt-0.5">{practiceQuestion.correct}</div>
-                </div>
-              )}
             </div>
           )}
 
