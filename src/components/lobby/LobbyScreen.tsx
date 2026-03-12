@@ -165,11 +165,13 @@ export default function LobbyScreen() {
           <div>
             <div className="text-xs uppercase tracking-widest mb-2" style={{ color: tc.textMuted }}>{tr.yourName}</div>
             <input
-              className="w-full rounded-lg px-3 py-2.5 text-sm outline-none"
+              className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition-colors"
               style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}`, color: tc.text }}
               value={myName}
               placeholder={tr.defaultPlayerNames[0]}
               onChange={e => setMyName(e.target.value)}
+              onFocus={e => e.target.style.borderColor = tc.accent}
+              onBlur={e => e.target.style.borderColor = tc.inputBorder}
             />
           </div>
         )}
@@ -201,7 +203,7 @@ export default function LobbyScreen() {
           <div className="space-y-3">
             <div className="text-xs uppercase tracking-widest mb-2" style={{ color: tc.textMuted }}>{tr.roomCode}</div>
             <input
-              className="w-full rounded-lg px-3 py-3 text-center text-2xl font-bold tracking-widest uppercase outline-none"
+              className="w-full rounded-lg px-3 py-3 text-center text-2xl font-bold tracking-widest uppercase outline-none transition-colors"
               style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}`, color: tc.text }}
               value={codeInput}
               placeholder="ABC123"
@@ -209,6 +211,8 @@ export default function LobbyScreen() {
               autoFocus
               onChange={e => setCodeInput(e.target.value.toUpperCase())}
               onKeyDown={e => e.key === 'Enter' && handleJoin()}
+              onFocus={e => e.target.style.borderColor = tc.accent}
+              onBlur={e => e.target.style.borderColor = tc.inputBorder}
             />
             <div className="flex gap-2">
               <button
