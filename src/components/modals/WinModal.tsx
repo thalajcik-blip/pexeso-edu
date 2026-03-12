@@ -220,22 +220,23 @@ export default function WinModal() {
   const maxScore = sorted[0]?.score ?? 0
   const isTie = sorted.filter(p => p.score === maxScore).length > 1
 
-  // Determine personal result for online (myPlayerId) or local (show winner perspective)
+  // Determine result context:
+  // - online: personalized per myPlayerId (winner/loser/tie)
+  // - local: always winner's perspective (shared screen — never show loser message)
   function getMyResult(): MultiResult {
     if (isTie) return 'tie'
-    const myIdx = isOnline
-      ? players.findIndex((_, i) => playerIds[i] === myPlayerId)
-      : 0 // local: show from winner's perspective
-    const myScore = players[myIdx]?.score ?? 0
-    const topScore = maxScore
-    if (myScore < topScore) {
-      const diff = topScore - myScore
-      return diff <= 2 ? 'close_loss' : 'loss'
+    if (isOnline) {
+      const myIdx = players.findIndex((_, i) => playerIds[i] === myPlayerId)
+      const myScore = players[myIdx]?.score ?? 0
+      if (myScore < maxScore) {
+        return (maxScore - myScore) <= 2 ? 'close_loss' : 'loss'
+      }
+      const secondScore = sorted.find(p => p.score < myScore)?.score ?? myScore
+      return (myScore - secondScore) <= 2 ? 'winner' : 'champion'
     }
-    // I'm the winner
-    const secondScore = sorted.find(p => p.score < myScore)?.score ?? myScore
-    const diff = myScore - secondScore
-    return diff <= 2 ? 'winner' : 'champion'
+    // Local: winner's perspective
+    const secondScore = sorted[1]?.score ?? maxScore
+    return (maxScore - secondScore) <= 2 ? 'winner' : 'champion'
   }
 
   const resultKey = getMyResult()
