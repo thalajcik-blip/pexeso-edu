@@ -70,6 +70,9 @@ export interface Translations {
   lightningNext: string
   lightningAnswered: string
   lightningWaitingForHost: string
+  lightningFastest: string
+  lightningPractice: string
+  lightningChooseOther: string
   // Lobby / online
   localBtn: string
   onlineBtn: string
@@ -212,6 +215,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningNext: 'Další →',
     lightningAnswered: 'odpovědělo',
     lightningWaitingForHost: 'Čekám na spuštění nového kola...',
+    lightningFastest: 'Nejrychlejší odpověď ⚡',
+    lightningPractice: 'Procvič si 📚',
+    lightningChooseOther: 'Vybrat jinou sadu',
   },
 
   sk: {
@@ -327,6 +333,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningNext: 'Ďalej →',
     lightningAnswered: 'odpovedalo',
     lightningWaitingForHost: 'Čakám na spustenie nového kola...',
+    lightningFastest: 'Najrýchlejšia odpoveď ⚡',
+    lightningPractice: 'Precvič si 📚',
+    lightningChooseOther: 'Vybrať inú sadu',
   },
 
   en: {
@@ -442,6 +451,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningNext: 'Next →',
     lightningAnswered: 'answered',
     lightningWaitingForHost: 'Waiting for host to start a new round...',
+    lightningFastest: 'Fastest answer ⚡',
+    lightningPractice: 'Practice 📚',
+    lightningChooseOther: 'Choose another deck',
   },
 }
 

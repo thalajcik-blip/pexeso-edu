@@ -9,6 +9,77 @@ const OPTION_LABELS = ['A', 'B', 'C', 'D']
 const REVEAL_DURATION = 4000
 const MEDALS = ['🥇', '🥈', '🥉']
 
+type LightningTier = { icon: string; title: Record<string, string>; messages: Record<string, string[]> }
+const LIGHTNING_TIERS: LightningTier[] = [
+  {
+    icon: '🧠',
+    title: { cs: 'Génius!', sk: 'Génius!', en: 'Genius!' },
+    messages: {
+      cs: ['Jsi chytřejší než Google!', 'Učebnice by měly psát o tobě.', 'Mozek na maximum — perfektní výsledek!'],
+      sk: ['Si múdrejší ako Google!', 'Učebnice by mali písať o tebe.', 'Mozog na maximum — perfektný výsledok!'],
+      en: ["You're smarter than Google!", 'Textbooks should be written about you.', 'Brain at full power — perfect score!'],
+    },
+  },
+  {
+    icon: '🔥',
+    title: { cs: 'Výborně!', sk: 'Výborne!', en: 'Excellent!' },
+    messages: {
+      cs: ['Skoro dokonalý! Jedna otázka tě podvedla.', 'Téměř bezchybný výkon — skvělá práce!', 'Oheň v mozku hoří naplno!'],
+      sk: ['Skoro dokonalý! Jedna otázka ťa podviedla.', 'Takmer bezchybný výkon — skvelá práca!', 'Oheň v mozgu horí naplno!'],
+      en: ['Almost perfect! One question got you.', 'Nearly flawless — great job!', 'Brain on fire!'],
+    },
+  },
+  {
+    icon: '⭐',
+    title: { cs: 'Skvělé!', sk: 'Skvelé!', en: 'Great!' },
+    messages: {
+      cs: ['Solid výkon! Příště to dotáhneš na 100%.', 'Mozek pracuje naplno — dobrá práce!', 'Tři čtvrtiny tam — příště to zlomíš!'],
+      sk: ['Solid výkon! Nabudúce to dotiahneš na 100%.', 'Mozog pracuje naplno — dobrá práca!', 'Tri štvrtiny tam — nabudúce to zlomíš!'],
+      en: ['Solid performance! Next time you\'ll hit 100%.', 'Brain working hard — good job!', 'Three quarters there — you\'ll nail it next time!'],
+    },
+  },
+  {
+    icon: '💪',
+    title: { cs: 'Dobrý pokus!', sk: 'Dobrý pokus!', en: 'Good try!' },
+    messages: {
+      cs: ['Rozehřívačka se povedla, příště víc!', 'Půlka tam, půlka příště — nevzdávej!', 'Mozek se zahřívá. Zkus to znovu!'],
+      sk: ['Rozcvička sa podarila, nabudúce viac!', 'Polovica tam, polovica nabudúce — nevzdávaj!', 'Mozog sa zahrieva. Skús to znovu!'],
+      en: ['Warm-up done, go for more next time!', 'Halfway there — don\'t give up!', 'Brain warming up. Try again!'],
+    },
+  },
+  {
+    icon: '📚',
+    title: { cs: 'Nevzdávej to!', sk: 'Nevzdávaj to!', en: "Don't give up!" },
+    messages: {
+      cs: ['Tohle téma chce trochu procvičit — dáš to!', 'Zkus to znovu, mozek potřebuje čas!', 'Každý pokus tě posouvá blíž k cíli!'],
+      sk: ['Táto téma chce trochu precvičiť — dáš to!', 'Skús to znovu, mozog potrebuje čas!', 'Každý pokus ťa posúva bližšie k cieľu!'],
+      en: ['This topic needs a bit more practice — you got this!', 'Try again, the brain needs time!', 'Every attempt gets you closer to the goal!'],
+    },
+  },
+  {
+    icon: '🚀',
+    title: { cs: 'Výzva přijata!', sk: 'Výzva prijatá!', en: 'Challenge accepted!' },
+    messages: {
+      cs: ['Každý šampion začínal od nuly. Zkus to znovu!', 'Mozek se právě něco naučil. To se počítá!', 'Tuhle sadu ještě dobydneš, jen tak nevzdávej!'],
+      sk: ['Každý šampión začínal od nuly. Skús to znovu!', 'Mozog sa práve niečo naučil. To sa počíta!', 'Túto sadu ešte dobydieš, tak nevzdávaj!'],
+      en: ['Every champion started from zero. Try again!', 'Your brain just learned something. That counts!', "You'll conquer this deck yet — don't give up!"],
+    },
+  },
+]
+
+function getLightningTier(accuracy: number): LightningTier {
+  if (accuracy === 100) return LIGHTNING_TIERS[0]
+  if (accuracy >= 90)   return LIGHTNING_TIERS[1]
+  if (accuracy >= 75)   return LIGHTNING_TIERS[2]
+  if (accuracy >= 50)   return LIGHTNING_TIERS[3]
+  if (accuracy >= 25)   return LIGHTNING_TIERS[4]
+  return LIGHTNING_TIERS[5]
+}
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
 export default function LightningGame() {
   const phase                     = useGameStore(s => s.phase)
   const lightningQuestions        = useGameStore(s => s.lightningQuestions)
@@ -171,13 +242,15 @@ export default function LightningGame() {
     if (phase !== 'lightning_results') return
     const correct = lightningAnswers.filter(a => a.correct).length
     const accuracy = total > 0 ? correct / total : 0
-    if (accuracy < 0.5) return
     soundWin()
     const colors = theme === 'light' ? ['#6d41a1', '#ffffff', '#c4a8e8'] : ['#f9d74e', '#ffffff', '#1a237e']
-    const end = Date.now() + 2000
+    // Intensity scales with accuracy: low score = short burst, high score = 2s
+    const duration = Math.max(500, accuracy * 2000)
+    const particleCount = Math.max(2, Math.round(accuracy * 5))
+    const end = Date.now() + duration
     const frame = () => {
-      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors })
-      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors })
+      confetti({ particleCount, angle: 60, spread: 55, origin: { x: 0 }, colors })
+      confetti({ particleCount, angle: 120, spread: 55, origin: { x: 1 }, colors })
       if (Date.now() < end) requestAnimationFrame(frame)
     }
     frame()
@@ -213,6 +286,21 @@ export default function LightningGame() {
       ? (lightningAnswers.reduce((s, a) => s + a.timeMs, 0) / lightningAnswers.length / 1000).toFixed(1)
       : '—'
 
+    // Fastest correct answer
+    const correctAnswers = lightningAnswers.filter(a => a.correct)
+    const fastestMs = correctAnswers.length > 0
+      ? Math.min(...correctAnswers.map(a => a.timeMs))
+      : null
+    const fastestS = fastestMs !== null ? (fastestMs / 1000).toFixed(1) : null
+
+    // First wrong answer for practice hint
+    const firstWrongIdx = lightningAnswers.findIndex(a => !a.correct)
+    const practiceQuestion = firstWrongIdx >= 0 ? lightningQuestions[firstWrongIdx] : null
+
+    // Tier + random message
+    const tier = getLightningTier(accuracy)
+    const tierMessage = pickRandom(tier.messages[language] ?? tier.messages['cs'])
+
     // Online: sort all players by score for leaderboard
     const sortedPlayers = isOnline
       ? [...players].map((p, i) => ({ ...p, idx: i })).sort((a, b) => b.score - a.score)
@@ -223,9 +311,20 @@ export default function LightningGame() {
         <div className="pop-in rounded-2xl p-8 text-center w-full max-w-sm overflow-y-auto max-h-[90vh]"
           style={{ background: tc.modalSurface, border: `2px solid ${tc.accent}`, boxShadow: `0 0 60px ${tc.accentGlow}`, color: tc.text }}>
 
-          <div className="text-4xl mb-1">🔥</div>
-          <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tr.soloGameOver}</div>
-          <div className="text-xs uppercase tracking-widest mb-6" style={{ color: tc.textMuted }}>{tr.results}</div>
+          {/* Tier header */}
+          {!isOnline ? (
+            <>
+              <div className="text-4xl mb-1">{tier.icon}</div>
+              <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tier.title[language]}</div>
+              <div className="text-sm mb-6" style={{ color: tc.textMuted }}>{tierMessage}</div>
+            </>
+          ) : (
+            <>
+              <div className="text-4xl mb-1">🔥</div>
+              <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tr.soloGameOver}</div>
+              <div className="text-xs uppercase tracking-widest mb-6" style={{ color: tc.textMuted }}>{tr.results}</div>
+            </>
+          )}
 
           {/* Online: full leaderboard */}
           {isOnline && sortedPlayers.length > 0 ? (
@@ -254,8 +353,8 @@ export default function LightningGame() {
               })}
             </div>
           ) : (
-            /* Solo: accuracy + avg time */
-            <div className="flex flex-col gap-4 text-left mb-4">
+            /* Solo: stats */
+            <div className="flex flex-col gap-3 text-left mb-5">
               <div className="flex items-center justify-between gap-8">
                 <span style={{ color: tc.textMuted }}>{tr.soloQuizLabel}</span>
                 <span>
@@ -267,10 +366,26 @@ export default function LightningGame() {
                 <span style={{ color: tc.textMuted }}>{tr.lightningAvgTime}</span>
                 <span className="text-xl font-bold" style={{ color: tc.accent }}>{avgTimeS}s</span>
               </div>
+              {fastestS !== null && (
+                <div className="flex items-center justify-between gap-8">
+                  <span style={{ color: tc.textMuted }}>{tr.lightningFastest}</span>
+                  <span className="text-xl font-bold" style={{ color: tc.accent }}>{fastestS}s</span>
+                </div>
+              )}
+              {practiceQuestion && (
+                <div
+                  className="mt-1 px-3 py-2.5 rounded-xl text-sm text-left"
+                  style={{ background: tc.factBg, color: tc.factText }}
+                >
+                  <div className="font-semibold mb-0.5">{tr.lightningPractice}</div>
+                  <div className="opacity-80">{practiceQuestion.question}</div>
+                  <div className="font-bold mt-0.5">{practiceQuestion.correct}</div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Play Again */}
+          {/* CTA buttons */}
           {(!isOnline || isHost) ? (
             <button
               onClick={isOnline ? startOnlineLightningGame : startLightningGame}
@@ -287,7 +402,7 @@ export default function LightningGame() {
             onClick={resetToSetup}
             className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"
           >
-            {isOnline ? tr.leaveRoom : tr.chooseDeck}
+            {isOnline ? tr.leaveRoom : tr.lightningChooseOther}
           </button>
         </div>
       </div>
