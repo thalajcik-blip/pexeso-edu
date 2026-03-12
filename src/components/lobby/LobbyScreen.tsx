@@ -380,24 +380,35 @@ export default function LobbyScreen() {
                 >
                   {tr.startOnlineGame} ▶
                 </button>
-                <button
-                  onClick={openSettingsModal}
-                  className="w-full py-2.5 rounded-xl border text-sm font-medium transition-all opacity-60 hover:opacity-100"
-                  style={inactiveBtn}
-                >
-                  ⚙️ {tr.changeGameSettings}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={openSettingsModal}
+                    className="flex-1 py-2.5 rounded-xl border text-sm font-medium transition-all opacity-60 hover:opacity-100"
+                    style={inactiveBtn}
+                  >
+                    ⚙️ {tr.changeGameSettings}
+                  </button>
+                  <button
+                    onClick={leaveRoom}
+                    className="flex-1 py-2.5 rounded-xl border text-sm font-medium transition-all opacity-40 hover:opacity-80"
+                    style={inactiveBtn}
+                  >
+                    {tr.leaveRoom}
+                  </button>
+                </div>
               </>
             )}
 
-            {/* Leave */}
-            <button
-              onClick={leaveRoom}
-              className="w-full py-2.5 rounded-xl border text-sm font-medium transition-all opacity-40 hover:opacity-80"
-              style={inactiveBtn}
-            >
-              {tr.leaveRoom}
-            </button>
+            {/* Leave (guest) */}
+            {!isHost && (
+              <button
+                onClick={leaveRoom}
+                className="w-full py-2.5 rounded-xl border text-sm font-medium transition-all opacity-40 hover:opacity-80"
+                style={inactiveBtn}
+              >
+                {tr.leaveRoom}
+              </button>
+            )}
           </div>
         )}
 
