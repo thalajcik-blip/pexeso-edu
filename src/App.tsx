@@ -17,6 +17,7 @@ export default function App() {
   const language           = useGameStore(s => s.language)
   const debugEndGame       = useGameStore(s => s.debugEndGame)
   const isOnline           = useGameStore(s => s.isOnline)
+  const isHost             = useGameStore(s => s.isHost)
   const hostOpeningSettings = useGameStore(s => s.hostOpeningSettings)
   const lobbyPlayers       = useGameStore(s => s.lobbyPlayers)
   const disconnectedPlayer = useGameStore(s => s.disconnectedPlayer)
@@ -82,7 +83,7 @@ export default function App() {
       {phase === 'win' && <WinModal />}
       {(phase === 'lightning_playing' || phase === 'lightning_reveal' || phase === 'lightning_results') && <LightningGame />}
       <RulesModal />
-      {hostOpeningSettings && <SettingsModal />}
+      {isHost && hostOpeningSettings && <SettingsModal />}
 
       {/* Player left — brief banner */}
       {isOnline && disconnectedPlayer && !isAlone && (
