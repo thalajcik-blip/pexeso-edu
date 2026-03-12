@@ -645,7 +645,11 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
         break
       }
       case 'host_opening_settings':
-        set({ hostOpeningSettings: true })
+        // Guests go back to lobby to wait; host stays where they are (they opened the modal themselves)
+        set(s => s.isHost
+          ? { hostOpeningSettings: true }
+          : { hostOpeningSettings: true, phase: 'lobby', cards: [], players: [], quizSymbol: null }
+        )
         break
       case 'settings_updated':
         set({
