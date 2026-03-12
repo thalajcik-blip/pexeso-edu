@@ -78,8 +78,6 @@ export default function LobbyScreen() {
   const [loading, setLoading] = useState(false)
   const [copied, setCopied]   = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
-  const [editingName, setEditingName] = useState(false)
-  const [editNameValue, setEditNameValue] = useState('')
 
   // Pre-fill from URL param ?room=CODE or sessionStorage
   useEffect(() => {
@@ -277,43 +275,29 @@ export default function LobbyScreen() {
               <div className="space-y-2">
                 {sortedPlayers.map((p, displayIdx) => {
                   const isMe = p.id === myPlayerId
-                  const rowStyle = isMe && editingName
-                    ? { background: tc.inputBg, border: `1px solid ${tc.accent}` }
-                    : { background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }
                   return (
                     <div
                       key={p.id}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
-                      style={rowStyle}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors"
+                      style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }}
+                      onFocus={isMe ? e => (e.currentTarget.style.borderColor = tc.accent) : undefined}
+                      onBlur={isMe ? e => (e.currentTarget.style.borderColor = tc.inputBorder) : undefined}
                     >
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[displayIdx] }} />
-                      {isMe && editingName ? (
+                      {isMe ? (
                         <input
-                          autoFocus
-                          className="flex-1 text-sm font-medium outline-none bg-transparent"
+                          className="flex-1 min-w-0 font-medium text-sm outline-none bg-transparent"
                           style={{ color: tc.text }}
-                          value={editNameValue}
+                          defaultValue={p.name}
                           maxLength={20}
-                          onChange={e => setEditNameValue(e.target.value)}
-                          onBlur={() => {
-                            const name = editNameValue.trim() || p.name
-                            setEditingName(false)
+                          onBlur={e => {
+                            const name = e.target.value.trim() || p.name
                             if (name !== p.name) changeMyLobbyName(name)
                           }}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                              const name = editNameValue.trim() || p.name
-                              setEditingName(false)
-                              if (name !== p.name) changeMyLobbyName(name)
-                            }
-                            if (e.key === 'Escape') setEditingName(false)
-                          }}
+                          onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
                         />
                       ) : (
-                        <span
-                          className="font-medium flex-1 min-w-0 truncate"
-                          style={{ color: tc.text }}
-                        >
+                        <span className="font-medium flex-1 min-w-0 truncate" style={{ color: tc.text }}>
                           {p.name}
                         </span>
                       )}
@@ -322,14 +306,8 @@ export default function LobbyScreen() {
                           {tr.lobbyHost}
                         </span>
                       )}
-                      {isMe && !editingName && (
-                        <button
-                          onClick={() => { setEditNameValue(p.name); setEditingName(true) }}
-                          className="text-xs px-2 py-0.5 rounded-md flex-shrink-0 transition-all opacity-50 hover:opacity-100"
-                          style={{ background: tc.accentBgActive, color: tc.accent, border: `1px solid ${tc.accentBorderActive}` }}
-                        >
-                          ✏️ {tr.you}
-                        </button>
+                      {isMe && (
+                        <span className="text-xs flex-shrink-0" style={{ color: tc.textFaint }}>{tr.you}</span>
                       )}
                     </div>
                   )
