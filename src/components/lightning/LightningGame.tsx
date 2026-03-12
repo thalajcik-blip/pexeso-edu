@@ -293,10 +293,6 @@ export default function LightningGame() {
       : null
     const fastestS = fastestMs !== null ? (fastestMs / 1000).toFixed(1) : null
 
-    // First wrong answer for practice hint
-    const firstWrongIdx = lightningAnswers.findIndex(a => !a.correct)
-    const practiceQuestion = firstWrongIdx >= 0 ? lightningQuestions[firstWrongIdx] : null
-
     // Tier + random message
     const tier = getLightningTier(accuracy)
     const tierMessage = pickRandom(tier.messages[language] ?? tier.messages['cs'])
