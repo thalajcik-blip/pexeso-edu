@@ -472,12 +472,14 @@ export default function LightningGame() {
             <p className="mt-2 text-sm" style={{ color: tc.textMuted }}>{tr.lightningWaitingForHost}</p>
           )}
 
-          <button
-            onClick={resetToSetup}
-            className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"
-          >
-            {isOnline ? tr.lightningChooseOther : tr.lightningChooseOther}
-          </button>
+          {(!isOnline || isHost) && (
+            <button
+              onClick={resetToSetup}
+              className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"
+            >
+              {tr.lightningChooseOther}
+            </button>
+          )}
 
           {isOnline && (
             <button
