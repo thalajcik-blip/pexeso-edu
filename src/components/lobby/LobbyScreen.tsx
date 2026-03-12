@@ -276,50 +276,53 @@ export default function LobbyScreen() {
                 {sortedPlayers.map((p, displayIdx) => {
                   const isMe = p.id === myPlayerId
                   return (
-                    <div
-                      key={p.id}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors"
-                      style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }}
-                      onFocus={isMe ? e => (e.currentTarget.style.borderColor = tc.accent) : undefined}
-                      onBlur={isMe ? e => (e.currentTarget.style.borderColor = tc.inputBorder) : undefined}
-                    >
-                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[displayIdx] }} />
-                      {isMe ? (
-                        <input
-                          className="flex-1 min-w-0 font-medium text-sm outline-none bg-transparent"
-                          style={{ color: tc.text }}
-                          defaultValue={p.name}
-                          maxLength={20}
-                          onBlur={e => {
-                            const name = e.target.value.trim() || p.name
-                            if (name !== p.name) changeMyLobbyName(name)
-                          }}
-                          onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                        />
-                      ) : (
-                        <span className="font-medium flex-1 min-w-0 truncate" style={{ color: tc.text }}>
-                          {p.name}
-                        </span>
-                      )}
-                      {p.isHost && (
-                        <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: tc.accentBgActive, color: tc.accent }}>
-                          {tr.lobbyHost}
-                        </span>
-                      )}
-                      {isMe && (
-                        <span className="text-xs flex-shrink-0" style={{ color: tc.textFaint }}>{tr.you}</span>
-                      )}
+                    <div key={p.id} className="flex items-center gap-2">
+                      <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[displayIdx] }} />
+                      <div
+                        className="flex flex-1 items-center gap-2 px-3 py-2.5 rounded-xl transition-colors"
+                        style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }}
+                        onFocus={isMe ? e => (e.currentTarget.style.borderColor = tc.accent) : undefined}
+                        onBlur={isMe ? e => (e.currentTarget.style.borderColor = tc.inputBorder) : undefined}
+                      >
+                        {isMe ? (
+                          <input
+                            className="flex-1 min-w-0 font-medium text-sm outline-none bg-transparent"
+                            style={{ color: tc.text }}
+                            defaultValue={p.name}
+                            maxLength={20}
+                            onBlur={e => {
+                              const name = e.target.value.trim() || p.name
+                              if (name !== p.name) changeMyLobbyName(name)
+                            }}
+                            onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                          />
+                        ) : (
+                          <span className="font-medium flex-1 min-w-0 truncate" style={{ color: tc.text }}>
+                            {p.name}
+                          </span>
+                        )}
+                        {p.isHost && (
+                          <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: tc.accentBgActive, color: tc.accent }}>
+                            {tr.lobbyHost}
+                          </span>
+                        )}
+                        {isMe && (
+                          <span className="text-xs flex-shrink-0" style={{ color: tc.textFaint }}>{tr.you}</span>
+                        )}
+                      </div>
                     </div>
                   )
                 })}
                 {/* Empty slot */}
                 {sortedPlayers.length < (gameMode === 'lightning' ? MAX_LIGHTNING_PLAYERS : 6) && (
-                  <div
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                    style={{ background: tc.inputBg, border: `1px dashed ${tc.inputBorder}`, opacity: 0.5 }}
-                  >
-                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: tc.textFaint }} />
-                    <span className="text-sm" style={{ color: tc.textFaint }}>...</span>
+                  <div className="flex items-center gap-2 opacity-40">
+                    <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: tc.textFaint }} />
+                    <div
+                      className="flex flex-1 items-center px-3 py-2.5 rounded-xl"
+                      style={{ background: tc.inputBg, border: `1px dashed ${tc.inputBorder}` }}
+                    >
+                      <span className="text-sm" style={{ color: tc.textFaint }}>...</span>
+                    </div>
                   </div>
                 )}
               </div>
