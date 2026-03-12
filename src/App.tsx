@@ -67,7 +67,7 @@ export default function App() {
   const isDev = import.meta.env.VITE_SUPABASE_URL?.includes('zmiwnqiocdolvnzabcrm')
 
   return (
-    <div
+    <main
       className="min-h-screen select-none transition-colors duration-300"
       style={{ fontFamily: "'Readex Pro', sans-serif", background: tc.bg, color: tc.text }}
     >
@@ -119,6 +119,6 @@ export default function App() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   )
 }
