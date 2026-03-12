@@ -273,18 +273,21 @@ export default function LobbyScreen() {
               <div className="space-y-2">
                 {sortedPlayers.map((p, displayIdx) => {
                   const isMe = p.id === myPlayerId
+                  const rowStyle = isMe && editingName
+                    ? { background: tc.inputBg, border: `1.5px solid ${tc.accent}`, boxShadow: `0 0 0 3px ${tc.accentBgActive}` }
+                    : { background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }
                   return (
                     <div
                       key={p.id}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                      style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
+                      style={rowStyle}
                     >
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[displayIdx] }} />
                       {isMe && editingName ? (
                         <input
                           autoFocus
-                          className="flex-1 text-sm font-medium rounded px-1 outline-none"
-                          style={{ background: 'transparent', color: tc.text, borderBottom: `1px solid ${tc.accent}` }}
+                          className="flex-1 text-sm font-medium outline-none bg-transparent"
+                          style={{ color: tc.text }}
                           value={editNameValue}
                           maxLength={20}
                           onChange={e => setEditNameValue(e.target.value)}
@@ -304,13 +307,10 @@ export default function LobbyScreen() {
                         />
                       ) : (
                         <span
-                          className={`font-medium flex-1${isMe ? ' cursor-pointer hover:opacity-70' : ''}`}
+                          className="font-medium flex-1 min-w-0 truncate"
                           style={{ color: tc.text }}
-                          onClick={isMe ? () => { setEditNameValue(p.name); setEditingName(true) } : undefined}
-                          title={isMe ? '✏️' : undefined}
                         >
                           {p.name}
-                          {isMe && <span className="ml-1 text-xs opacity-30">✏️</span>}
                         </span>
                       )}
                       {p.isHost && (
@@ -319,7 +319,13 @@ export default function LobbyScreen() {
                         </span>
                       )}
                       {isMe && !editingName && (
-                        <span className="text-xs flex-shrink-0" style={{ color: tc.textFaint }}>{tr.you}</span>
+                        <button
+                          onClick={() => { setEditNameValue(p.name); setEditingName(true) }}
+                          className="text-xs px-2 py-0.5 rounded-md flex-shrink-0 transition-all opacity-50 hover:opacity-100"
+                          style={{ background: tc.accentBgActive, color: tc.accent, border: `1px solid ${tc.accentBorderActive}` }}
+                        >
+                          ✏️ {tr.you}
+                        </button>
                       )}
                     </div>
                   )
