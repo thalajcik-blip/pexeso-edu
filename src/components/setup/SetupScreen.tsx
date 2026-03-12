@@ -349,7 +349,7 @@ export default function SetupScreen() {
                 className="flex-1 py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 cursor-pointer"
                 style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: `0 4px 20px ${tc.accentGlow}` }}
               >
-                {tr.createGameBtn}
+                {tr.onlineBtn}
               </button>
             </>
           )}
