@@ -18,8 +18,10 @@ import {
   createRoomInDb,
   fetchRoomFromDb,
   deleteRoomFromDb,
+  updateRoomInDb,
   generateRoomCode,
   getPlayerId,
+  updateMyPresence,
 } from '../services/multiplayerService'
 import { fetchCustomDeckFull } from '../services/supabase'
 import type { LobbyPlayer, GameAction } from '../services/multiplayerService'
@@ -165,6 +167,7 @@ interface GameStore {
   quizTime: number   // seconds
   emojiReactions: Record<string, string> // playerId → emoji
   rematchRequested: boolean
+  hostOpeningSettings: boolean
 
   // Setup actions
   setLanguage: (lang: Language) => void
@@ -204,6 +207,10 @@ interface GameStore {
   leaveRoom: () => void
   startOnlineGame: () => void
   timeoutTurn: () => void
+  openSettingsModal: () => void
+  closeSettingsModal: () => void
+  applyNewSettings: (s: { deckId: string; customDeck: CustomDeckData | null; gameMode: 'pexequiz' | 'lightning'; size: BoardSize; lightningQuestionCount: number; lightningTimeLimit: number; turnTime: number; quizTime: number }) => void
+  changeMyLobbyName: (name: string) => void
 
   // Internal
   _setLobbyPlayers: (players: LobbyPlayer[]) => void
@@ -274,6 +281,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   quizTime: 10,
   emojiReactions: {},
   rematchRequested: false,
+  hostOpeningSettings: false,
 
   setLanguage: (lang) => set({ language: lang, playerNames: [...TRANSLATIONS[lang].defaultPlayerNames] }),
   toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
@@ -636,6 +644,28 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
         })
         break
       }
+      case 'host_opening_settings':
+        set({ hostOpeningSettings: true })
+        break
+      case 'settings_updated':
+        set({
+          selectedDeckId: action.deckId as DeckId,
+          gameMode: action.gameMode,
+          selectedSize: action.size as BoardSize,
+          lightningQuestionCount: action.lightningQuestionCount,
+          lightningTimeLimit: action.lightningTimeLimit,
+          turnTime: action.turnTime,
+          quizTime: action.quizTime,
+          phase: 'lobby',
+          hostOpeningSettings: false,
+          cards: [], players: [], quizSymbol: null,
+        })
+        break
+      case 'player_name_changed':
+        set(s => ({
+          lobbyPlayers: s.lobbyPlayers.map(p => p.id === action.playerId ? { ...p, name: action.name } : p),
+        }))
+        break
     }
   },
 
@@ -718,6 +748,61 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
 
   goToLobby: () => set({ phase: 'lobby' }),
 
+  openSettingsModal: () => {
+    broadcastGameAction({ type: 'host_opening_settings' })
+    set({ hostOpeningSettings: true })
+  },
+
+  closeSettingsModal: () => set({ hostOpeningSettings: false }),
+
+  applyNewSettings: (s) => {
+    const { roomId, language } = get()
+    set({
+      selectedDeckId: s.deckId,
+      customDeck: s.customDeck,
+      gameMode: s.gameMode,
+      selectedSize: s.size,
+      lightningQuestionCount: s.lightningQuestionCount,
+      lightningTimeLimit: s.lightningTimeLimit,
+      turnTime: s.turnTime,
+      quizTime: s.quizTime,
+      phase: 'lobby',
+      hostOpeningSettings: false,
+      cards: [], players: [], quizSymbol: null,
+    })
+    broadcastGameAction({
+      type: 'settings_updated',
+      deckId: s.deckId,
+      gameMode: s.gameMode,
+      size: s.size,
+      lightningQuestionCount: s.lightningQuestionCount,
+      lightningTimeLimit: s.lightningTimeLimit,
+      turnTime: s.turnTime,
+      quizTime: s.quizTime,
+    })
+    if (roomId) {
+      updateRoomInDb(roomId, {
+        deckId: s.deckId,
+        size: s.size,
+        language,
+        turnTime: s.turnTime,
+        quizTime: s.quizTime,
+        gameMode: s.gameMode,
+        lightningQuestionCount: s.lightningQuestionCount,
+        lightningTimeLimit: s.lightningTimeLimit,
+      })
+    }
+  },
+
+  changeMyLobbyName: (name) => {
+    const { myPlayerId } = get()
+    broadcastGameAction({ type: 'player_name_changed', playerId: myPlayerId, name })
+    updateMyPresence({ name })
+    set(s => ({
+      lobbyPlayers: s.lobbyPlayers.map(p => p.id === myPlayerId ? { ...p, name } : p),
+    }))
+  },
+
   createRoom: async (myName) => {
     const { selectedDeckId, selectedSize, language, turnTime, quizTime, gameMode, lightningQuestionCount, lightningTimeLimit } = get()
     const code = generateRoomCode()
@@ -776,6 +861,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       phase: 'setup', cards: [], players: [], quizSymbol: null,
       quizVotes: {}, quizCountdownEnd: null, quizRevealCorrect: null, disconnectedPlayer: null, emojiReactions: {},
       lightningPlayerAnswers: {}, lightningPlayerStats: {}, lightningQuestionEndTime: 0,
+      hostOpeningSettings: false,
     })
   },
 

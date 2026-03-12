@@ -47,8 +47,12 @@ export type GameAction =
   | { type: 'rematch_request' }
   | { type: 'lightning_start'; questions: LightningQuestion[]; playerIds: string[]; playerNames: string[]; questionEndTime: number }
   | { type: 'lightning_answer'; playerId: string; answer: string; timeMs: number }
+  | { type: 'host_opening_settings' }
+  | { type: 'settings_updated'; deckId: string; gameMode: 'pexequiz' | 'lightning'; size: string; lightningQuestionCount: number; lightningTimeLimit: number; turnTime: number; quizTime: number }
+  | { type: 'player_name_changed'; playerId: string; name: string }
 
 let channel: RealtimeChannel | null = null
+let myCurrentPresence: LobbyPlayer | null = null
 
 export function generateRoomCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -83,6 +87,16 @@ export async function deleteRoomFromDb(code: string): Promise<void> {
   await supabase.from('rooms').delete().eq('id', code)
 }
 
+export async function updateRoomInDb(code: string, settings: RoomSettings): Promise<void> {
+  await supabase.from('rooms').update({ settings }).eq('id', code)
+}
+
+export async function updateMyPresence(updates: Partial<LobbyPlayer>): Promise<void> {
+  if (!channel || !myCurrentPresence) return
+  myCurrentPresence = { ...myCurrentPresence, ...updates }
+  await channel.track(myCurrentPresence)
+}
+
 export function joinRealtimeChannel(
   code: string,
   myPresence: LobbyPlayer,
@@ -111,6 +125,7 @@ export function joinRealtimeChannel(
   return new Promise((resolve, reject) => {
     channel!.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
+        myCurrentPresence = myPresence
         await channel!.track(myPresence)
         resolve()
       } else if (status === 'CHANNEL_ERROR') {
@@ -124,6 +139,7 @@ export function leaveRealtimeChannel(): void {
   if (channel) {
     supabase.removeChannel(channel)
     channel = null
+    myCurrentPresence = null
   }
 }
 

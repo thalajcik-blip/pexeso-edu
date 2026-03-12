@@ -9,6 +9,7 @@ import QuizModal from './components/modals/QuizModal'
 import WinModal from './components/modals/WinModal'
 import RulesModal from './components/modals/RulesModal'
 import LightningGame from './components/lightning/LightningGame'
+import SettingsModal from './components/lobby/SettingsModal'
 
 export default function App() {
   const phase              = useGameStore(s => s.phase)
@@ -16,6 +17,7 @@ export default function App() {
   const language           = useGameStore(s => s.language)
   const debugEndGame       = useGameStore(s => s.debugEndGame)
   const isOnline           = useGameStore(s => s.isOnline)
+  const hostOpeningSettings = useGameStore(s => s.hostOpeningSettings)
   const lobbyPlayers       = useGameStore(s => s.lobbyPlayers)
   const disconnectedPlayer = useGameStore(s => s.disconnectedPlayer)
   const leaveRoom          = useGameStore(s => s.leaveRoom)
@@ -80,6 +82,7 @@ export default function App() {
       {phase === 'win' && <WinModal />}
       {(phase === 'lightning_playing' || phase === 'lightning_reveal' || phase === 'lightning_results') && <LightningGame />}
       <RulesModal />
+      {hostOpeningSettings && <SettingsModal />}
 
       {/* Player left — brief banner */}
       {isOnline && disconnectedPlayer && !isAlone && (

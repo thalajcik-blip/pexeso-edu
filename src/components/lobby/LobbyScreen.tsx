@@ -61,6 +61,9 @@ export default function LobbyScreen() {
   const gameMode                  = useGameStore(s => s.gameMode)
   const lightningQuestionCount    = useGameStore(s => s.lightningQuestionCount)
   const lightningTimeLimit        = useGameStore(s => s.lightningTimeLimit)
+  const openSettingsModal         = useGameStore(s => s.openSettingsModal)
+  const changeMyLobbyName         = useGameStore(s => s.changeMyLobbyName)
+  const hostOpeningSettings       = useGameStore(s => s.hostOpeningSettings)
 
   const tc = THEMES[theme]
   const tr = TRANSLATIONS[language]
@@ -75,6 +78,8 @@ export default function LobbyScreen() {
   const [loading, setLoading] = useState(false)
   const [copied, setCopied]   = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
+  const [editingName, setEditingName] = useState(false)
+  const [editNameValue, setEditNameValue] = useState('')
 
   // Pre-fill from URL param ?room=CODE or sessionStorage
   useEffect(() => {
@@ -266,24 +271,59 @@ export default function LobbyScreen() {
                 {tr.connectedPlayers} ({sortedPlayers.length})
               </div>
               <div className="space-y-2">
-                {sortedPlayers.map((p, displayIdx) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                    style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }}
-                  >
-                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[displayIdx] }} />
-                    <span className="font-medium flex-1" style={{ color: tc.text }}>{p.name}</span>
-                    {p.isHost && (
-                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: tc.accentBgActive, color: tc.accent }}>
-                        {tr.lobbyHost}
-                      </span>
-                    )}
-                    {p.id === myPlayerId && (
-                      <span className="text-xs" style={{ color: tc.textFaint }}>{tr.you}</span>
-                    )}
-                  </div>
-                ))}
+                {sortedPlayers.map((p, displayIdx) => {
+                  const isMe = p.id === myPlayerId
+                  return (
+                    <div
+                      key={p.id}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl"
+                      style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }}
+                    >
+                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[displayIdx] }} />
+                      {isMe && editingName ? (
+                        <input
+                          autoFocus
+                          className="flex-1 text-sm font-medium rounded px-1 outline-none"
+                          style={{ background: 'transparent', color: tc.text, borderBottom: `1px solid ${tc.accent}` }}
+                          value={editNameValue}
+                          maxLength={20}
+                          onChange={e => setEditNameValue(e.target.value)}
+                          onBlur={() => {
+                            const name = editNameValue.trim() || p.name
+                            setEditingName(false)
+                            if (name !== p.name) changeMyLobbyName(name)
+                          }}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              const name = editNameValue.trim() || p.name
+                              setEditingName(false)
+                              if (name !== p.name) changeMyLobbyName(name)
+                            }
+                            if (e.key === 'Escape') setEditingName(false)
+                          }}
+                        />
+                      ) : (
+                        <span
+                          className={`font-medium flex-1${isMe ? ' cursor-pointer hover:opacity-70' : ''}`}
+                          style={{ color: tc.text }}
+                          onClick={isMe ? () => { setEditNameValue(p.name); setEditingName(true) } : undefined}
+                          title={isMe ? '✏️' : undefined}
+                        >
+                          {p.name}
+                          {isMe && <span className="ml-1 text-xs opacity-30">✏️</span>}
+                        </span>
+                      )}
+                      {p.isHost && (
+                        <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: tc.accentBgActive, color: tc.accent }}>
+                          {tr.lobbyHost}
+                        </span>
+                      )}
+                      {isMe && !editingName && (
+                        <span className="text-xs flex-shrink-0" style={{ color: tc.textFaint }}>{tr.you}</span>
+                      )}
+                    </div>
+                  )
+                })}
                 {/* Empty slot */}
                 {sortedPlayers.length < (gameMode === 'lightning' ? MAX_LIGHTNING_PLAYERS : 6) && (
                   <div
@@ -327,21 +367,36 @@ export default function LobbyScreen() {
               </div>
             )}
 
-            {/* Status */}
-            <div className="text-sm text-center" style={{ color: tc.textDim }}>
-              {isHost ? (canStart ? '' : tr.waitingForPlayers) : tr.waitingForHost}
-            </div>
+            {/* Status / waiting badge */}
+            {!isHost && hostOpeningSettings ? (
+              <div className="text-sm text-center py-2 px-3 rounded-xl" style={{ background: tc.accentBgActive, color: tc.accent }}>
+                ⚙️ {tr.hostChangingSettings}
+              </div>
+            ) : (
+              <div className="text-sm text-center" style={{ color: tc.textDim }}>
+                {isHost ? (canStart ? '' : tr.waitingForPlayers) : tr.waitingForHost}
+              </div>
+            )}
 
             {/* Start (host only) */}
             {isHost && (
-              <button
-                onClick={gameMode === 'lightning' ? startOnlineLightningGame : startOnlineGame}
-                disabled={!canStart}
-                className="w-full py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: canStart ? `0 4px 20px ${tc.accentGlow}` : 'none' }}
-              >
-                {tr.startOnlineGame} ▶
-              </button>
+              <>
+                <button
+                  onClick={gameMode === 'lightning' ? startOnlineLightningGame : startOnlineGame}
+                  disabled={!canStart}
+                  className="w-full py-3.5 rounded-xl text-base font-bold transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: tc.accentGradient, color: tc.accentText, boxShadow: canStart ? `0 4px 20px ${tc.accentGlow}` : 'none' }}
+                >
+                  {tr.startOnlineGame} ▶
+                </button>
+                <button
+                  onClick={openSettingsModal}
+                  className="w-full py-2.5 rounded-xl border text-sm font-medium transition-all opacity-60 hover:opacity-100"
+                  style={inactiveBtn}
+                >
+                  ⚙️ {tr.changeGameSettings}
+                </button>
+              </>
             )}
 
             {/* Leave */}

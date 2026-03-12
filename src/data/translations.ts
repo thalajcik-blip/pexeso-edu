@@ -100,6 +100,11 @@ export interface Translations {
   rematchRequest: string
   rematchWaiting: string
   yourTurn: string
+  changeGameSettings: string
+  settingsModalTitle: string
+  saveAndGoToLobby: string
+  cancelBtn: string
+  hostChangingSettings: string
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -220,6 +225,11 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningFastest: 'Nejrychlejší odpověď ⚡',
     lightningPractice: 'Procvič si 📚',
     lightningChooseOther: 'Vybrat jinou sadu',
+    changeGameSettings: 'Nastavit hru',
+    settingsModalTitle: 'Nastavení hry',
+    saveAndGoToLobby: 'Uložit a jít do lobby',
+    cancelBtn: 'Zrušit',
+    hostChangingSettings: 'Hostitel mění nastavení hry...',
   },
 
   sk: {
@@ -339,6 +349,11 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningFastest: 'Najrýchlejšia odpoveď ⚡',
     lightningPractice: 'Precvič si 📚',
     lightningChooseOther: 'Vybrať inú sadu',
+    changeGameSettings: 'Nastaviť hru',
+    settingsModalTitle: 'Nastavenie hry',
+    saveAndGoToLobby: 'Uložiť a ísť do lobby',
+    cancelBtn: 'Zrušiť',
+    hostChangingSettings: 'Hostiteľ mení nastavenia hry...',
   },
 
   en: {
@@ -458,6 +473,11 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningFastest: 'Fastest answer ⚡',
     lightningPractice: 'Practice 📚',
     lightningChooseOther: 'Choose another deck',
+    changeGameSettings: 'Game settings',
+    settingsModalTitle: 'Game Settings',
+    saveAndGoToLobby: 'Save and go to lobby',
+    cancelBtn: 'Cancel',
+    hostChangingSettings: 'Host is changing game settings...',
   },
 }
 

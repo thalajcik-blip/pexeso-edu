@@ -145,6 +145,7 @@ export default function LightningGame() {
   const startLightningGame        = useGameStore(s => s.startLightningGame)
   const startOnlineLightningGame  = useGameStore(s => s.startOnlineLightningGame)
   const resetToSetup              = useGameStore(s => s.resetToSetup)
+  const openSettingsModal         = useGameStore(s => s.openSettingsModal)
   const toggleTheme               = useGameStore(s => s.toggleTheme)
   const openRules                 = useGameStore(s => s.openRules)
   const language                  = useGameStore(s => s.language)
@@ -472,16 +473,25 @@ export default function LightningGame() {
             <p className="mt-2 text-sm" style={{ color: tc.textMuted }}>{tr.lightningWaitingForHost}</p>
           )}
 
+          {isOnline && isHost && (
+            <button
+              onClick={openSettingsModal}
+              className="block mx-auto mt-2 text-sm transition-opacity opacity-50 hover:opacity-90"
+            >
+              ⚙️ {tr.changeGameSettings}
+            </button>
+          )}
+
           {(!isOnline || isHost) && (
             <button
               onClick={resetToSetup}
               className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"
             >
-              {tr.lightningChooseOther}
+              {isOnline ? tr.leaveRoom : tr.lightningChooseOther}
             </button>
           )}
 
-          {isOnline && (
+          {isOnline && !isHost && (
             <button
               onClick={resetToSetup}
               className="block mx-auto mt-1.5 text-sm transition-opacity opacity-35 hover:opacity-70"

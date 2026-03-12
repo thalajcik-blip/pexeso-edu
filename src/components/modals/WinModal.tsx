@@ -142,6 +142,7 @@ export default function WinModal() {
   const myPlayerId       = useGameStore(s => s.myPlayerId)
   const playAgain        = useGameStore(s => s.playAgain)
   const resetToSetup     = useGameStore(s => s.resetToSetup)
+  const openSettingsModal = useGameStore(s => s.openSettingsModal)
   const requestRematch   = useGameStore(s => s.requestRematch)
   const rematchRequested = useGameStore(s => s.rematchRequested)
   const tr = TRANSLATIONS[language]
@@ -319,10 +320,18 @@ export default function WinModal() {
               </button>
         )}
 
-        {/* Secondary: choose another deck */}
+        {/* Secondary: change settings (online host) or choose deck (local) */}
+        {isOnline && isHost && (
+          <button
+            onClick={openSettingsModal}
+            className="block mx-auto mt-1 text-sm transition-opacity opacity-50 hover:opacity-90"
+          >
+            ⚙️ {tr.changeGameSettings}
+          </button>
+        )}
         <button
           onClick={resetToSetup}
-          className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"
+          className="block mx-auto mt-2 text-sm transition-opacity opacity-35 hover:opacity-70"
         >
           {isOnline ? tr.leaveRoom : tr.chooseDeck}
         </button>
