@@ -485,7 +485,7 @@ export default function LightningGame() {
           {(!isOnline || isHost) && (
             <button
               onClick={resetToSetup}
-              className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"
+              className="block mx-auto mt-3 text-sm transition-opacity opacity-50 hover:opacity-70"
             >
               {isOnline ? tr.leaveRoom : tr.lightningChooseOther}
             </button>
@@ -494,7 +494,7 @@ export default function LightningGame() {
           {isOnline && !isHost && (
             <button
               onClick={resetToSetup}
-              className="block mx-auto mt-1.5 text-sm transition-opacity opacity-35 hover:opacity-70"
+              className="block mx-auto mt-1.5 text-sm transition-opacity opacity-50 hover:opacity-70"
             >
               {tr.leaveRoom}
             </button>
@@ -727,7 +727,7 @@ export default function LightningGame() {
 
       {/* Footer */}
       <div className="flex flex-col items-center gap-0.5 mt-auto pt-6 pb-2">
-        <button onClick={openRules} className="text-sm transition-opacity opacity-35 hover:opacity-70">
+        <button onClick={openRules} className="text-sm transition-opacity opacity-50 hover:opacity-70">
           {tr.rulesLink}
         </button>
         <p className="text-xs" style={{ color: tc.textFaint }}>

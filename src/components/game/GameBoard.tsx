@@ -126,7 +126,7 @@ export default function GameBoard() {
       )}
 
       <div className="flex flex-col items-center gap-0.5 py-3">
-        <button onClick={openRules} className="text-sm transition-opacity opacity-35 hover:opacity-70">
+        <button onClick={openRules} className="text-sm transition-opacity opacity-50 hover:opacity-70">
           {tr.rulesLink}
         </button>
         <p className="text-xs" style={{ color: tc.textFaint }}>

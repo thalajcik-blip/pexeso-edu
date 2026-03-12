@@ -207,7 +207,7 @@ export default function WinModal() {
 
           <button
             onClick={resetToSetup}
-            className="block mx-auto mt-3 text-sm transition-opacity opacity-35 hover:opacity-70"
+            className="block mx-auto mt-3 text-sm transition-opacity opacity-50 hover:opacity-70"
           >
             {tr.chooseDeck}
           </button>
@@ -331,7 +331,7 @@ export default function WinModal() {
         )}
         <button
           onClick={resetToSetup}
-          className="block mx-auto mt-2 text-sm transition-opacity opacity-35 hover:opacity-70"
+          className="block mx-auto mt-2 text-sm transition-opacity opacity-50 hover:opacity-70"
         >
           {isOnline ? tr.leaveRoom : tr.chooseDeck}
         </button>

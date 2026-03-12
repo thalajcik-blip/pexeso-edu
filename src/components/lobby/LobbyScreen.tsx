@@ -411,11 +411,11 @@ export default function LobbyScreen() {
 
       <div className="flex gap-4">
         {!inRoom && view === 'choice' && (
-          <button onClick={resetToSetup} className="text-sm opacity-35 hover:opacity-70 transition-opacity">
+          <button onClick={resetToSetup} className="text-sm opacity-50 hover:opacity-70 transition-opacity">
             ← {tr.backBtn}
           </button>
         )}
-        <button onClick={openRules} className="text-sm opacity-35 hover:opacity-70 transition-opacity">
+        <button onClick={openRules} className="text-sm opacity-50 hover:opacity-70 transition-opacity">
           {tr.rulesLink}
         </button>
       </div>
