@@ -9,7 +9,7 @@ import type { Language } from '../data/translations'
 import { TRANSLATIONS } from '../data/translations'
 import type { Theme } from '../data/themes'
 import {
-  soundFlip, soundMatch, soundWrong, soundQuizCorrect, soundWin, soundTurnTimeout,
+  soundFlip, soundMatch, soundWrong, soundQuizCorrect, soundWin, soundTurnTimeout, soundOpponentAnswered,
 } from '../services/audioService'
 import {
   broadcastGameAction,
@@ -416,7 +416,8 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   _applyLightningAnswer: (playerId, answer, timeMs) => {
-    const { lightningQuestions, lightningCurrentIndex, playerIds } = get()
+    const { lightningQuestions, lightningCurrentIndex, playerIds, myPlayerId } = get()
+    if (playerId !== myPlayerId) soundOpponentAnswered()
     const question = lightningQuestions[lightningCurrentIndex]
     if (!question) return
     const correct = answer !== '' && answer === question.correct

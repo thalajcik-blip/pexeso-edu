@@ -105,6 +105,11 @@ export function soundQuizSelect(): void {
   tone(480, 0.08, 0, 0.18, 'sine')
 }
 
+// Opponent answered in lightning — very subtle soft click
+export function soundOpponentAnswered(): void {
+  tone(640, 0.055, 0, 0.09, 'sine')
+}
+
 // Quiz answer revealed as wrong
 export function soundQuizWrong(): void {
   slide(310, 140, 0.28, 0, 0.2)
