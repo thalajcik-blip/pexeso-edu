@@ -42,8 +42,9 @@ const HARDCODED_DEFAULTS: Record<string, TierConfig[]> = {
   ],
 }
 
-function getInitialTiers(lang: string, globalDefaults: TierConfig[] | null): TierConfig[] {
-  if (globalDefaults && globalDefaults.length === 6) return globalDefaults
+function getInitialTiers(lang: string, globalDefaults: Record<string, TierConfig[]> | null): TierConfig[] {
+  const langTiers = globalDefaults?.[lang]
+  if (langTiers && langTiers.length === 6) return langTiers
   return HARDCODED_DEFAULTS[lang] ?? HARDCODED_DEFAULTS['cs']
 }
 
@@ -90,14 +91,14 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [translateError, setTranslateError] = useState('')
   const [customizeResults, setCustomizeResults] = useState(false)
   const [resultsConfig, setResultsConfig] = useState<TierConfig[]>([])
-  const [globalResultsDefaults, setGlobalResultsDefaults] = useState<TierConfig[] | null>(null)
+  const [globalResultsDefaults, setGlobalResultsDefaults] = useState<Record<string, TierConfig[]> | null>(null)
   const [resultsOpen, setResultsOpen] = useState(false)
 
   useEffect(() => {
     // Fetch global defaults from admin_settings
     supabase.from('admin_settings').select('value').eq('key', 'results_config').maybeSingle()
       .then(({ data }) => {
-        if (data?.value) setGlobalResultsDefaults(data.value as TierConfig[])
+        if (data?.value) setGlobalResultsDefaults(data.value as Record<string, TierConfig[]>)
       })
   }, [])
 
