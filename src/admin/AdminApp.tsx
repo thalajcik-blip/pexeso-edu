@@ -8,6 +8,7 @@ import DeckEditor from './DeckEditor'
 import UsersManager from './UsersManager'
 import AdminSettings from './AdminSettings'
 import type { useAuth as UseAuthType } from './useAuth'
+import { LogOut } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -116,13 +117,21 @@ function AdminSidebarContents({ isSuperadmin, email, signOut, visibleItems, navi
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="px-4 py-3 border-t border-sidebar-border overflow-hidden">
-        {!collapsed && (
-          <div className="text-xs text-sidebar-foreground/50 truncate mb-2">{email}</div>
-        )}
-        <Button variant="ghost" size="sm" onClick={signOut} className="text-xs text-gray-500 px-0 h-auto w-full justify-start">
-          {collapsed ? '→' : 'Odhlásit se'}
-        </Button>
+      <SidebarFooter className="border-t border-sidebar-border">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" onClick={signOut} tooltip="Odhlásit se">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 text-xs font-semibold shrink-0">
+                {email[0]?.toUpperCase()}
+              </div>
+              <div className="flex flex-col gap-0.5 leading-none min-w-0">
+                <span className="font-medium text-sm truncate">{email}</span>
+                <span className="text-xs text-sidebar-foreground/50">Odhlásit se</span>
+              </div>
+              <LogOut className="ml-auto size-4 shrink-0 text-sidebar-foreground/50" />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </>
   )
