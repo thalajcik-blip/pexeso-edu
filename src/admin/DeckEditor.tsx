@@ -48,6 +48,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [saved, setSaved]       = useState(false)
   const [sort, setSort] = useState<'default' | 'newest' | 'oldest' | 'az' | 'za'>('default')
   const [showInvalid, setShowInvalid] = useState(false)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [translating, setTranslating]   = useState(false)
   const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number } | null>(null)
   const [translateError, setTranslateError] = useState('')
@@ -161,9 +162,9 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   }
 
   async function deleteCard(cardId: string) {
-    if (!confirm('Smazat tuto kartičku?')) return
     await supabase.from('custom_cards').delete().eq('id', cardId)
     setCards(prev => prev.filter(c => c.id !== cardId))
+    setConfirmDeleteId(null)
   }
 
   function reloadCards() {
@@ -483,12 +484,25 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
                     {card.label && <div className="text-xs font-medium text-gray-700 truncate">{card.label}</div>}
                     {card.quiz_question && <div className="text-xs text-gray-400 truncate mt-0.5">🧠 {card.quiz_question}</div>}
                     <div className="flex gap-1 mt-2">
-                      <Button variant="outline" size="sm" onClick={() => setEditCard(card)} className="flex-1 text-xs">
-                        Upravit
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => card.id && deleteCard(card.id)} className="text-red-400 hover:bg-red-50 px-2">
-                        ×
-                      </Button>
+                      {confirmDeleteId === card.id ? (
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => deleteCard(card.id!)} className="flex-1 text-xs text-red-500 hover:bg-red-50">
+                            Smazat
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(null)} className="text-xs px-2">
+                            ✕
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => setEditCard(card)} className="flex-1 text-xs">
+                            Upravit
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(card.id!)} className="text-red-400 hover:bg-red-50 px-2">
+                            ×
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
