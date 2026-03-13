@@ -5,6 +5,7 @@ import { TRANSLATIONS, t } from '../../data/translations'
 import { EN_QUIZ } from '../../data/enQuiz'
 import { THEMES } from '../../data/themes'
 import { shuffle } from '../../utils/shuffle'
+import { selectAnswers } from '../../utils/quizValidation'
 import { soundQuizSelect, soundQuizWrong, soundQuizTimeout, soundTick } from '../../services/audioService'
 import type { DeckId } from '../../types/game'
 
@@ -72,11 +73,16 @@ export default function QuizModal() {
   const { correct, options, hint } = useMemo(() => {
     if (!quizSymbol) return { correct: '', options: [] as string[], hint: '' }
 
-    // Custom deck: per-card quiz data (use translation if available)
+    // Custom deck: per-card quiz data
     if (isCustomDeck && customDeck) {
       const card = customDeck.pool[quizSymbol]
-      const langKey = language
-      const translation = card?.translations?.[langKey]
+      // New: flexible answer pool
+      if (card?.answers && card.answers.length > 0) {
+        const { options, correct } = selectAnswers(card.answers, card.display_count || 4)
+        return { correct, options, hint: card.label ?? '' }
+      }
+      // Fallback: legacy quiz_options (with translation support)
+      const translation = card?.translations?.[language]
       const quizOptions = translation?.quiz_options ?? card?.quiz_options
       const quizCorrect = translation?.quiz_correct ?? card?.quiz_correct
       if (quizOptions && quizCorrect) {

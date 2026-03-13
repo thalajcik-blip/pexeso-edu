@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../services/supabase'
 import type { AdminRole } from './useAuth'
+import type { AnswerOption } from '../types/game'
+import { validateAnswers } from '../utils/quizValidation'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -61,11 +63,14 @@ type TranslateState = {
   error: string
 }
 
+type CardValidationRow = { deck_id: string; answers: AnswerOption[] | null; display_count: number }
+
 export default function DeckList({ role, onNew, onEdit }: Props) {
   const [decks, setDecks]         = useState<Deck[]>([])
   const [loading, setLoading]     = useState(true)
   const [importing, setImporting] = useState(false)
   const [translate, setTranslate] = useState<TranslateState | null>(null)
+  const [cardStats, setCardStats] = useState<CardValidationRow[]>([])
   const importRef                 = useRef<HTMLInputElement>(null)
 
   async function load() {
@@ -74,8 +79,24 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
       .from('custom_decks')
       .select('*')
       .order('created_at', { ascending: false })
-    setDecks(data ?? [])
+    const decksData = data ?? []
+    setDecks(decksData)
+    if (decksData.length > 0) {
+      const { data: stats } = await supabase
+        .from('custom_cards')
+        .select('deck_id, answers, display_count')
+        .in('deck_id', decksData.map((d: Deck) => d.id))
+      setCardStats((stats ?? []) as CardValidationRow[])
+    }
     setLoading(false)
+  }
+
+  function getDeckInvalidCount(deckId: string): number {
+    const cards = cardStats.filter(c => c.deck_id === deckId)
+    return cards.filter(c => {
+      if (!c.answers || c.answers.length === 0) return true
+      return validateAnswers(c.answers, c.display_count ?? 4).state !== 'valid'
+    }).length
   }
 
   async function updateStatus(id: string, status: Deck['status']) {
@@ -267,13 +288,19 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
             const isPickingLang = translate?.deckId === deck.id && !translate.progress
             const targetLangs   = ALL_LANGS.filter(l => l !== deck.language)
 
+            const invalidCount = getDeckInvalidCount(deck.id)
             return (
               <div key={deck.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
                 <div className="flex items-center gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-base leading-none shrink-0">{LANG_FLAG[deck.language]}</span>
                       <span className="font-semibold text-gray-800 truncate">{deck.title}</span>
+                      {invalidCount > 0 && (
+                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 shrink-0">
+                          ⚠️ {invalidCount} neúplných
+                        </span>
+                      )}
                     </div>
                     {deck.description && (
                       <div className="text-xs text-gray-400 truncate mt-0.5">{deck.description}</div>

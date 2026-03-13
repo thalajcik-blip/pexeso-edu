@@ -35,16 +35,23 @@ Difficulty level: ${difficulty.toUpperCase()}
 Return JSON in this exact format (JSON only, no other text):
 {
   "question": "...",
-  "options": ["correct answer", "wrong answer 2", "wrong answer 3", "wrong answer 4"],
-  "correct": "correct answer",
+  "answers": [
+    {"text": "correct answer", "correct": true},
+    {"text": "wrong answer 2", "correct": false},
+    {"text": "wrong answer 3", "correct": false},
+    {"text": "wrong answer 4", "correct": false},
+    {"text": "wrong answer 5", "correct": false},
+    {"text": "wrong answer 6", "correct": false}
+  ],
   "fun_fact": "..."
 }
 
 Rules:
-- Question, options and fun_fact must be in ${cfg.lang}
+- Question, answers and fun_fact must be in ${cfg.lang}
 - IMPORTANT: The correct answer must NOT be the label "${label}" itself or a trivial rephrasing of it. Ask about a fact, property, or characteristic of the subject — not its name.
 - Example for "George Washington": ask "How many terms did he serve?" not "Who was the first US president?"
-- First option in options array must be the correct answer (will be shuffled)
+- Provide exactly 1 correct answer and 5 wrong answers (6 total) for variety
+- Wrong answers must be plausible and relevant to the difficulty level
 - Fun fact must be real and interesting for children
 - Everything in ${cfg.lang} only, no mixing of languages`
 }
@@ -53,11 +60,9 @@ function parseResult(text: string) {
   const jsonMatch = text.match(/\{[\s\S]*\}/)
   if (!jsonMatch) throw new Error('Invalid AI response')
   const result = JSON.parse(jsonMatch[0])
-  const shuffled = [...result.options].sort(() => Math.random() - 0.5)
   return {
     question: result.question,
-    options:  shuffled,
-    correct:  result.correct,
+    answers:  result.answers,
     fun_fact: result.fun_fact,
   }
 }

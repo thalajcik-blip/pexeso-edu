@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import type { AnswerOption } from '../types/game'
+import { validateAnswers } from '../utils/quizValidation'
 
 export type CardData = {
   id?: string
@@ -14,9 +16,19 @@ export type CardData = {
   quiz_question: string
   quiz_options: [string, string, string, string]
   quiz_correct: string
+  answers: AnswerOption[] | null
+  display_count: number
   fun_fact: string
   sort_order: number
   created_at?: string
+}
+
+function initAnswers(card?: CardData): AnswerOption[] {
+  if (card?.answers && card.answers.length > 0) return card.answers
+  if (card?.quiz_options && card.quiz_correct) {
+    return card.quiz_options.map(opt => ({ text: opt, correct: opt === card.quiz_correct }))
+  }
+  return []
 }
 
 type Props = {
@@ -35,10 +47,8 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
   const [cropSrc, setCropSrc]           = useState<string | null>(null)
   const [label, setLabel]               = useState(card?.label ?? '')
   const [question, setQuestion]         = useState(card?.quiz_question ?? '')
-  const [options, setOptions]           = useState<[string,string,string,string]>(
-    card?.quiz_options ?? ['', '', '', '']
-  )
-  const [correct, setCorrect]           = useState(card?.quiz_correct ?? '')
+  const [answers, setAnswers]           = useState<AnswerOption[]>(() => initAnswers(card))
+  const [displayCount, setDisplayCount] = useState(card?.display_count ?? 4)
   const [funFact, setFunFact]           = useState(card?.fun_fact ?? '')
   const [uploading, setUploading]       = useState(false)
   const [saving, setSaving]             = useState(false)
@@ -99,8 +109,7 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
       const data = await resp.json()
       if (!resp.ok) throw new Error(data?.error ?? `HTTP ${resp.status}`)
       setQuestion(data.question)
-      setOptions(data.options)
-      setCorrect(data.correct)
+      setAnswers(data.answers ?? [])
       setFunFact(data.fun_fact)
     } catch (e) {
       setError('Chyba při generování: ' + String(e))
@@ -136,13 +145,18 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
     if (!imageUrl) { setError('Nahrajte prosím obrázek.'); return }
     setSaving(true)
     setError('')
+    const filledAnswers = answers.filter(a => a.text.trim())
+    const correctAnswer = filledAnswers.find(a => a.correct)
     const payload = {
       deck_id:       deckId,
       image_url:     imageUrl,
       label:         label || null,
       quiz_question: question || null,
-      quiz_options:  options.some(o => o) ? options : null,
-      quiz_correct:  correct || null,
+      answers:       filledAnswers.length > 0 ? filledAnswers : null,
+      display_count: displayCount,
+      // backward-compat fields derived from new answers
+      quiz_options:  filledAnswers.length >= 4 ? filledAnswers.slice(0, 4).map(a => a.text) as [string,string,string,string] : null,
+      quiz_correct:  correctAnswer?.text ?? null,
       fun_fact:      funFact || null,
       sort_order:    sortOrder,
     }
@@ -223,31 +237,87 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
               <Input value={question} onChange={e => setQuestion(e.target.value)} placeholder="např. Jak se jmenuje toto zvíře?" />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              {(['A', 'B', 'C', 'D'] as const).map((letter, i) => (
-                <div key={letter} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="correct"
-                    checked={correct === options[i] && options[i] !== ''}
-                    onChange={() => setCorrect(options[i])}
-                    className="accent-indigo-600 shrink-0"
-                  />
-                  <Input
-                    value={options[i]}
-                    onChange={e => {
-                      const next = [...options] as [string,string,string,string]
-                      next[i] = e.target.value
-                      setOptions(next)
-                      if (correct === options[i]) setCorrect(e.target.value)
-                    }}
-                    placeholder={`Možnost ${letter}`}
-                    className="flex-1 min-w-0"
-                  />
-                </div>
-              ))}
+            {/* Display count selector */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Zobrazit možností</label>
+              <div className="flex gap-1.5">
+                {[2, 3, 4, 5].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setDisplayCount(n)}
+                    className={`w-9 h-9 rounded-lg text-sm font-medium border transition-colors ${displayCount === n ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'}`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="text-xs text-gray-400">Označte radio button u správné odpovědi.</div>
+
+            {/* Answer pool */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                Pool odpovědí <span className="text-gray-400 font-normal">— zaškrtněte správnou</span>
+              </label>
+              <div className="space-y-1.5">
+                {answers.map((ans, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={ans.correct}
+                      onChange={e => {
+                        const next = [...answers]
+                        next[i] = { ...ans, correct: e.target.checked }
+                        setAnswers(next)
+                      }}
+                      className="accent-indigo-600 shrink-0 w-4 h-4"
+                      title={ans.correct ? 'Správná odpověď' : 'Nesprávná odpověď'}
+                    />
+                    <Input
+                      value={ans.text}
+                      onChange={e => {
+                        const next = [...answers]
+                        next[i] = { ...ans, text: e.target.value }
+                        setAnswers(next)
+                      }}
+                      placeholder={`Možnost ${i + 1}`}
+                      className="flex-1 min-w-0 h-8 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setAnswers(answers.filter((_, j) => j !== i))}
+                      className="text-gray-300 hover:text-red-400 shrink-0 w-6 text-center transition-colors"
+                      title="Odstranit"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setAnswers([...answers, { text: '', correct: false }])}
+                className="mt-2 text-xs text-indigo-500 hover:text-indigo-700 font-medium"
+              >
+                + Přidat odpověď
+              </button>
+            </div>
+
+            {/* Validation badge */}
+            {answers.length > 0 && (() => {
+              const v = validateAnswers(answers.filter(a => a.text.trim()), displayCount)
+              const styles = {
+                valid:      'bg-green-50 text-green-700 border-green-200',
+                incomplete: 'bg-amber-50 text-amber-700 border-amber-200',
+                'pool-error': 'bg-red-50 text-red-700 border-red-200',
+              }
+              const icons = { valid: '✅', incomplete: '⚠️', 'pool-error': '🔴' }
+              return (
+                <div className={`text-xs px-3 py-1.5 rounded-lg border ${styles[v.state]}`}>
+                  {icons[v.state]} {v.message}
+                </div>
+              )
+            })()}
 
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Zajímavost</label>

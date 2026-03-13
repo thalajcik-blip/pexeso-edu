@@ -5,6 +5,7 @@ import { SIZE_CONFIG, PLAYER_COLORS, DEFAULT_NAMES } from '../types/game'
 import { DECKS } from '../data/decks'
 import { EN_QUIZ } from '../data/enQuiz'
 import { shuffle } from '../utils/shuffle'
+import { selectAnswers } from '../utils/quizValidation'
 import type { Language } from '../data/translations'
 import { TRANSLATIONS } from '../data/translations'
 import type { Theme } from '../data/themes'
@@ -40,18 +41,36 @@ function buildLightningQuestions(
   if (isCustom) {
     const symbols = shuffle(Object.keys(customDeck.pool))
     const selected = count === 0 ? symbols : symbols.slice(0, count)
-    return selected.map(symbol => {
+    return selected.flatMap((symbol): LightningQuestion[] => {
       const item = customDeck.pool[symbol]
-      return {
-        symbol,
-        label: item.label,
-        imageUrl: item.image_url || undefined,
-        question: item.quiz_question || item.label,
-        options: item.quiz_options ? shuffle([...item.quiz_options]) : [],
-        correct: item.quiz_correct || '',
-        funFact: item.fun_fact || undefined,
+      // New: use flexible answer pool
+      if (item.answers && item.answers.length > 0) {
+        const { options, correct } = selectAnswers(item.answers, item.display_count || 4)
+        if (!correct || options.length === 0) return []
+        return [{
+          symbol,
+          label: item.label,
+          imageUrl: item.image_url || undefined,
+          question: item.quiz_question || item.label,
+          options,
+          correct,
+          funFact: item.fun_fact || undefined,
+        }]
       }
-    }).filter(q => q.options.length === 4 && q.correct)
+      // Fallback: legacy quiz_options/quiz_correct
+      if (item.quiz_options && item.quiz_correct) {
+        return [{
+          symbol,
+          label: item.label,
+          imageUrl: item.image_url || undefined,
+          question: item.quiz_question || item.label,
+          options: shuffle([...item.quiz_options]),
+          correct: item.quiz_correct,
+          funFact: item.fun_fact || undefined,
+        }]
+      }
+      return []
+    })
   }
 
   const deck = DECKS.find(d => d.id === deckId) ?? DECKS[0]

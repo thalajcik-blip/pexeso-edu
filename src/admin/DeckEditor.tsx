@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../services/supabase'
 import CardModal, { type CardData } from './CardModal'
+import { validateAnswers } from '../utils/quizValidation'
 import BulkUploadModal from './BulkUploadModal'
 import { Button } from '@/components/ui/button'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
@@ -46,6 +47,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [loading, setLoading]   = useState(!!deckId)
   const [saved, setSaved]       = useState(false)
   const [sort, setSort] = useState<'default' | 'newest' | 'oldest' | 'az' | 'za'>('default')
+  const [showInvalid, setShowInvalid] = useState(false)
   const [translating, setTranslating]   = useState(false)
   const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number } | null>(null)
   const [translateError, setTranslateError] = useState('')
@@ -204,6 +206,18 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
     if (sort === 'za') return (b.label ?? '').localeCompare(a.label ?? '', 'cs')
     return a.sort_order - b.sort_order  // default
   })
+
+  const invalidCount = useMemo(() => cards.filter(c => {
+    if (!c.answers || c.answers.length === 0) return true
+    return validateAnswers(c.answers, c.display_count ?? 4).state !== 'valid'
+  }).length, [cards])
+
+  const displayedCards = showInvalid
+    ? sortedCards.filter(c => {
+        if (!c.answers || c.answers.length === 0) return true
+        return validateAnswers(c.answers, c.display_count ?? 4).state !== 'valid'
+      })
+    : sortedCards
 
   if (loading) return (
     <div>
@@ -401,9 +415,20 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       {(deck || currentDeckId) && (
         <div>
           <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-            <h2 className="font-semibold text-gray-700">
-              Kartičky <span className="text-gray-400 font-normal">({cards.length})</span>
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold text-gray-700">
+                Kartičky <span className="text-gray-400 font-normal">({cards.length})</span>
+              </h2>
+              {invalidCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowInvalid(v => !v)}
+                  className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${showInvalid ? 'bg-amber-500 text-white border-amber-500' : 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100'}`}
+                >
+                  {invalidCount} neúplných
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               {cards.length > 1 && (
                 <DropdownMenu>
@@ -438,10 +463,21 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {sortedCards.map((card) => (
+              {displayedCards.map((card) => {
+                const answers = card.answers ?? []
+                const validation = answers.length > 0
+                  ? validateAnswers(answers, card.display_count ?? 4)
+                  : null
+                const dotColor = !validation
+                  ? 'bg-gray-200'
+                  : validation.state === 'valid' ? 'bg-green-400'
+                  : validation.state === 'incomplete' ? 'bg-amber-400'
+                  : 'bg-red-400'
+                return (
                 <div key={card.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden group">
-                  <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
+                  <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden relative">
                     <img src={card.image_url} alt={card.label ?? ''} className="w-full h-full object-contain p-2" />
+                    <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ${dotColor}`} title={validation?.message ?? 'Bez kvízu'} />
                   </div>
                   <div className="p-2">
                     {card.label && <div className="text-xs font-medium text-gray-700 truncate">{card.label}</div>}
@@ -456,7 +492,8 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
                     </div>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

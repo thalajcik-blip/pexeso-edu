@@ -1,4 +1,9 @@
 export type DeckId = 'animals' | 'flags' | 'fruits' | 'jobs'
+
+export interface AnswerOption {
+  text: string
+  correct: boolean
+}
 export type BoardSize = 'large' | 'medium' | 'small'
 export type GamePhase = 'setup' | 'lobby' | 'playing' | 'quiz' | 'win' | 'lightning_playing' | 'lightning_reveal' | 'lightning_results'
 
@@ -21,8 +26,10 @@ export interface CustomDeckCard {
   image_url: string
   label: string
   quiz_question: string | null
-  quiz_options: [string, string, string, string] | null
-  quiz_correct: string | null
+  answers: AnswerOption[] | null        // flexible answer pool (new)
+  display_count: number                 // how many options to show (default 4)
+  quiz_options: [string, string, string, string] | null  // legacy
+  quiz_correct: string | null           // legacy
   fun_fact: string | null
   translations?: Record<string, { quiz_question?: string; quiz_options?: string[]; quiz_correct?: string; fun_fact?: string }>
 }
