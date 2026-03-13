@@ -241,7 +241,7 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5">Zobrazit možností</label>
               <div className="flex gap-1.5">
-                {[2, 3, 4, 5].map(n => (
+                {[2, 3, 4, 5, 6, 7, 8].map(n => (
                   <button
                     key={n}
                     type="button"
