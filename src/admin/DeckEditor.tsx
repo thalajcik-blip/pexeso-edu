@@ -3,6 +3,7 @@ import { supabase } from '../services/supabase'
 import CardModal, { type CardData } from './CardModal'
 import { validateAnswers } from '../utils/quizValidation'
 import BulkUploadModal from './BulkUploadModal'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Input } from '@/components/ui/input'
@@ -358,9 +359,9 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             >
               Kartičky
               {deck && (
-                <span className={cn('text-xs px-1.5 py-0.5 rounded-full font-medium', invalidCount > 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500')}>
+                <Badge className={cn(invalidCount > 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500')}>
                   {cards.length}
-                </span>
+                </Badge>
               )}
             </NavigationMenuLink>
           </NavigationMenuItem>
@@ -371,7 +372,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             >
               Výsledková obrazovka
               {deck && customizeResults && (
-                <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-indigo-100 text-indigo-600">Vlastní</span>
+                <Badge className="bg-indigo-100 text-indigo-600">Vlastní</Badge>
               )}
             </NavigationMenuLink>
           </NavigationMenuItem>

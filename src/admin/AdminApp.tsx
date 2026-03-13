@@ -8,6 +8,7 @@ import DeckEditor from './DeckEditor'
 import UsersManager from './UsersManager'
 import AdminSettings from './AdminSettings'
 import type { useAuth as UseAuthType } from './useAuth'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -87,9 +88,9 @@ function AdminSidebarContents({ isSuperadmin, email, signOut, visibleItems, navi
           {collapsed ? 'P' : 'Pexedu Admin'}
         </div>
         {!collapsed && (
-          <div className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium w-fit mt-1">
+          <Badge className="bg-indigo-50 text-indigo-600 mt-1">
             {isSuperadmin ? 'Superadmin' : 'Učitel'}
-          </div>
+          </Badge>
         )}
       </SidebarHeader>
 

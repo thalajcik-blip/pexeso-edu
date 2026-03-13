@@ -3,6 +3,7 @@ import { supabase } from '../services/supabase'
 import type { AdminRole } from './useAuth'
 import type { AnswerOption } from '../types/game'
 import { validateAnswers } from '../utils/quizValidation'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -321,9 +322,9 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                       <span className="text-base leading-none shrink-0">{LANG_FLAG[deck.language]}</span>
                       <span className="font-semibold text-gray-800 truncate">{deck.title}</span>
                       {invalidCount > 0 && (
-                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 shrink-0">
+                        <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">
                           ⚠️ {invalidCount} neúplných
-                        </span>
+                        </Badge>
                       )}
                     </div>
                     {deck.description && (

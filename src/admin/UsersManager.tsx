@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ChevronDown } from 'lucide-react'
@@ -84,18 +85,12 @@ export default function UsersManager() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                       {u.role && (
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          u.role === 'superadmin'
-                            ? 'bg-indigo-50 text-indigo-600'
-                            : 'bg-green-50 text-green-700'
-                        }`}>
+                        <Badge className={u.role === 'superadmin' ? 'bg-indigo-50 text-indigo-600' : 'bg-green-50 text-green-700'}>
                           {ROLE_LABELS[u.role] ?? u.role}
-                        </span>
+                        </Badge>
                       )}
                       {!u.role && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">
-                          Čeká na schválení
-                        </span>
+                        <Badge className="bg-amber-50 text-amber-600">Čeká na schválení</Badge>
                       )}
                     </div>
                   </td>
