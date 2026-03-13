@@ -3,16 +3,16 @@ import { supabase } from '../services/supabase'
 import CropModal from './CropModal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import type { AnswerOption } from '../types/game'
 
 type PendingCard = {
   file: File
-  previewUrl: string      // object URL pred uploadom
+  previewUrl: string
   croppedBlob: Blob | null
   croppedPreview: string | null
   label: string
   question: string
-  options: [string, string, string, string]
-  correct: string
+  answers: AnswerOption[]
   fun_fact: string
   generating: boolean
   uploading: boolean
@@ -50,8 +50,7 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
       croppedPreview: null,
       label: '',
       question: '',
-      options: ['', '', '', ''],
-      correct: '',
+      answers: [],
       fun_fact: '',
       generating: false,
       uploading: false,
@@ -106,8 +105,7 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
       if (!resp.ok) throw new Error(data?.error ?? `HTTP ${resp.status}`)
       update(index, {
         question: data.question,
-        options: data.options,
-        correct: data.correct,
+        answers: data.answers ?? [],
         fun_fact: data.fun_fact,
         generating: false,
       })
@@ -135,13 +133,17 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
 
     const { data } = supabase.storage.from('card-images').getPublicUrl(path)
 
+    const filledAnswers = card.answers.filter(a => a.text.trim())
+    const correctAnswer = filledAnswers.find(a => a.correct)
     const { error: insErr } = await supabase.from('custom_cards').insert({
       deck_id:       deckId,
       image_url:     data.publicUrl,
       label:         card.label || null,
       quiz_question: card.question || null,
-      quiz_options:  card.options.some(o => o) ? card.options : null,
-      quiz_correct:  card.correct || null,
+      answers:       filledAnswers.length > 0 ? filledAnswers : null,
+      display_count: 4,
+      quiz_options:  filledAnswers.length >= 4 ? filledAnswers.slice(0, 4).map(a => a.text) as [string,string,string,string] : null,
+      quiz_correct:  correctAnswer?.text ?? null,
       fun_fact:      card.fun_fact || null,
       sort_order:    startIndex + index,
     })
@@ -267,7 +269,12 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
                     </div>
 
                     {card.question && (
-                      <div className="text-xs text-gray-400 truncate">🧠 {card.question}</div>
+                      <div className="text-xs text-gray-400 truncate">
+                        🧠 {card.question}
+                        {card.answers.length > 0 && (
+                          <span className="ml-1 text-green-500">· {card.answers.length} odp.</span>
+                        )}
+                      </div>
                     )}
                     {card.error && (
                       <div className="text-xs text-red-500">{card.error}</div>
