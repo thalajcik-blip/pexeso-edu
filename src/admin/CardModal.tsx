@@ -23,12 +23,19 @@ export type CardData = {
   created_at?: string
 }
 
+function padAnswers(base: AnswerOption[], minCount: number): AnswerOption[] {
+  if (base.length >= minCount) return base
+  return [...base, ...Array.from({ length: minCount - base.length }, () => ({ text: '', correct: false }))]
+}
+
 function initAnswers(card?: CardData): AnswerOption[] {
-  if (card?.answers && card.answers.length > 0) return card.answers
+  const count = card?.display_count ?? 4
+  if (card?.answers && card.answers.length > 0) return padAnswers(card.answers, count)
   if (card?.quiz_options && card.quiz_correct) {
-    return card.quiz_options.map(opt => ({ text: opt, correct: opt === card.quiz_correct }))
+    const base = card.quiz_options.map(opt => ({ text: opt, correct: opt === card.quiz_correct }))
+    return padAnswers(base, count)
   }
-  return []
+  return padAnswers([], count)
 }
 
 type Props = {
@@ -245,7 +252,10 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
                   <button
                     key={n}
                     type="button"
-                    onClick={() => setDisplayCount(n)}
+                    onClick={() => {
+                      setDisplayCount(n)
+                      setAnswers(prev => padAnswers(prev, n))
+                    }}
                     className={`w-9 h-9 rounded-lg text-sm font-medium border transition-colors ${displayCount === n ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'}`}
                   >
                     {n}
