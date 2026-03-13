@@ -18,6 +18,7 @@ type Deck = {
   language: 'cs' | 'sk' | 'en'
   difficulty: 'easy' | 'medium' | 'hard'
   created_at: string
+  results_config: Array<{ icon: string; title: string; messages: string[] }> | null
 }
 
 const LANG_FLAG: Record<Deck['language'], string> = { cs: '🇨🇿', sk: '🇸🇰', en: '🇬🇧' }
@@ -194,6 +195,29 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
     }
 
     await supabase.from('custom_cards').insert(translatedCards)
+
+    // Translate results_config if present
+    if (deck.results_config) {
+      try {
+        const res = await fetch(fnUrl, {
+          method: 'POST', headers,
+          body: JSON.stringify({ mode: 'results_config', tiers: deck.results_config, source_lang: deck.language, target_lang: targetLang }),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          const translatedTiers = data.tiers
+          if (Array.isArray(translatedTiers) && translatedTiers.length === 6) {
+            // Preserve icons from source
+            const merged = translatedTiers.map((t: { title: string; messages: string[] }, i: number) => ({
+              icon: deck.results_config![i].icon,
+              title: t.title,
+              messages: t.messages,
+            }))
+            await supabase.from('custom_decks').update({ results_config: merged }).eq('id', newDeck.id)
+          }
+        }
+      } catch (e) { console.error('Results config translation failed:', e) }
+    }
 
     if (errors.length > 0) {
       setTranslate(t => t ? { ...t, progress: null, error: `${errors.length} karet se nepodařilo přeložit. První chyba: ${errors[0]}` } : null)

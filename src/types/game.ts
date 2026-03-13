@@ -4,6 +4,14 @@ export interface AnswerOption {
   text: string
   correct: boolean
 }
+
+export interface ResultsTierConfig {
+  icon: string
+  title: string       // single language string
+  messages: string[]  // 1–3 variants
+}
+// 6 tiers, index 0 = 100%, 1 = ≥90%, 2 = ≥75%, 3 = ≥50%, 4 = ≥25%, 5 = <25%
+export type DeckResultsConfig = [ResultsTierConfig, ResultsTierConfig, ResultsTierConfig, ResultsTierConfig, ResultsTierConfig, ResultsTierConfig]
 export type BoardSize = 'large' | 'medium' | 'small'
 export type GamePhase = 'setup' | 'lobby' | 'playing' | 'quiz' | 'win' | 'lightning_playing' | 'lightning_reveal' | 'lightning_results'
 
@@ -37,8 +45,10 @@ export interface CustomDeckCard {
 export interface CustomDeckData {
   id: string
   title: string
+  language: string
   thumbnail: string | null  // first card image_url
   pool: Record<string, CustomDeckCard>  // keyed by image_url
+  results_config: DeckResultsConfig | null
 }
 
 export interface DeckItem {

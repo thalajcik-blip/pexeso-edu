@@ -67,13 +67,13 @@ const PEXE_TIERS: Tier[] = [
   },
 ]
 
-function getPexeTier(accuracy: number): Tier {
-  if (accuracy === 100) return PEXE_TIERS[0]
-  if (accuracy >= 90)   return PEXE_TIERS[1]
-  if (accuracy >= 75)   return PEXE_TIERS[2]
-  if (accuracy >= 50)   return PEXE_TIERS[3]
-  if (accuracy >= 25)   return PEXE_TIERS[4]
-  return PEXE_TIERS[5]
+function getTierIdx(accuracy: number): number {
+  if (accuracy === 100) return 0
+  if (accuracy >= 90)   return 1
+  if (accuracy >= 75)   return 2
+  if (accuracy >= 50)   return 3
+  if (accuracy >= 25)   return 4
+  return 5
 }
 
 // ── Multiplayer contextual result data ─────────────────────────────────────
@@ -145,10 +145,21 @@ export default function WinModal() {
   const openSettingsModal = useGameStore(s => s.openSettingsModal)
   const requestRematch   = useGameStore(s => s.requestRematch)
   const rematchRequested = useGameStore(s => s.rematchRequested)
+  const customDeck       = useGameStore(s => s.customDeck)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
   const isSolo = players.length === 1
+
+  function getPexeTierDisplay(accuracy: number): { icon: string; title: string; message: string } {
+    const idx = getTierIdx(accuracy)
+    const custom = customDeck?.results_config?.[idx]
+    const def = PEXE_TIERS[idx]
+    const icon = custom?.icon ?? def.icon
+    const title = custom?.title ?? (def.title[language] ?? def.title['cs'])
+    const pool = custom?.messages?.length ? custom.messages : (def.messages[language] ?? def.messages['cs'])
+    return { icon, title, message: pickRandom(pool) }
+  }
 
   useEffect(() => {
     const colors = theme === 'light'
@@ -169,17 +180,16 @@ export default function WinModal() {
     const totalQuizzes = p.quizzes + p.wrongQuizzes
     const accuracy = totalQuizzes > 0 ? Math.round(p.quizzes / totalQuizzes * 100) : 100
     const movesPerPair = p.pairs > 0 ? (soloMoves / p.pairs).toFixed(1) : '—'
-    const tier = getPexeTier(accuracy)
-    const tierMessage = pickRandom(tier.messages[language] ?? tier.messages['cs'])
+    const { icon, title, message } = getPexeTierDisplay(accuracy)
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.winOverlayBg }}>
         <div className="pop-in rounded-2xl p-10 text-center"
           style={{ background: tc.modalSurface, border: `2px solid ${tc.accent}`, boxShadow: `0 0 60px ${tc.accentGlow}`, color: tc.text }}>
 
-          <div className="text-4xl mb-1">{tier.icon}</div>
-          <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tier.title[language]}</div>
-          <div className="text-sm mb-8" style={{ color: tc.textMuted }}>{tierMessage}</div>
+          <div className="text-4xl mb-1">{icon}</div>
+          <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{title}</div>
+          <div className="text-sm mb-8" style={{ color: tc.textMuted }}>{message}</div>
 
           <div className="flex flex-col gap-4 text-left mb-2">
             <div className="flex items-center justify-between gap-8">

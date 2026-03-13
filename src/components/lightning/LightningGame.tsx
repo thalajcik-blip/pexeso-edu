@@ -67,13 +67,13 @@ const LIGHTNING_TIERS: LightningTier[] = [
   },
 ]
 
-function getLightningTier(accuracy: number): LightningTier {
-  if (accuracy === 100) return LIGHTNING_TIERS[0]
-  if (accuracy >= 90)   return LIGHTNING_TIERS[1]
-  if (accuracy >= 75)   return LIGHTNING_TIERS[2]
-  if (accuracy >= 50)   return LIGHTNING_TIERS[3]
-  if (accuracy >= 25)   return LIGHTNING_TIERS[4]
-  return LIGHTNING_TIERS[5]
+function getLightningTierIdx(accuracy: number): number {
+  if (accuracy === 100) return 0
+  if (accuracy >= 90)   return 1
+  if (accuracy >= 75)   return 2
+  if (accuracy >= 50)   return 3
+  if (accuracy >= 25)   return 4
+  return 5
 }
 
 function pickRandom<T>(arr: T[]): T {
@@ -155,6 +155,7 @@ export default function LightningGame() {
   const players                   = useGameStore(s => s.players)
   const playerIds                 = useGameStore(s => s.playerIds)
   const myPlayerId                = useGameStore(s => s.myPlayerId)
+  const customDeck                = useGameStore(s => s.customDeck)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
@@ -361,9 +362,14 @@ export default function LightningGame() {
       : null
     const fastestS = fastestMs !== null ? (fastestMs / 1000).toFixed(1) : null
 
-    // Tier + random message
-    const tier = getLightningTier(accuracy)
-    const tierMessage = pickRandom(tier.messages[language] ?? tier.messages['cs'])
+    // Tier + random message (custom deck overrides icon/title/messages)
+    const tierIdx = getLightningTierIdx(accuracy)
+    const customTier = customDeck?.results_config?.[tierIdx]
+    const defTier = LIGHTNING_TIERS[tierIdx]
+    const tierIcon    = customTier?.icon ?? defTier.icon
+    const tierTitle   = customTier?.title ?? (defTier.title[language] ?? defTier.title['cs'])
+    const tierMsgPool = customTier?.messages?.length ? customTier.messages : (defTier.messages[language] ?? defTier.messages['cs'])
+    const tierMessage = pickRandom(tierMsgPool)
 
     // Online: compute my result + leaderboard
     const sortedPlayers = [...players].map((p, i) => ({ ...p, idx: i })).sort((a, b) => b.score - a.score)
@@ -396,8 +402,8 @@ export default function LightningGame() {
             </>
           ) : (
             <>
-              <div className="text-4xl mb-1">{tier.icon}</div>
-              <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tier.title[language]}</div>
+              <div className="text-4xl mb-1">{tierIcon}</div>
+              <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tierTitle}</div>
               <div className="text-sm mb-6" style={{ color: tc.textMuted }}>{tierMessage}</div>
             </>
           )}

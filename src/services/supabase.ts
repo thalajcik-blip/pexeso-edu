@@ -7,11 +7,13 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export async function fetchCustomDeckFull(id: string): Promise<CustomDeckData | null> {
-  const { data: cards } = await supabase
-    .from('custom_cards')
-    .select('image_url, label, quiz_question, answers, display_count, quiz_options, quiz_correct, fun_fact, translations')
-    .eq('deck_id', id)
-    .order('sort_order')
+  const [{ data: deckRow }, { data: cards }] = await Promise.all([
+    supabase.from('custom_decks').select('language, results_config').eq('id', id).single(),
+    supabase.from('custom_cards')
+      .select('image_url, label, quiz_question, answers, display_count, quiz_options, quiz_correct, fun_fact, translations')
+      .eq('deck_id', id)
+      .order('sort_order'),
+  ])
   if (!cards) return null
   const pool: CustomDeckData['pool'] = {}
   type RawCard = { image_url: string; label: string; quiz_question: string | null; answers: CustomDeckCard['answers']; display_count: number; quiz_options: [string,string,string,string] | null; quiz_correct: string | null; fun_fact: string | null; translations?: CustomDeckCard['translations'] }
@@ -28,5 +30,12 @@ export async function fetchCustomDeckFull(id: string): Promise<CustomDeckData | 
       translations: c.translations,
     }
   })
-  return { id, title: '', thumbnail: cards[0]?.image_url ?? null, pool }
+  return {
+    id,
+    title: '',
+    language: deckRow?.language ?? 'cs',
+    thumbnail: cards[0]?.image_url ?? null,
+    pool,
+    results_config: deckRow?.results_config ?? null,
+  }
 }

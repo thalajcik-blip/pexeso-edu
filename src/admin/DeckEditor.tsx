@@ -11,6 +11,42 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Skeleton } from '@/components/ui/skeleton'
 import { ChevronDown } from 'lucide-react'
 
+type TierConfig = { icon: string; title: string; messages: [string, string, string] }
+
+const TIER_LABELS = ['100 %', '≥ 90 %', '≥ 75 %', '≥ 50 %', '≥ 25 %', '< 25 %']
+
+const HARDCODED_DEFAULTS: Record<string, TierConfig[]> = {
+  cs: [
+    { icon: '🧠', title: 'Génius!',         messages: ['Perfektní paměť i znalosti — to je kombinace!', 'Na 100 % správně! Mozek pracuje naplno.', 'Bezchybný výkon. Tebe se nic nevyhne!'] },
+    { icon: '🔥', title: 'Výborně!',         messages: ['Skoro dokonalý! Jen kousek od maxima.', 'Skvělá paměť i znalosti — gratulujeme!', 'Téměř perfektní. Příště to dotáhneš!'] },
+    { icon: '⭐', title: 'Skvělé!',          messages: ['Dobrá práce! Mozek se zahřívá.', 'Tři čtvrtiny na výbornou — příště víc!', 'Solid výkon, paměť i kvíz šly dobře.'] },
+    { icon: '💪', title: 'Dobrý pokus!',     messages: ['Půlka tam — procvič a příště to zlomíš!', 'Rozehřívačka se povedla, příště víc!', 'Mozek se zahřívá. Zkus to znovu!'] },
+    { icon: '📚', title: 'Nevzdávej to!',    messages: ['Tohle téma chce trochu procvičit — dáš to!', 'Každý pokus tě posouvá blíž k cíli.', 'Zkus to znovu, mozek potřebuje čas!'] },
+    { icon: '🚀', title: 'Výzva přijata!',   messages: ['Každý šampion začínal od nuly. Zkus to znovu!', 'Mozek se právě něco naučil. To se počítá!', 'Tuhle sadu ještě dobydneš, jen tak nevzdávej!'] },
+  ],
+  sk: [
+    { icon: '🧠', title: 'Génius!',          messages: ['Perfektná pamäť aj znalosti — to je kombinácia!', 'Na 100 % správne! Mozog pracuje naplno.', 'Bezchybný výkon. Teba sa nič nevyhne!'] },
+    { icon: '🔥', title: 'Výborne!',          messages: ['Skoro dokonalý! Len kúsok od maxima.', 'Skvelá pamäť aj znalosti — gratulujeme!', 'Takmer perfektný. Nabudúce to dotiahneš!'] },
+    { icon: '⭐', title: 'Skvelé!',           messages: ['Dobrá práca! Mozog sa zahrieva.', 'Tri štvrtiny na výbornú — nabudúce viac!', 'Solid výkon, pamäť aj kvíz išli dobre.'] },
+    { icon: '💪', title: 'Dobrý pokus!',      messages: ['Polovica tam — precvič a nabudúce to zlomíš!', 'Rozcvička sa podarila, nabudúce viac!', 'Mozog sa zahrieva. Skús to znovu!'] },
+    { icon: '📚', title: 'Nevzdávaj to!',     messages: ['Táto téma chce trochu precvičiť — dáš to!', 'Každý pokus ťa posúva bližšie k cieľu.', 'Skús to znovu, mozog potrebuje čas!'] },
+    { icon: '🚀', title: 'Výzva prijatá!',    messages: ['Každý šampión začínal od nuly. Skús to znovu!', 'Mozog sa práve niečo naučil. To sa počíta!', 'Túto sadu ešte dobydieš, tak nevzdávaj!'] },
+  ],
+  en: [
+    { icon: '🧠', title: 'Genius!',           messages: ['Perfect memory and knowledge — what a combo!', '100% correct! Brain firing on all cylinders.', 'Flawless performance. Nothing gets past you!'] },
+    { icon: '🔥', title: 'Excellent!',         messages: ['Almost perfect! Just a step from the top.', 'Great memory and knowledge — well done!', "Nearly perfect. You'll get there next time!"] },
+    { icon: '⭐', title: 'Great!',             messages: ['Good work! Brain warming up.', 'Three quarters excellent — more next time!', 'Solid performance, memory and quiz both good.'] },
+    { icon: '💪', title: 'Good try!',          messages: ["Halfway there — practice and break through next time!", 'Good warm-up, go for more next time!', 'Brain warming up. Try again!'] },
+    { icon: '📚', title: "Don't give up!",     messages: ['This topic needs a bit more practice — you got this!', 'Every attempt gets you closer to the goal.', 'Try again, the brain needs time!'] },
+    { icon: '🚀', title: 'Challenge accepted!', messages: ['Every champion started from zero. Try again!', 'Your brain just learned something. That counts!', "You'll conquer this deck yet — don't give up!"] },
+  ],
+}
+
+function getInitialTiers(lang: string, globalDefaults: TierConfig[] | null): TierConfig[] {
+  if (globalDefaults && globalDefaults.length === 6) return globalDefaults
+  return HARDCODED_DEFAULTS[lang] ?? HARDCODED_DEFAULTS['cs']
+}
+
 type Deck = {
   id: string
   title: string
@@ -52,6 +88,18 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [translating, setTranslating]   = useState(false)
   const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number } | null>(null)
   const [translateError, setTranslateError] = useState('')
+  const [customizeResults, setCustomizeResults] = useState(false)
+  const [resultsConfig, setResultsConfig] = useState<TierConfig[]>([])
+  const [globalResultsDefaults, setGlobalResultsDefaults] = useState<TierConfig[] | null>(null)
+  const [resultsOpen, setResultsOpen] = useState(false)
+
+  useEffect(() => {
+    // Fetch global defaults from admin_settings
+    supabase.from('admin_settings').select('value').eq('key', 'results_config').maybeSingle()
+      .then(({ data }) => {
+        if (data?.value) setGlobalResultsDefaults(data.value as TierConfig[])
+      })
+  }, [])
 
   useEffect(() => {
     if (!deckId) return
@@ -67,6 +115,10 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         setLanguage(d.language ?? 'cs')
         setDifficulty(d.difficulty ?? 'medium')
         setStatus(d.status)
+        if (d.results_config && Array.isArray(d.results_config) && d.results_config.length === 6) {
+          setCustomizeResults(true)
+          setResultsConfig(d.results_config as TierConfig[])
+        }
       }
       setCards(c ?? [])
       setLoading(false)
@@ -84,6 +136,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       language,
       difficulty,
       status,
+      results_config: customizeResults && resultsConfig.length === 6 ? resultsConfig : null,
       updated_at: new Date().toISOString(),
     }
 
@@ -410,6 +463,94 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           </Button>
           {saved && <span className="text-xs text-green-600">✓ Uloženo</span>}
         </div>
+      </div>
+
+      {/* Results screen customization */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm mb-6 overflow-hidden">
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+          onClick={() => setResultsOpen(v => !v)}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-gray-700">Výsledková obrazovka</span>
+            {customizeResults
+              ? <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 font-medium">Vlastní</span>
+              : <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">Výchozí</span>
+            }
+          </div>
+          <ChevronDown className={`size-4 text-gray-400 transition-transform ${resultsOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {resultsOpen && (
+          <div className="px-6 pb-6 border-t border-gray-100">
+            <div className="flex items-center justify-between py-4 mb-2">
+              <p className="text-xs text-gray-400">Ikony, nadpisy a hlášky na výsledkové obrazovce. Platí pro Bleskový kvíz i PexeQuiz.</p>
+              <label className="flex items-center gap-2 cursor-pointer shrink-0 ml-4">
+                <div
+                  onClick={() => {
+                    if (!customizeResults) {
+                      setResultsConfig(getInitialTiers(language, globalResultsDefaults) as TierConfig[])
+                    }
+                    setCustomizeResults(v => !v)
+                  }}
+                  className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer ${customizeResults ? 'bg-indigo-600' : 'bg-gray-200'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${customizeResults ? 'translate-x-5' : 'translate-x-1'}`} />
+                </div>
+                <span className="text-xs text-gray-600 whitespace-nowrap">Vlastní hlášky</span>
+              </label>
+            </div>
+
+            {customizeResults && resultsConfig.length === 6 && (
+              <div className="space-y-4">
+                {resultsConfig.map((tier, i) => (
+                  <div key={i} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                    <div className="flex items-center gap-1 mb-2">
+                      <span className="text-xs font-medium text-gray-400 w-14 shrink-0">{TIER_LABELS[i]}</span>
+                      <input
+                        type="text"
+                        value={tier.icon}
+                        onChange={e => setResultsConfig(prev => prev.map((t, j) => j === i ? { ...t, icon: e.target.value } : t))}
+                        className="w-12 text-center border border-gray-200 rounded-md px-1 py-1 text-sm bg-white"
+                        maxLength={4}
+                      />
+                      <Input
+                        value={tier.title}
+                        onChange={e => setResultsConfig(prev => prev.map((t, j) => j === i ? { ...t, title: e.target.value } : t))}
+                        placeholder="Nadpis"
+                        className="flex-1 h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1 pl-[60px]">
+                      {tier.messages.map((msg, mi) => (
+                        <Input
+                          key={mi}
+                          value={msg}
+                          onChange={e => setResultsConfig(prev => prev.map((t, j) => {
+                            if (j !== i) return t
+                            const msgs = [...t.messages] as [string, string, string]
+                            msgs[mi] = e.target.value
+                            return { ...t, messages: msgs }
+                          }))}
+                          placeholder={`Hláška ${mi + 1}`}
+                          className="h-8 text-sm"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setResultsConfig(getInitialTiers(language, globalResultsDefaults) as TierConfig[])}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  ↺ Obnovit výchozí hodnoty
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Cards section */}

@@ -96,7 +96,7 @@ async function callClaude(prompt: string, apiKey: string) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 512, messages: [{ role: 'user', content: prompt }] }),
+    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1024, messages: [{ role: 'user', content: prompt }] }),
   })
   if (!response.ok) throw new Error(`Claude error: ${response.status}`)
   const data = await response.json()
@@ -138,6 +138,44 @@ Deno.serve(async (req) => {
     if (!source_lang || !target_lang) {
       return new Response(JSON.stringify({ error: 'Missing source_lang or target_lang' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Results config mode — translate tier titles and messages
+    if (body.mode === 'results_config' && body.tiers) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+      const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      const claudeKey   = Deno.env.get('ANTHROPIC_API_KEY')
+      const geminiKey   = Deno.env.get('GEMINI_API_KEY')
+      const aiSettings  = await getAiSettings(supabaseUrl, serviceKey)
+      const alphabetNote = LANG_ALPHABET_NOTE[target_lang] ?? ''
+      const tiersJson = JSON.stringify(body.tiers)
+      const rcPrompt = `Translate the following quiz result tier texts from ${LANG_NAMES[source_lang] ?? source_lang} to ${LANG_NAMES[target_lang] ?? target_lang}. ${alphabetNote}
+Each tier has a "title" and "messages" array. Translate all text fields. Return JSON only (same structure):
+${tiersJson}`
+      const primaryKey = aiSettings.primary === 'claude' ? claudeKey : geminiKey
+      const primaryCall = aiSettings.primary === 'claude'
+        ? (k: string) => callClaude(rcPrompt, k)
+        : (k: string) => callGemini(rcPrompt, k)
+      const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
+      const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
+      const fallbackCall = fallbackProvider === 'claude'
+        ? (k: string) => callClaude(rcPrompt, k)
+        : (k: string) => callGemini(rcPrompt, k)
+      let rcResult
+      if (primaryKey) {
+        try { rcResult = await primaryCall(primaryKey) }
+        catch (e) {
+          if (!aiSettings.fallback || !fallbackKey) throw e
+          rcResult = await fallbackCall(fallbackKey)
+        }
+      } else if (aiSettings.fallback && fallbackKey) {
+        rcResult = await fallbackCall(fallbackKey)
+      } else throw new Error('No AI provider configured')
+      // rcResult is parsed JSON — ensure it's an array
+      const tiers = Array.isArray(rcResult) ? rcResult : (rcResult?.tiers ?? rcResult)
+      return new Response(JSON.stringify({ tiers }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
