@@ -354,7 +354,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           <NavigationMenuItem>
             <NavigationMenuLink
               onClick={() => deck && setView('cards')}
-              className={cn(navigationMenuTriggerStyle(), 'cursor-pointer gap-2', view === 'cards' && 'bg-accent text-accent-foreground', !deck && 'opacity-40 pointer-events-none')}
+              className={cn(navigationMenuTriggerStyle(), 'cursor-pointer gap-2 flex-row items-center', view === 'cards' && 'bg-accent text-accent-foreground', !deck && 'opacity-40 pointer-events-none')}
             >
               Kartičky
               {deck && (
