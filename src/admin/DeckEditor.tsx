@@ -369,7 +369,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           <NavigationMenuItem>
             <NavigationMenuLink
               onClick={() => deck && startTransition(() => setView('results'))}
-              className={cn(navigationMenuTriggerStyle(), 'cursor-pointer gap-2', view === 'results' && 'bg-accent text-accent-foreground', !deck && 'opacity-40 pointer-events-none')}
+              className={cn(navigationMenuTriggerStyle(), 'cursor-pointer gap-2 flex-row items-center', view === 'results' && 'bg-accent text-accent-foreground', !deck && 'opacity-40 pointer-events-none')}
             >
               Výsledková obrazovka
               {deck && customizeResults && (
