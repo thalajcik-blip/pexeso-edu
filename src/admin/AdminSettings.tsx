@@ -2,6 +2,14 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  navigationMenuTriggerStyle,
+} from '@/components/ui/navigation-menu'
+import { cn } from '@/lib/utils'
 
 type AiProviderSettings = {
   primary: 'claude' | 'gemini'
@@ -46,20 +54,26 @@ const DEFAULT_GLOBAL: Record<'cs' | 'sk' | 'en', TierConfig[]> = {
 
 const PROVIDER_LABELS = {
   claude: 'Claude Haiku (Anthropic)',
-  gemini: 'Gemini 2.0 Flash (Google)',
+  gemini: 'Gemini 2.5 Flash (Google)',
 }
 
+type View = 'ai' | 'results'
+
 export default function AdminSettings() {
-  const [settings, setSettings] = useState<AiProviderSettings>({ primary: 'claude', fallback: true })
+  const [view, setView]         = useState<View>('ai')
   const [loading, setLoading]   = useState(true)
+
+  // AI provider
+  const [settings, setSettings] = useState<AiProviderSettings>({ primary: 'claude', fallback: true })
   const [saving, setSaving]     = useState(false)
   const [saved, setSaved]       = useState(false)
   const [error, setError]       = useState('')
 
+  // Results config
   const [globalTiers, setGlobalTiers] = useState<Record<'cs' | 'sk' | 'en', TierConfig[]>>(DEFAULT_GLOBAL)
-  const [tierLang, setTierLang] = useState<'cs' | 'sk' | 'en'>('cs')
+  const [tierLang, setTierLang]       = useState<'cs' | 'sk' | 'en'>('cs')
   const [savingTiers, setSavingTiers] = useState(false)
-  const [savedTiers, setSavedTiers] = useState(false)
+  const [savedTiers, setSavedTiers]   = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -85,8 +99,6 @@ export default function AdminSettings() {
     setSaving(false)
   }
 
-  const fallbackProvider = settings.primary === 'claude' ? 'gemini' : 'claude'
-
   async function handleSaveTiers() {
     setSavingTiers(true)
     setSavedTiers(false)
@@ -105,27 +117,47 @@ export default function AdminSettings() {
     }))
   }
 
+  const fallbackProvider = settings.primary === 'claude' ? 'gemini' : 'claude'
+
   return (
     <div className="max-w-lg">
-      <h1 className="text-xl font-bold text-gray-800 mb-6">Nastavení</h1>
+      <h1 className="text-xl font-bold text-gray-800 mb-4">Nastavení</h1>
+
+      <NavigationMenu className="mb-6">
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              onClick={() => setView('ai')}
+              className={cn(navigationMenuTriggerStyle(), 'cursor-pointer', view === 'ai' && 'bg-accent text-accent-foreground')}
+            >
+              AI Provideri
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              onClick={() => setView('results')}
+              className={cn(navigationMenuTriggerStyle(), 'cursor-pointer', view === 'results' && 'bg-accent text-accent-foreground')}
+            >
+              Nastavení výsledků
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
 
       {loading ? (
         <div className="text-sm text-gray-400">Načítání…</div>
-      ) : (
+      ) : view === 'ai' ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
           <div>
             <div className="text-sm font-semibold text-gray-700 mb-1">Generování kvízů — AI provider</div>
             <div className="text-xs text-gray-400 mb-4">Který model se použije pro automatické generování kvízových otázek.</div>
 
-            {/* Primary provider */}
             <div className="mb-4">
               <label className="block text-xs font-medium text-gray-600 mb-2">Primární model</label>
               <div className="flex flex-col gap-2">
                 {(['claude', 'gemini'] as const).map(p => (
                   <label key={p} className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
-                    settings.primary === p
-                      ? 'border-indigo-300 bg-indigo-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                    settings.primary === p ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
                   }`}>
                     <input
                       type="radio"
@@ -144,7 +176,6 @@ export default function AdminSettings() {
               </div>
             </div>
 
-            {/* Fallback toggle */}
             <label className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
               <div>
                 <div className="text-sm text-gray-700">Fallback na {PROVIDER_LABELS[fallbackProvider]}</div>
@@ -165,68 +196,68 @@ export default function AdminSettings() {
           <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? 'Ukládání…' : 'Uložit nastavení'}
           </Button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+          <div>
+            <div className="text-sm font-semibold text-gray-700 mb-1">Globální výchozí hodnoty</div>
+            <div className="text-xs text-gray-400 mb-4">Ikony, nadpisy a hlášky, které se zobrazí, pokud sada nemá vlastní nastavení.</div>
 
-        {/* Global results config */}
-        <div className="border-t border-gray-100 pt-6">
-          <div className="text-sm font-semibold text-gray-700 mb-1">Výsledková obrazovka — globální výchozí hodnoty</div>
-          <div className="text-xs text-gray-400 mb-4">Ikony, nadpisy a hlášky, které se zobrazí, pokud sada nemá vlastní nastavení.</div>
+            <div className="flex gap-1 mb-4">
+              {LANG_TABS.map(t => (
+                <button
+                  key={t.code}
+                  onClick={() => setTierLang(t.code)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${tierLang === t.code ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
 
-          {/* Language tabs */}
-          <div className="flex gap-1 mb-4">
-            {LANG_TABS.map(t => (
-              <button
-                key={t.code}
-                onClick={() => setTierLang(t.code)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${tierLang === t.code ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'}`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="space-y-3">
-            {globalTiers[tierLang].map((tier, i) => (
-              <div key={i} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                <div className="flex items-center gap-1 mb-2">
-                  <span className="text-xs text-gray-400 w-14 shrink-0">{TIER_LABELS[i]}</span>
-                  <input
-                    type="text"
-                    value={tier.icon}
-                    onChange={e => updateTier(tierLang, i, { icon: e.target.value })}
-                    className="w-12 text-center border border-gray-200 rounded-md px-1 py-1 text-sm bg-white"
-                    maxLength={4}
-                  />
-                  <Input
-                    value={tier.title}
-                    onChange={e => updateTier(tierLang, i, { title: e.target.value })}
-                    placeholder="Nadpis"
-                    className="flex-1 h-8 text-sm"
-                  />
-                </div>
-                <div className="space-y-1 pl-[60px]">
-                  {tier.messages.map((msg, mi) => (
-                    <Input
-                      key={mi}
-                      value={msg}
-                      onChange={e => {
-                        const msgs = [...tier.messages] as [string, string, string]
-                        msgs[mi] = e.target.value
-                        updateTier(tierLang, i, { messages: msgs })
-                      }}
-                      placeholder={`Hláška ${mi + 1}`}
-                      className="h-8 text-sm"
+            <div className="space-y-3">
+              {globalTiers[tierLang].map((tier, i) => (
+                <div key={i} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                  <div className="flex items-center gap-1 mb-2">
+                    <span className="text-xs text-gray-400 w-14 shrink-0">{TIER_LABELS[i]}</span>
+                    <input
+                      type="text"
+                      value={tier.icon}
+                      onChange={e => updateTier(tierLang, i, { icon: e.target.value })}
+                      className="w-12 text-center border border-gray-200 rounded-md px-1 py-1 text-sm bg-white"
+                      maxLength={4}
                     />
-                  ))}
+                    <Input
+                      value={tier.title}
+                      onChange={e => updateTier(tierLang, i, { title: e.target.value })}
+                      placeholder="Nadpis"
+                      className="flex-1 h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1 pl-[60px]">
+                    {tier.messages.map((msg, mi) => (
+                      <Input
+                        key={mi}
+                        value={msg}
+                        onChange={e => {
+                          const msgs = [...tier.messages] as [string, string, string]
+                          msgs[mi] = e.target.value
+                          updateTier(tierLang, i, { messages: msgs })
+                        }}
+                        placeholder={`Hláška ${mi + 1}`}
+                        className="h-8 text-sm"
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          {savedTiers && <div className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2 mt-3">Výchozí hodnoty uloženy.</div>}
-          <Button onClick={handleSaveTiers} disabled={savingTiers} variant="outline" className="w-full mt-3">
+          {savedTiers && <div className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">Výchozí hodnoty uloženy.</div>}
+          <Button onClick={handleSaveTiers} disabled={savingTiers} className="w-full">
             {savingTiers ? 'Ukládání…' : 'Uložit výchozí hodnoty'}
           </Button>
-        </div>
         </div>
       )}
     </div>
