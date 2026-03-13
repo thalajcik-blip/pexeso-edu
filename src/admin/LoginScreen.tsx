@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { useAuth } from './useAuth'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -67,7 +68,7 @@ export default function LoginScreen({ signIn, signUp, resetPassword, signInWithG
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8">
+      <Card className="w-full max-w-sm rounded-2xl p-8 gap-0">
         <div className="text-2xl font-bold text-gray-800 mb-1">{t.heading}</div>
         <div className="text-sm text-gray-500 mb-6">{t.sub}</div>
 
@@ -161,7 +162,7 @@ export default function LoginScreen({ signIn, signUp, resetPassword, signInWithG
             </button>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
