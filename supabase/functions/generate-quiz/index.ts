@@ -89,7 +89,7 @@ async function callClaude(prompt: string, apiKey: string) {
 
 async function callGemini(prompt: string, apiKey: string, retries = 3): Promise<ReturnType<typeof parseResult>> {
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
