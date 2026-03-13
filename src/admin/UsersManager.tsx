@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ChevronDown } from 'lucide-react'
@@ -53,7 +54,7 @@ export default function UsersManager() {
       {loading ? (
         <div className="text-sm text-gray-400">Načítání…</div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <Card className="rounded-2xl p-0 gap-0 border-gray-100 shadow-none overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
@@ -101,7 +102,7 @@ export default function UsersManager() {
           {users.length === 0 && (
             <div className="text-center text-sm text-gray-400 py-8">Žádní uživatelé</div>
           )}
-        </div>
+        </Card>
       )}
     </div>
   )

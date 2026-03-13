@@ -4,6 +4,7 @@ import type { AdminRole } from './useAuth'
 import type { AnswerOption } from '../types/game'
 import { validateAnswers } from '../utils/quizValidation'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -265,7 +266,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
       </div>
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+          <Card key={i} className="p-4 gap-0 border-gray-100">
             <div className="flex items-center gap-4">
               <div className="flex-1 min-w-0 space-y-1.5">
                 <Skeleton className="h-4 w-48" />
@@ -278,7 +279,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                 <Skeleton className="h-8 w-14" />
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>
@@ -315,7 +316,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
 
             const invalidCount = getDeckInvalidCount(deck.id)
             return (
-              <div key={deck.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+              <Card key={deck.id} className="p-4 gap-0 border-gray-100">
                 <div className="flex items-center gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -399,7 +400,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                 {translate?.deckId === deck.id && translate.error && (
                   <div className="mt-2 text-xs text-red-600">{translate.error}</div>
                 )}
-              </div>
+              </Card>
             )
           })}
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -147,7 +148,7 @@ export default function AdminSettings() {
       {loading ? (
         <div className="text-sm text-gray-400">Načítání…</div>
       ) : view === 'ai' ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
+        <Card className="rounded-2xl p-6 gap-0 space-y-6 shadow-none border-gray-100">
           <div>
             <div className="text-sm font-semibold text-gray-700 mb-1">Generování kvízů — AI provider</div>
             <div className="text-xs text-gray-400 mb-4">Který model se použije pro automatické generování kvízových otázek.</div>
@@ -198,9 +199,9 @@ export default function AdminSettings() {
             </Button>
             {saved && <span className="text-xs text-green-600">✓ Uloženo</span>}
           </div>
-        </div>
+        </Card>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+        <Card className="rounded-2xl p-6 gap-0 space-y-4 shadow-none border-gray-100">
           <div>
             <div className="text-sm font-semibold text-gray-700 mb-1">Globální výchozí hodnoty</div>
             <div className="text-xs text-gray-400 mb-4">Ikony, nadpisy a hlášky, které se zobrazí, pokud sada nemá vlastní nastavení.</div>
@@ -262,7 +263,7 @@ export default function AdminSettings() {
             </Button>
             {savedTiers && <span className="text-xs text-green-600">✓ Uloženo</span>}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   )

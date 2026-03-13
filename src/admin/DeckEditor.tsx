@@ -4,6 +4,7 @@ import CardModal, { type CardData } from './CardModal'
 import { validateAnswers } from '../utils/quizValidation'
 import BulkUploadModal from './BulkUploadModal'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Input } from '@/components/ui/input'
@@ -381,7 +382,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
 
       {/* View: Základní informace */}
       {view === 'info' && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+        <Card className="p-6 gap-0 space-y-4 border-gray-100">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Název *</label>
             <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="např. Dinosauři" />
@@ -459,7 +460,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             </Button>
             {saved && <span className="text-xs text-green-600">✓ Uloženo</span>}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* View: Kartičky */}
@@ -552,7 +553,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
 
       {/* View: Výsledková obrazovka */}
       {view === 'results' && deck && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+        <Card className="p-6 gap-0 space-y-4 border-gray-100">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-semibold text-gray-700 mb-0.5">Výsledková obrazovka</div>
@@ -626,7 +627,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             </Button>
             {saved && <span className="text-xs text-green-600">✓ Uloženo</span>}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Modals */}
