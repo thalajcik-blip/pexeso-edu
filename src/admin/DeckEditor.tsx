@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, startTransition } from 'react'
 import { supabase } from '../services/supabase'
 import CardModal, { type CardData } from './CardModal'
 import { validateAnswers } from '../utils/quizValidation'
@@ -345,7 +345,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuLink
-              onClick={() => setView('info')}
+              onClick={() => startTransition(() => setView('info'))}
               className={cn(navigationMenuTriggerStyle(), 'cursor-pointer', view === 'info' && 'bg-accent text-accent-foreground')}
             >
               Základní informace
@@ -353,7 +353,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink
-              onClick={() => deck && setView('cards')}
+              onClick={() => deck && startTransition(() => setView('cards'))}
               className={cn(navigationMenuTriggerStyle(), 'cursor-pointer gap-2 flex-row items-center', view === 'cards' && 'bg-accent text-accent-foreground', !deck && 'opacity-40 pointer-events-none')}
             >
               Kartičky
@@ -366,7 +366,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink
-              onClick={() => deck && setView('results')}
+              onClick={() => deck && startTransition(() => setView('results'))}
               className={cn(navigationMenuTriggerStyle(), 'cursor-pointer gap-2', view === 'results' && 'bg-accent text-accent-foreground', !deck && 'opacity-40 pointer-events-none')}
             >
               Výsledková obrazovka
