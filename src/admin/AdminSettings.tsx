@@ -165,7 +165,6 @@ export default function AdminSettings() {
           <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? 'Ukládání…' : 'Uložit nastavení'}
           </Button>
-        </div>
 
         {/* Global results config */}
         <div className="border-t border-gray-100 pt-6">
