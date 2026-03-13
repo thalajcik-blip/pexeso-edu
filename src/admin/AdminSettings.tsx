@@ -191,11 +191,13 @@ export default function AdminSettings() {
           </div>
 
           {error && <div className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</div>}
-          {saved && <div className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">Nastavení uloženo.</div>}
 
-          <Button onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? 'Ukládání…' : 'Uložit nastavení'}
-          </Button>
+          <div className="flex items-center gap-3 pt-1">
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? 'Ukládání…' : 'Uložit nastavení'}
+            </Button>
+            {saved && <span className="text-xs text-green-600">✓ Uloženo</span>}
+          </div>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
@@ -254,10 +256,12 @@ export default function AdminSettings() {
             </div>
           </div>
 
-          {savedTiers && <div className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">Výchozí hodnoty uloženy.</div>}
-          <Button onClick={handleSaveTiers} disabled={savingTiers} className="w-full">
-            {savingTiers ? 'Ukládání…' : 'Uložit výchozí hodnoty'}
-          </Button>
+          <div className="flex items-center gap-3 pt-1">
+            <Button onClick={handleSaveTiers} disabled={savingTiers}>
+              {savingTiers ? 'Ukládání…' : 'Uložit výchozí hodnoty'}
+            </Button>
+            {savedTiers && <span className="text-xs text-green-600">✓ Uloženo</span>}
+          </div>
         </div>
       )}
     </div>
