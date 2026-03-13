@@ -58,13 +58,17 @@ ${cfg.alphabet ? `- ${cfg.alphabet}` : ''}`
 }
 
 function parseResult(text: string) {
-  const jsonMatch = text.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) throw new Error(`Invalid AI response: ${text.slice(0, 300)}`)
-  const result = JSON.parse(jsonMatch[0])
-  return {
-    question: result.question,
-    answers:  result.answers,
-    fun_fact: result.fun_fact,
+  // Strip markdown code fences if present
+  const stripped = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
+  try {
+    const result = JSON.parse(stripped)
+    return { question: result.question, answers: result.answers, fun_fact: result.fun_fact }
+  } catch {
+    // Fallback: extract first {...} block
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error(`Invalid AI response: ${text.slice(0, 300)}`)
+    const result = JSON.parse(jsonMatch[0])
+    return { question: result.question, answers: result.answers, fun_fact: result.fun_fact }
   }
 }
 

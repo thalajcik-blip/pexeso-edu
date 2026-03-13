@@ -45,9 +45,14 @@ Rules:
 }
 
 function parseResult(text: string) {
-  const jsonMatch = text.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) throw new Error('Invalid AI response')
-  return JSON.parse(jsonMatch[0])
+  const stripped = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
+  try {
+    return JSON.parse(stripped)
+  } catch {
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error(`Invalid AI response: ${text.slice(0, 300)}`)
+    return JSON.parse(jsonMatch[0])
+  }
 }
 
 async function getAiSettings(supabaseUrl: string, serviceKey: string): Promise<{ primary: 'claude' | 'gemini'; fallback: boolean }> {
