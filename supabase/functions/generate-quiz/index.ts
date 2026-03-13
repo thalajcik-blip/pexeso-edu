@@ -1,6 +1,6 @@
 const LANG_CONFIG = {
-  cs: { lang: 'češtině', example: 'Jak se jmenuje ...?', alphabet: 'Czech uses the Latin alphabet with diacritics (á, č, ď, é, ě, í, ň, ó, ř, š, ť, ú, ů, ý, ž). Do NOT use Cyrillic characters.' },
-  sk: { lang: 'slovenčine', example: 'Ako sa volá ...?', alphabet: 'Slovak uses the Latin alphabet with diacritics (á, ä, č, ď, é, í, ĺ, ľ, ň, ó, ô, ŕ, š, ť, ú, ý, ž). Do NOT use Cyrillic characters.' },
+  cs: { lang: 'Czech (language of Czech Republic)', example: 'Jak se jmenuje ...?', alphabet: 'Write in Czech language. Use Latin alphabet with Czech diacritics (á, č, ď, é, ě, í, ň, ó, ř, š, ť, ú, ů, ý, ž). Do NOT use Cyrillic or Slovenian.' },
+  sk: { lang: 'Slovak (language of Slovakia, NOT Slovenian)', example: 'Ako sa volá ...?', alphabet: 'Write in Slovak language spoken in Slovakia. Use Latin alphabet with Slovak diacritics (á, ä, č, ď, é, í, ĺ, ľ, ň, ó, ô, ŕ, š, ť, ú, ý, ž). Do NOT use Cyrillic, do NOT use Slovenian.' },
   en: { lang: 'English', example: 'What is the name of ...?', alphabet: '' },
 }
 
@@ -59,7 +59,7 @@ ${cfg.alphabet ? `- ${cfg.alphabet}` : ''}`
 
 function parseResult(text: string) {
   const jsonMatch = text.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) throw new Error('Invalid AI response')
+  if (!jsonMatch) throw new Error(`Invalid AI response: ${text.slice(0, 300)}`)
   const result = JSON.parse(jsonMatch[0])
   return {
     question: result.question,
@@ -89,13 +89,13 @@ async function callClaude(prompt: string, apiKey: string) {
 
 async function callGemini(prompt: string, apiKey: string, retries = 3): Promise<ReturnType<typeof parseResult>> {
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 512 },
+        generationConfig: { maxOutputTokens: 1024 },
       }),
     }
   )

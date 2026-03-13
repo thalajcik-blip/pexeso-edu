@@ -5,8 +5,8 @@ const LANG_NAMES: Record<string, string> = {
 }
 
 const LANG_ALPHABET_NOTE: Record<string, string> = {
-  cs: 'Czech uses the Latin alphabet with diacritics (á, č, ď, é, ě, í, ň, ó, ř, š, ť, ú, ů, ý, ž). Do NOT use Cyrillic characters.',
-  sk: 'Slovak uses the Latin alphabet with diacritics (á, ä, č, ď, é, í, ĺ, ľ, ň, ó, ô, ŕ, š, ť, ú, ý, ž). Do NOT use Cyrillic characters.',
+  cs: 'Write in Czech language (Czech Republic). Latin alphabet with diacritics (á, č, ď, é, ě, í, ň, ó, ř, š, ť, ú, ů, ý, ž). Do NOT use Cyrillic.',
+  sk: 'Write in Slovak language (Slovakia, NOT Slovenian). Latin alphabet with Slovak diacritics (á, ä, č, ď, é, í, ĺ, ľ, ň, ó, ô, ŕ, š, ť, ú, ý, ž). Do NOT use Cyrillic, do NOT use Slovenian.',
   en: 'Use standard English characters only.',
 }
 
@@ -75,7 +75,7 @@ async function callClaudeRaw(prompt: string, apiKey: string): Promise<string> {
 
 async function callGeminiRaw(prompt: string, apiKey: string): Promise<string> {
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -100,7 +100,7 @@ async function callClaude(prompt: string, apiKey: string) {
 
 async function callGemini(prompt: string, apiKey: string, retries = 3): Promise<ReturnType<typeof parseResult>> {
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
