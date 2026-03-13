@@ -4,6 +4,12 @@ const LANG_NAMES: Record<string, string> = {
   en: 'English',
 }
 
+const LANG_ALPHABET_NOTE: Record<string, string> = {
+  cs: 'Czech uses the Latin alphabet with diacritics (á, č, ď, é, ě, í, ň, ó, ř, š, ť, ú, ů, ý, ž). Do NOT use Cyrillic characters.',
+  sk: 'Slovak uses the Latin alphabet with diacritics (á, ä, č, ď, é, í, ĺ, ľ, ň, ó, ô, ŕ, š, ť, ú, ý, ž). Do NOT use Cyrillic characters.',
+  en: 'Use standard English characters only.',
+}
+
 function buildPrompt(
   label: string,
   quiz_question: string,
@@ -33,6 +39,7 @@ Return JSON only (no other text):
 
 Rules:
 - Translate ALL text to ${LANG_NAMES[target_lang] ?? target_lang} only
+- ${LANG_ALPHABET_NOTE[target_lang] ?? ''}
 - quiz_correct must be one of the items in quiz_options (exact match)
 - Keep all 4 options`
 }
@@ -136,7 +143,8 @@ Deno.serve(async (req) => {
       const claudeKey   = Deno.env.get('ANTHROPIC_API_KEY')
       const geminiKey   = Deno.env.get('GEMINI_API_KEY')
       const aiSettings  = await getAiSettings(supabaseUrl, serviceKey)
-      const textPrompt  = `Translate this text from ${LANG_NAMES[source_lang] ?? source_lang} to ${LANG_NAMES[target_lang] ?? target_lang}. Return only the translated text, nothing else: ${body.text}`
+      const alphabetNote = LANG_ALPHABET_NOTE[target_lang] ?? ''
+      const textPrompt  = `Translate this text from ${LANG_NAMES[source_lang] ?? source_lang} to ${LANG_NAMES[target_lang] ?? target_lang}. ${alphabetNote} Return only the translated text, nothing else: ${body.text}`
       const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
       const primaryRaw  = aiSettings.primary === 'claude' ? callClaudeRaw : callGeminiRaw
       const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'

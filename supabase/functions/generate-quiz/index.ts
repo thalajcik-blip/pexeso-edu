@@ -1,7 +1,7 @@
 const LANG_CONFIG = {
-  cs: { lang: 'češtině', example: 'Jak se jmenuje ...?' },
-  sk: { lang: 'slovenčine', example: 'Ako sa volá ...?' },
-  en: { lang: 'English', example: 'What is the name of ...?' },
+  cs: { lang: 'češtině', example: 'Jak se jmenuje ...?', alphabet: 'Czech uses the Latin alphabet with diacritics (á, č, ď, é, ě, í, ň, ó, ř, š, ť, ú, ů, ý, ž). Do NOT use Cyrillic characters.' },
+  sk: { lang: 'slovenčine', example: 'Ako sa volá ...?', alphabet: 'Slovak uses the Latin alphabet with diacritics (á, ä, č, ď, é, í, ĺ, ľ, ň, ó, ô, ŕ, š, ť, ú, ý, ž). Do NOT use Cyrillic characters.' },
+  en: { lang: 'English', example: 'What is the name of ...?', alphabet: '' },
 }
 
 const DIFFICULTY_CONFIG = {
@@ -53,7 +53,8 @@ Rules:
 - Provide exactly 1 correct answer and 5 wrong answers (6 total) for variety
 - Wrong answers must be plausible and relevant to the difficulty level
 - Fun fact must be real and interesting for children
-- Everything in ${cfg.lang} only, no mixing of languages`
+- Everything in ${cfg.lang} only, no mixing of languages
+${cfg.alphabet ? `- ${cfg.alphabet}` : ''}`
 }
 
 function parseResult(text: string) {
