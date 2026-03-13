@@ -5,7 +5,7 @@ import { TRANSLATIONS } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { soundQuizSelect, soundQuizCorrect, soundQuizWrong, soundQuizTimeout, soundTick, soundWin, isMuted, toggleMuted } from '../../services/audioService'
 
-const OPTION_LABELS = ['A', 'B', 'C', 'D']
+const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 const REVEAL_DURATION = 4000
 const MEDALS = ['🥇', '🥈', '🥉']
 
