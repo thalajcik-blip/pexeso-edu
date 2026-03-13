@@ -9,7 +9,11 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu'
 import { ChevronDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+type View = 'info' | 'cards' | 'results'
 
 type TierConfig = { icon: string; title: string; messages: [string, string, string] }
 
@@ -92,7 +96,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [customizeResults, setCustomizeResults] = useState(false)
   const [resultsConfig, setResultsConfig] = useState<TierConfig[]>([])
   const [globalResultsDefaults, setGlobalResultsDefaults] = useState<Record<string, TierConfig[]> | null>(null)
-  const [resultsOpen, setResultsOpen] = useState(false)
+  const [view, setView] = useState<View>('info')
 
   useEffect(() => {
     // Fetch global defaults from admin_settings
@@ -276,14 +280,11 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
 
   if (loading) return (
     <div>
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Skeleton className="h-4 w-12" />
         <Skeleton className="h-6 w-48" />
       </div>
-
-      {/* Form */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8 space-y-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-20 w-full" />
         <div className="flex gap-4 flex-wrap">
@@ -293,35 +294,13 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         </div>
         <Skeleton className="h-9 w-36" />
       </div>
-
-      {/* Cards grid */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <Skeleton className="h-5 w-24" />
-          <div className="flex gap-2">
-            <Skeleton className="h-8 w-28" />
-            <Skeleton className="h-8 w-24" />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-              <Skeleton className="aspect-square w-full" />
-              <div className="p-2 space-y-1.5">
-                <Skeleton className="h-3.5 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   )
 
   return (
     <div>
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-4">
         <Breadcrumb className="mb-2">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -337,225 +316,153 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           <h1 className="text-xl font-bold text-gray-800 flex-1">
             {deck ? title || 'Sada' : 'Nová sada'}
           </h1>
-        {isSuperadmin && deck && (
-          <div className="ml-auto flex items-center gap-2">
-            {translateProgress && (
-              <span className="text-xs text-indigo-500">
-                Překládám {translateProgress.done}/{translateProgress.total}…
-              </span>
-            )}
-            {translateError && (
-              <span className="text-xs text-red-500">{translateError}</span>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={translateAll}
-              disabled={translating || cards.filter(c => c.quiz_question).length === 0}
-              className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
-            >
-              {translating ? '⏳ Překládám…' : '🌐 Přeložit vše'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExport}
-              className="text-gray-500"
-            >
-              ↓ Export JSON
-            </Button>
-          </div>
-        )}
+          {isSuperadmin && deck && (
+            <div className="flex items-center gap-2">
+              {translateProgress && (
+                <span className="text-xs text-indigo-500">Překládám {translateProgress.done}/{translateProgress.total}…</span>
+              )}
+              {translateError && (
+                <span className="text-xs text-red-500">{translateError}</span>
+              )}
+              <Button
+                variant="outline" size="sm"
+                onClick={translateAll}
+                disabled={translating || cards.filter(c => c.quiz_question).length === 0}
+                className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+              >
+                {translating ? '⏳ Překládám…' : '🌐 Přeložit vše'}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExport} className="text-gray-500">
+                ↓ Export JSON
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Deck metadata */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6 space-y-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Název *</label>
-          <Input
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="např. Dinosauři"
-          />
-        </div>
+      {/* Navigation */}
+      <NavigationMenu className="mb-6">
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              onClick={() => setView('info')}
+              className={cn(navigationMenuTriggerStyle(), 'cursor-pointer', view === 'info' && 'bg-accent text-accent-foreground')}
+            >
+              Základní informace
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              onClick={() => deck && setView('cards')}
+              className={cn(navigationMenuTriggerStyle(), 'cursor-pointer gap-2', view === 'cards' && 'bg-accent text-accent-foreground', !deck && 'opacity-40 pointer-events-none')}
+            >
+              Kartičky
+              {deck && (
+                <span className={cn('text-xs px-1.5 py-0.5 rounded-full font-medium', invalidCount > 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500')}>
+                  {cards.length}
+                </span>
+              )}
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              onClick={() => deck && setView('results')}
+              className={cn(navigationMenuTriggerStyle(), 'cursor-pointer gap-2', view === 'results' && 'bg-accent text-accent-foreground', !deck && 'opacity-40 pointer-events-none')}
+            >
+              Výsledková obrazovka
+              {deck && customizeResults && (
+                <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-indigo-100 text-indigo-600">Vlastní</span>
+              )}
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
 
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Popis <span className="text-gray-300">(volitelné)</span></label>
-          <Textarea
-            value={desc}
-            onChange={e => setDesc(e.target.value)}
-            rows={2}
-            placeholder="Krátký popis sady…"
-            className="resize-none"
-          />
-        </div>
-
-        <div className="flex items-end gap-4 flex-wrap">
+      {/* View: Základní informace */}
+      {view === 'info' && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Jazyk sady</label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-44 justify-between font-normal">
-                  {({ cs: '🇨🇿 Čeština', sk: '🇸🇰 Slovenčina', en: '🇬🇧 English' } as Record<string, string>)[language]}
-                  <ChevronDown className="size-4 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-44">
-                <DropdownMenuItem onClick={() => setLanguage('cs')}>🇨🇿 Čeština</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('sk')}>🇸🇰 Slovenčina</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Název *</label>
+            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="např. Dinosauři" />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Obtížnost kvízu</label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-44 justify-between font-normal">
-                  {({ easy: '🟢 Snadná', medium: '🟡 Střední', hard: '🔴 Těžká' } as Record<string, string>)[difficulty]}
-                  <ChevronDown className="size-4 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-44">
-                <DropdownMenuItem onClick={() => setDifficulty('easy')}>🟢 Snadná</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setDifficulty('medium')}>🟡 Střední</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setDifficulty('hard')}>🔴 Těžká</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Popis <span className="text-gray-300">(volitelné)</span></label>
+            <Textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} placeholder="Krátký popis sady…" className="resize-none" />
           </div>
 
-          {isSuperadmin && (
+          <div className="flex items-end gap-4 flex-wrap">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Jazyk sady</label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-44 justify-between font-normal">
-                    {({ draft: 'Koncept', pending: 'Čeká na schválení', approved: 'Schváleno', rejected: 'Zamítnuto' } as Record<string, string>)[status]}
+                    {({ cs: '🇨🇿 Čeština', sk: '🇸🇰 Slovenčina', en: '🇬🇧 English' } as Record<string, string>)[language]}
                     <ChevronDown className="size-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-44">
-                  <DropdownMenuItem onClick={() => setStatus('draft')}>Koncept</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatus('pending')}>Čeká na schválení</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatus('approved')}>Schváleno</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatus('rejected')}>Zamítnuto</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('cs')}>🇨🇿 Čeština</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('sk')}>🇸🇰 Slovenčina</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          )}
 
-          <div className="flex items-center gap-2 pb-0.5">
-            <input
-              id="private"
-              type="checkbox"
-              checked={isPrivate}
-              onChange={e => setIsPrivate(e.target.checked)}
-              className="accent-indigo-600"
-            />
-            <label htmlFor="private" className="text-sm text-gray-700">Soukromá sada</label>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 pt-1">
-          <Button onClick={saveDeck} disabled={saving || !title.trim()}>
-            {saving ? 'Ukládání…' : deck ? 'Uložit změny' : 'Vytvořit sadu'}
-          </Button>
-          {saved && <span className="text-xs text-green-600">✓ Uloženo</span>}
-        </div>
-      </div>
-
-      {/* Results screen customization */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm mb-6 overflow-hidden">
-        <button
-          type="button"
-          className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
-          onClick={() => setResultsOpen(v => !v)}
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-gray-700">Výsledková obrazovka</span>
-            {customizeResults
-              ? <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 font-medium">Vlastní</span>
-              : <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">Výchozí</span>
-            }
-          </div>
-          <ChevronDown className={`size-4 text-gray-400 transition-transform ${resultsOpen ? 'rotate-180' : ''}`} />
-        </button>
-
-        {resultsOpen && (
-          <div className="px-6 pb-6 border-t border-gray-100">
-            <div className="flex items-center justify-between py-4 mb-2">
-              <p className="text-xs text-gray-400">Ikony, nadpisy a hlášky na výsledkové obrazovce. Platí pro Bleskový kvíz i PexeQuiz.</p>
-              <label className="flex items-center gap-2 cursor-pointer shrink-0 ml-4">
-                <div
-                  onClick={() => {
-                    if (!customizeResults) {
-                      setResultsConfig(getInitialTiers(language, globalResultsDefaults) as TierConfig[])
-                    }
-                    setCustomizeResults(v => !v)
-                  }}
-                  className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer ${customizeResults ? 'bg-indigo-600' : 'bg-gray-200'}`}
-                >
-                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${customizeResults ? 'translate-x-5' : 'translate-x-1'}`} />
-                </div>
-                <span className="text-xs text-gray-600 whitespace-nowrap">Vlastní hlášky</span>
-              </label>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Obtížnost kvízu</label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-44 justify-between font-normal">
+                    {({ easy: '🟢 Snadná', medium: '🟡 Střední', hard: '🔴 Těžká' } as Record<string, string>)[difficulty]}
+                    <ChevronDown className="size-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-44">
+                  <DropdownMenuItem onClick={() => setDifficulty('easy')}>🟢 Snadná</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDifficulty('medium')}>🟡 Střední</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDifficulty('hard')}>🔴 Těžká</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
-            {customizeResults && resultsConfig.length === 6 && (
-              <div className="space-y-4">
-                {resultsConfig.map((tier, i) => (
-                  <div key={i} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                    <div className="flex items-center gap-1 mb-2">
-                      <span className="text-xs font-medium text-gray-400 w-14 shrink-0">{TIER_LABELS[i]}</span>
-                      <input
-                        type="text"
-                        value={tier.icon}
-                        onChange={e => setResultsConfig(prev => prev.map((t, j) => j === i ? { ...t, icon: e.target.value } : t))}
-                        className="w-12 text-center border border-gray-200 rounded-md px-1 py-1 text-sm bg-white"
-                        maxLength={4}
-                      />
-                      <Input
-                        value={tier.title}
-                        onChange={e => setResultsConfig(prev => prev.map((t, j) => j === i ? { ...t, title: e.target.value } : t))}
-                        placeholder="Nadpis"
-                        className="flex-1 h-8 text-sm"
-                      />
-                    </div>
-                    <div className="space-y-1 pl-[60px]">
-                      {tier.messages.map((msg, mi) => (
-                        <Input
-                          key={mi}
-                          value={msg}
-                          onChange={e => setResultsConfig(prev => prev.map((t, j) => {
-                            if (j !== i) return t
-                            const msgs = [...t.messages] as [string, string, string]
-                            msgs[mi] = e.target.value
-                            return { ...t, messages: msgs }
-                          }))}
-                          placeholder={`Hláška ${mi + 1}`}
-                          className="h-8 text-sm"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setResultsConfig(getInitialTiers(language, globalResultsDefaults) as TierConfig[])}
-                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  ↺ Obnovit výchozí hodnoty
-                </button>
+            {isSuperadmin && (
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-44 justify-between font-normal">
+                      {({ draft: 'Koncept', pending: 'Čeká na schválení', approved: 'Schváleno', rejected: 'Zamítnuto' } as Record<string, string>)[status]}
+                      <ChevronDown className="size-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-44">
+                    <DropdownMenuItem onClick={() => setStatus('draft')}>Koncept</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatus('pending')}>Čeká na schválení</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatus('approved')}>Schváleno</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatus('rejected')}>Zamítnuto</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
-          </div>
-        )}
-      </div>
 
-      {/* Cards section */}
-      {(deck || currentDeckId) && (
+            <div className="flex items-center gap-2 pb-0.5">
+              <input id="private" type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} className="accent-indigo-600" />
+              <label htmlFor="private" className="text-sm text-gray-700">Soukromá sada</label>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-1">
+            <Button onClick={saveDeck} disabled={saving || !title.trim()}>
+              {saving ? 'Ukládání…' : deck ? 'Uložit změny' : 'Vytvořit sadu'}
+            </Button>
+            {saved && <span className="text-xs text-green-600">✓ Uloženo</span>}
+          </div>
+        </div>
+      )}
+
+      {/* View: Kartičky */}
+      {view === 'cards' && currentDeckId && (
         <div>
           <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
             <div className="flex items-center gap-2">
@@ -593,9 +500,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
               <Button variant="outline" onClick={() => setBulkOpen(true)} className="text-indigo-600 border-indigo-200 hover:bg-indigo-50">
                 + Hromadně
               </Button>
-              <Button onClick={() => setEditCard('new')}>
-                + Kartičku
-              </Button>
+              <Button onClick={() => setEditCard('new')}>+ Kartičku</Button>
             </div>
           </div>
 
@@ -608,46 +513,35 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {displayedCards.map((card) => {
                 const answers = card.answers ?? []
-                const validation = answers.length > 0
-                  ? validateAnswers(answers, card.display_count ?? 4)
-                  : null
-                const dotColor = !validation
-                  ? 'bg-gray-200'
+                const validation = answers.length > 0 ? validateAnswers(answers, card.display_count ?? 4) : null
+                const dotColor = !validation ? 'bg-gray-200'
                   : validation.state === 'valid' ? 'bg-green-400'
                   : validation.state === 'incomplete' ? 'bg-amber-400'
                   : 'bg-red-400'
                 return (
-                <div key={card.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden group">
-                  <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden relative">
-                    <img src={card.image_url} alt={card.label ?? ''} className="w-full h-full object-contain p-2" />
-                    <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ${dotColor}`} title={validation?.message ?? 'Bez kvízu'} />
-                  </div>
-                  <div className="p-2">
-                    {card.label && <div className="text-xs font-medium text-gray-700 truncate">{card.label}</div>}
-                    {card.quiz_question && <div className="text-xs text-gray-400 truncate mt-0.5">🧠 {card.quiz_question}</div>}
-                    <div className="flex gap-1 mt-2">
-                      {confirmDeleteId === card.id ? (
-                        <>
-                          <Button variant="ghost" size="sm" onClick={() => deleteCard(card.id!)} className="flex-1 text-xs text-red-500 hover:bg-red-50">
-                            Smazat
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(null)} className="text-xs px-2">
-                            ✕
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button variant="outline" size="sm" onClick={() => setEditCard(card)} className="flex-1 text-xs">
-                            Upravit
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(card.id!)} className="text-red-400 hover:bg-red-50 px-2">
-                            ×
-                          </Button>
-                        </>
-                      )}
+                  <div key={card.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden group">
+                    <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden relative">
+                      <img src={card.image_url} alt={card.label ?? ''} className="w-full h-full object-contain p-2" />
+                      <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ${dotColor}`} title={validation?.message ?? 'Bez kvízu'} />
+                    </div>
+                    <div className="p-2">
+                      {card.label && <div className="text-xs font-medium text-gray-700 truncate">{card.label}</div>}
+                      {card.quiz_question && <div className="text-xs text-gray-400 truncate mt-0.5">🧠 {card.quiz_question}</div>}
+                      <div className="flex gap-1 mt-2">
+                        {confirmDeleteId === card.id ? (
+                          <>
+                            <Button variant="ghost" size="sm" onClick={() => deleteCard(card.id!)} className="flex-1 text-xs text-red-500 hover:bg-red-50">Smazat</Button>
+                            <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(null)} className="text-xs px-2">✕</Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button variant="outline" size="sm" onClick={() => setEditCard(card)} className="flex-1 text-xs">Upravit</Button>
+                            <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(card.id!)} className="text-red-400 hover:bg-red-50 px-2">×</Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
                 )
               })}
             </div>
@@ -655,13 +549,84 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         </div>
       )}
 
-      {!deck && !currentDeckId && (
-        <div className="text-sm text-gray-400 text-center py-8">
-          Nejprve vytvořte sadu, pak budete moci přidávat kartičky.
+      {/* View: Výsledková obrazovka */}
+      {view === 'results' && deck && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-semibold text-gray-700 mb-0.5">Výsledková obrazovka</div>
+              <div className="text-xs text-gray-400">Ikony, nadpisy a hlášky. Platí pro Bleskový kvíz i PexeQuiz.</div>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer shrink-0">
+              <div
+                onClick={() => {
+                  if (!customizeResults) setResultsConfig(getInitialTiers(language, globalResultsDefaults) as TierConfig[])
+                  setCustomizeResults(v => !v)
+                }}
+                className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer ${customizeResults ? 'bg-indigo-600' : 'bg-gray-200'}`}
+              >
+                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${customizeResults ? 'translate-x-5' : 'translate-x-1'}`} />
+              </div>
+              <span className="text-xs text-gray-600 whitespace-nowrap">Vlastní hlášky</span>
+            </label>
+          </div>
+
+          {customizeResults && resultsConfig.length === 6 && (
+            <div className="space-y-3">
+              {resultsConfig.map((tier, i) => (
+                <div key={i} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                  <div className="flex items-center gap-1 mb-2">
+                    <span className="text-xs font-medium text-gray-400 w-14 shrink-0">{TIER_LABELS[i]}</span>
+                    <input
+                      type="text"
+                      value={tier.icon}
+                      onChange={e => setResultsConfig(prev => prev.map((t, j) => j === i ? { ...t, icon: e.target.value } : t))}
+                      className="w-12 text-center border border-gray-200 rounded-md px-1 py-1 text-sm bg-white"
+                      maxLength={4}
+                    />
+                    <Input
+                      value={tier.title}
+                      onChange={e => setResultsConfig(prev => prev.map((t, j) => j === i ? { ...t, title: e.target.value } : t))}
+                      placeholder="Nadpis"
+                      className="flex-1 h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1 pl-[60px]">
+                    {tier.messages.map((msg, mi) => (
+                      <Input
+                        key={mi}
+                        value={msg}
+                        onChange={e => setResultsConfig(prev => prev.map((t, j) => {
+                          if (j !== i) return t
+                          const msgs = [...t.messages] as [string, string, string]
+                          msgs[mi] = e.target.value
+                          return { ...t, messages: msgs }
+                        }))}
+                        placeholder={`Hláška ${mi + 1}`}
+                        className="h-8 text-sm"
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setResultsConfig(getInitialTiers(language, globalResultsDefaults) as TierConfig[])}
+                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                ↺ Obnovit výchozí hodnoty
+              </button>
+            </div>
+          )}
+
+          <Button onClick={saveDeck} disabled={saving || !title.trim()} className="w-full">
+            {saving ? 'Ukládání…' : 'Uložit'}
+          </Button>
+          {saved && <div className="text-xs text-green-600 text-center">✓ Uloženo</div>}
         </div>
       )}
 
-      {/* Bulk upload modal */}
+      {/* Modals */}
       {bulkOpen && currentDeckId && (
         <BulkUploadModal
           deckId={currentDeckId}
@@ -672,8 +637,6 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           onClose={() => setBulkOpen(false)}
         />
       )}
-
-      {/* Card modal */}
       {editCard && currentDeckId && (
         <CardModal
           deckId={currentDeckId}
