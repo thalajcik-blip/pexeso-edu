@@ -619,10 +619,12 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             </div>
           )}
 
-          <Button onClick={saveDeck} disabled={saving || !title.trim()} className="w-full">
-            {saving ? 'Ukládání…' : 'Uložit'}
-          </Button>
-          {saved && <div className="text-xs text-green-600 text-center">✓ Uloženo</div>}
+          <div className="flex items-center gap-3 pt-1">
+            <Button onClick={saveDeck} disabled={saving || !title.trim()}>
+              {saving ? 'Ukládání…' : 'Uložit změny'}
+            </Button>
+            {saved && <span className="text-xs text-green-600">✓ Uloženo</span>}
+          </div>
         </div>
       )}
 
