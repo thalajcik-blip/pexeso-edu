@@ -28,6 +28,14 @@ function padAnswers(base: AnswerOption[], minCount: number): AnswerOption[] {
   return [...base, ...Array.from({ length: minCount - base.length }, () => ({ text: '', correct: false }))]
 }
 
+function trimEmptyAnswers(answers: AnswerOption[], maxCount: number): AnswerOption[] {
+  const result = [...answers]
+  while (result.length > maxCount && result[result.length - 1].text.trim() === '') {
+    result.pop()
+  }
+  return result
+}
+
 function initAnswers(card?: CardData): AnswerOption[] {
   const count = card?.display_count ?? 4
   if (card?.answers && card.answers.length > 0) return padAnswers(card.answers, count)
@@ -254,7 +262,7 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
                     type="button"
                     onClick={() => {
                       setDisplayCount(n)
-                      setAnswers(prev => padAnswers(prev, n))
+                      setAnswers(prev => padAnswers(trimEmptyAnswers(prev, n), n))
                     }}
                     className={`w-9 h-9 rounded-lg text-sm font-medium border transition-colors ${displayCount === n ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'}`}
                   >
