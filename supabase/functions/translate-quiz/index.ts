@@ -109,7 +109,7 @@ async function callGemini(prompt: string, apiKey: string, retries = 3): Promise<
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 512 } }),
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 1024, responseMimeType: 'application/json' } }),
     }
   )
   if (response.status === 429 && retries > 0) {

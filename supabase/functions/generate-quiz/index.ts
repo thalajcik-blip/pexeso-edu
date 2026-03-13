@@ -99,7 +99,7 @@ async function callGemini(prompt: string, apiKey: string, retries = 3): Promise<
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 1024 },
+        generationConfig: { maxOutputTokens: 2048, responseMimeType: 'application/json' },
       }),
     }
   )
