@@ -1,7 +1,19 @@
 const LANG_CONFIG = {
-  cs: { lang: 'Czech (language of Czech Republic)', example: 'Jak se jmenuje ...?', alphabet: 'Write in Czech language. Use Latin alphabet with Czech diacritics (á, č, ď, é, ě, í, ň, ó, ř, š, ť, ú, ů, ý, ž). Do NOT use Cyrillic or Slovenian.' },
-  sk: { lang: 'Slovak (language of Slovakia, NOT Slovenian)', example: 'Ako sa volá ...?', alphabet: 'Write in Slovak language spoken in Slovakia. Use Latin alphabet with Slovak diacritics (á, ä, č, ď, é, í, ĺ, ľ, ň, ó, ô, ŕ, š, ť, ú, ý, ž). Do NOT use Cyrillic, do NOT use Slovenian.' },
-  en: { lang: 'English', example: 'What is the name of ...?', alphabet: '' },
+  cs: {
+    lang: 'Czech',
+    example: 'Jak se jmenuje ...?',
+    scriptWarning: 'CRITICAL: Write ONLY in Czech language using ONLY Latin alphabet. Czech diacritics allowed: á č ď é ě í ň ó ř š ť ú ů ý ž. NEVER use Cyrillic script. NEVER use Russian, Ukrainian or any Slavic language other than Czech.',
+  },
+  sk: {
+    lang: 'Slovak',
+    example: 'Ako sa volá ...?',
+    scriptWarning: 'CRITICAL: Write ONLY in Slovak language (spoken in Slovakia) using ONLY Latin alphabet. Slovak diacritics allowed: á ä č ď é í ĺ ľ ň ó ô ŕ š ť ú ý ž. NEVER use Cyrillic script. NEVER use Russian, Ukrainian, Slovenian or any other language.',
+  },
+  en: {
+    lang: 'English',
+    example: 'What is the name of ...?',
+    scriptWarning: '',
+  },
 }
 
 const DIFFICULTY_CONFIG = {
@@ -25,7 +37,7 @@ const DIFFICULTY_CONFIG = {
 function buildPrompt(label: string, language: string, difficulty: string): string {
   const cfg = LANG_CONFIG[language as keyof typeof LANG_CONFIG] ?? LANG_CONFIG.cs
   const diff = DIFFICULTY_CONFIG[difficulty as keyof typeof DIFFICULTY_CONFIG] ?? DIFFICULTY_CONFIG.medium
-  return `Create a quiz question for an educational memory card game about: "${label}"
+  return `${cfg.scriptWarning ? `⚠️ LANGUAGE RULE: ${cfg.scriptWarning}\n\n` : ''}Create a quiz question for an educational memory card game about: "${label}"
 
 Difficulty level: ${difficulty.toUpperCase()}
 - Question style: ${diff.question}
@@ -47,14 +59,12 @@ Return JSON in this exact format (JSON only, no other text):
 }
 
 Rules:
-- Question, answers and fun_fact must be in ${cfg.lang}
-- IMPORTANT: The correct answer must NOT be the label "${label}" itself or a trivial rephrasing of it. Ask about a fact, property, or characteristic of the subject — not its name.
+- ${cfg.scriptWarning ? `${cfg.scriptWarning}` : `Everything in ${cfg.lang} only`}
+- The correct answer must NOT be the label "${label}" itself or a trivial rephrasing of it. Ask about a fact, property, or characteristic of the subject — not its name.
 - Example for "George Washington": ask "How many terms did he serve?" not "Who was the first US president?"
 - Provide exactly 1 correct answer and 5 wrong answers (6 total) for variety
 - Wrong answers must be plausible and relevant to the difficulty level
-- Fun fact must be real and interesting for children
-- Everything in ${cfg.lang} only, no mixing of languages
-${cfg.alphabet ? `- ${cfg.alphabet}` : ''}`
+- Fun fact must be real and interesting for children`
 }
 
 function parseResult(text: string) {
@@ -72,12 +82,20 @@ function parseResult(text: string) {
   }
 }
 
-async function callClaude(prompt: string, apiKey: string, difficulty: string) {
-  const systemPrompt = difficulty === 'easy'
+async function callClaude(prompt: string, apiKey: string, difficulty: string, language: string) {
+  const langNote = language === 'cs'
+    ? 'You MUST write ALL text exclusively in Czech using Latin alphabet only. Never use Cyrillic. Never use Russian or any other language.'
+    : language === 'sk'
+    ? 'You MUST write ALL text exclusively in Slovak using Latin alphabet only. Never use Cyrillic. Never use Russian or any other language.'
+    : ''
+
+  const diffNote = difficulty === 'easy'
     ? 'You write quiz questions for young children (ages 6–9). Use only very simple words. Questions must be obvious and trivial. Wrong answers must be clearly wrong, even silly. Never use technical terms, statistics, or complex concepts.'
     : difficulty === 'hard'
     ? 'You write challenging quiz questions for knowledgeable adults and teens. Questions should test precise, specific knowledge. Wrong answers should be highly plausible and require careful thinking to distinguish.'
     : 'You write quiz questions for a general audience. Keep questions clear and fair.'
+
+  const systemPrompt = [langNote, diffNote].filter(Boolean).join(' ')
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -166,13 +184,13 @@ Deno.serve(async (req) => {
 
     const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
     const primaryCall = aiSettings.primary === 'claude'
-      ? (k: string) => callClaude(prompt, k, difficulty)
+      ? (k: string) => callClaude(prompt, k, difficulty, language)
       : (k: string) => callGemini(prompt, k)
 
     const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
     const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
     const fallbackCall = fallbackProvider === 'claude'
-      ? (k: string) => callClaude(prompt, k, difficulty)
+      ? (k: string) => callClaude(prompt, k, difficulty, language)
       : (k: string) => callGemini(prompt, k)
 
     let result
