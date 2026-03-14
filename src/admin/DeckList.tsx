@@ -165,32 +165,48 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
 
     for (let i = 0; i < cards.length; i++) {
       const card = cards[i]
-      let translatedCard = {
+      let translatedCard: Record<string, unknown> = {
         deck_id: newDeck.id,
         image_url: card.image_url,
         label: card.label,
         quiz_question: card.quiz_question,
+        answers: card.answers,
         quiz_options: card.quiz_options,
         quiz_correct: card.quiz_correct,
         fun_fact: card.fun_fact,
+        display_count: card.display_count,
         sort_order: card.sort_order,
       }
 
-      try {
-        const res = await fetch(fnUrl, { method: 'POST', headers, body: JSON.stringify({ mode: 'text', text: card.label, source_lang: deck.language, target_lang: targetLang }) })
-        if (res.ok) { const data = await res.json(); if (data.text && !data.error) translatedCard.label = data.text }
-      } catch (e) { console.error('Label translation failed:', e) }
-
-      if (card.quiz_question && card.quiz_correct) {
+      const hasQuiz = card.quiz_question && (card.answers?.length || card.quiz_options?.length)
+      if (hasQuiz) {
         try {
-          const res = await fetch(fnUrl, { method: 'POST', headers, body: JSON.stringify({ label: card.label, quiz_question: card.quiz_question, quiz_options: card.quiz_options, quiz_correct: card.quiz_correct, fun_fact: card.fun_fact, source_lang: deck.language, target_lang: targetLang }) })
+          const res = await fetch(fnUrl, { method: 'POST', headers, body: JSON.stringify({
+            label: card.label,
+            quiz_question: card.quiz_question,
+            answers: card.answers ?? null,
+            quiz_options: card.quiz_options ?? null,
+            quiz_correct: card.quiz_correct ?? null,
+            fun_fact: card.fun_fact,
+            source_lang: deck.language,
+            target_lang: targetLang,
+          }) })
           const translated = await res.json()
-          if (!res.ok || translated.error) { errors.push(`Karta "${card.label}": ${translated.error ?? res.status}`) }
-          else { translatedCard = { ...translatedCard, ...translated } }
+          if (!res.ok || translated.error) {
+            errors.push(`Karta "${card.label}": ${translated.error ?? res.status}`)
+          } else {
+            translatedCard = {
+              ...translatedCard,
+              label: translated.label ?? translatedCard.label,
+              quiz_question: translated.quiz_question,
+              answers: translated.answers ?? null,
+              fun_fact: translated.fun_fact,
+            }
+          }
         } catch (e) { errors.push(`Karta "${card.label}": ${String(e)}`) }
         doneCount++
         setTranslate(t => t ? { ...t, progress: { done: doneCount, total: translatableCards.length } } : null)
-        await new Promise(r => setTimeout(r, 4200))
+        await new Promise(r => setTimeout(r, 6500))
       }
 
       translatedCards.push(translatedCard)

@@ -2,12 +2,12 @@ const LANG_CONFIG = {
   cs: {
     lang: 'Czech',
     example: 'Jak se jmenuje ...?',
-    scriptWarning: 'CRITICAL: Write ONLY in Czech language using ONLY Latin alphabet. Czech diacritics allowed: á č ď é ě í ň ó ř š ť ú ů ý ž. NEVER use Cyrillic script. NEVER use Russian, Ukrainian or any Slavic language other than Czech.',
+    scriptWarning: 'CRITICAL: Write ONLY in standard written Czech (spisovná čeština). You MUST use correct Czech diacritics at all times — NEVER omit háčky or čárky (e.g. write "přechod" not "prechod", "řídit" not "ridit"). Use ONLY real Czech words that exist in standard Czech — NEVER invent or guess words. NEVER use Cyrillic. NEVER use Russian, Slovak or any other language.',
   },
   sk: {
     lang: 'Slovak',
     example: 'Ako sa volá ...?',
-    scriptWarning: 'CRITICAL: Write ONLY in Slovak language (spoken in Slovakia) using ONLY Latin alphabet. Slovak diacritics allowed: á ä č ď é í ĺ ľ ň ó ô ŕ š ť ú ý ž. NEVER use Cyrillic script. NEVER use Russian, Ukrainian, Slovenian or any other language.',
+    scriptWarning: 'CRITICAL: Write ONLY in standard written Slovak (spisovná slovenčina). You MUST use correct Slovak diacritics at all times — NEVER omit háčky, dĺžne or mäkčene (e.g. write "križovatka" not "krizuvatka", "rýchlosť" not "rychlost"). Use ONLY real Slovak words that exist in standard Slovak — NEVER invent or guess words. NEVER use Cyrillic. NEVER use Czech, Slovenian or any other language.',
   },
   en: {
     lang: 'English',
@@ -62,6 +62,8 @@ Rules:
 - ${cfg.scriptWarning ? `${cfg.scriptWarning}` : `Everything in ${cfg.lang} only`}
 - The correct answer must NOT be the label "${label}" itself or a trivial rephrasing of it. Ask about a fact, property, or characteristic of the subject — not its name.
 - Example for "George Washington": ask "How many terms did he serve?" not "Who was the first US president?"
+- IMPORTANT: The player can already see the image on the card. NEVER ask about the visual appearance of the subject (e.g. "what color is it?", "what shape does it have?", "what does it look like?"). Instead ask about meaning, purpose, rules, required behavior, or real-world context.
+- Example for a "Stop sign": ask "What must a driver do when they see this sign?" not "What shape is this sign?"
 - Provide exactly 1 correct answer and 5 wrong answers (6 total) for variety
 - Wrong answers must be plausible and relevant to the difficulty level
 - Fun fact must be real and interesting for children`
@@ -84,9 +86,9 @@ function parseResult(text: string) {
 
 async function callClaude(prompt: string, apiKey: string, difficulty: string, language: string) {
   const langNote = language === 'cs'
-    ? 'You MUST write ALL text exclusively in Czech using Latin alphabet only. Never use Cyrillic. Never use Russian or any other language.'
+    ? 'You MUST write ALL text exclusively in standard written Czech (spisovná čeština). ALWAYS use correct diacritics — háčky and čárky are mandatory (e.g. "přechod", "řídit", "průjezd"). NEVER omit diacritics. NEVER invent words — use only real Czech words. Never use Cyrillic or any other language.'
     : language === 'sk'
-    ? 'You MUST write ALL text exclusively in Slovak using Latin alphabet only. Never use Cyrillic. Never use Russian or any other language.'
+    ? 'You MUST write ALL text exclusively in standard written Slovak (spisovná slovenčina). ALWAYS use correct diacritics — háčky, dĺžne and mäkčene are mandatory (e.g. "križovatka", "rýchlosť", "priechod"). NEVER omit diacritics. NEVER invent words — use only real Slovak words. Never use Cyrillic or any other language.'
     : ''
 
   const diffNote = difficulty === 'easy'
@@ -97,40 +99,72 @@ async function callClaude(prompt: string, apiKey: string, difficulty: string, la
 
   const systemPrompt = [langNote, diffNote].filter(Boolean).join(' ')
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 512,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  })
-  if (!response.ok) throw new Error(`Claude error: ${response.status} ${await response.text()}`)
-  const data = await response.json()
-  return parseResult(data.content[0].text.trim())
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 20000)
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 512,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+      signal: controller.signal,
+    })
+    if (!response.ok) throw new Error(`Claude error: ${response.status} ${await response.text()}`)
+    const data = await response.json()
+    return parseResult(data.content[0].text.trim())
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
-async function callGemini(prompt: string, apiKey: string, retries = 3): Promise<ReturnType<typeof parseResult>> {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 2048, responseMimeType: 'application/json' },
-      }),
-    }
-  )
+async function callGemini(prompt: string, apiKey: string, difficulty: string, language: string, retries = 3): Promise<ReturnType<typeof parseResult>> {
+  const langNote = language === 'cs'
+    ? 'You MUST write ALL text exclusively in standard written Czech (spisovná čeština). ALWAYS use correct diacritics — háčky and čárky are mandatory (e.g. "přechod", "řídit", "průjezd"). NEVER omit diacritics. NEVER invent words — use only real Czech words. Never use Cyrillic or any other language.'
+    : language === 'sk'
+    ? 'You MUST write ALL text exclusively in standard written Slovak (spisovná slovenčina). ALWAYS use correct diacritics — háčky, dĺžne and mäkčene are mandatory (e.g. "križovatka", "rýchlosť", "priechod"). NEVER omit diacritics. NEVER invent words — use only real Slovak words. Never use Cyrillic or any other language.'
+    : ''
+
+  const diffNote = difficulty === 'easy'
+    ? 'You write quiz questions for young children (ages 6–9). Use only very simple words. Questions must be obvious and trivial. Wrong answers must be clearly wrong, even silly. Never use technical terms, statistics, or complex concepts.'
+    : difficulty === 'hard'
+    ? 'You write challenging quiz questions for knowledgeable adults and teens. Questions should test precise, specific knowledge. Wrong answers should be highly plausible and require careful thinking to distinguish.'
+    : 'You write quiz questions for a general audience. Keep questions clear and fair.'
+
+  const visualNote = 'The player can already see the image on the card. NEVER ask about visual appearance (color, shape, what it looks like). Ask about meaning, rules, required behavior, or real-world context.'
+
+  const systemInstruction = [langNote, diffNote, visualNote].filter(Boolean).join(' ')
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 20000)
+  let response: Response
+  try {
+    response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 2048, responseMimeType: 'application/json' },
+        }),
+        signal: controller.signal,
+      }
+    )
+  } finally {
+    clearTimeout(timeout)
+  }
   if (response.status === 429 && retries > 0) {
     await new Promise(r => setTimeout(r, 10000))
-    return callGemini(prompt, apiKey, retries - 1)
+    return callGemini(prompt, apiKey, difficulty, language, retries - 1)
   }
   if (!response.ok) throw new Error(`Gemini error: ${response.status} ${await response.text()}`)
   const data = await response.json()
@@ -185,13 +219,13 @@ Deno.serve(async (req) => {
     const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
     const primaryCall = aiSettings.primary === 'claude'
       ? (k: string) => callClaude(prompt, k, difficulty, language)
-      : (k: string) => callGemini(prompt, k)
+      : (k: string) => callGemini(prompt, k, difficulty, language)
 
     const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
     const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
     const fallbackCall = fallbackProvider === 'claude'
       ? (k: string) => callClaude(prompt, k, difficulty, language)
-      : (k: string) => callGemini(prompt, k)
+      : (k: string) => callGemini(prompt, k, difficulty, language)
 
     let result
     let usedProvider = aiSettings.primary

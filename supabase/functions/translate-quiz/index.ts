@@ -5,43 +5,62 @@ const LANG_NAMES: Record<string, string> = {
 }
 
 const LANG_ALPHABET_NOTE: Record<string, string> = {
-  cs: 'Write in Czech language (Czech Republic). Latin alphabet with diacritics (á, č, ď, é, ě, í, ň, ó, ř, š, ť, ú, ů, ý, ž). Do NOT use Cyrillic.',
-  sk: 'Write in Slovak language (Slovakia, NOT Slovenian). Latin alphabet with Slovak diacritics (á, ä, č, ď, é, í, ĺ, ľ, ň, ó, ô, ŕ, š, ť, ú, ý, ž). Do NOT use Cyrillic, do NOT use Slovenian.',
-  en: 'Use standard English characters only.',
+  cs: 'Write in standard written Czech (spisovná čeština). ALWAYS use correct diacritics — háčky and čárky are mandatory. NEVER omit diacritics. NEVER invent or guess words — use only real Czech words that exist in standard Czech. NEVER mix Czech with Slovak or any other language.',
+  sk: 'Write in standard written Slovak (spisovná slovenčina, Slovakia). ALWAYS use correct diacritics — háčky, dĺžne and mäkčene are mandatory. NEVER omit diacritics. NEVER invent or guess words — use only real Slovak words that exist in standard Slovak. NEVER mix Slovak with Czech or any other language. If you are unsure of the Slovak equivalent of a Czech word, use a different real Slovak word with the same meaning.',
+  en: 'Use standard English only. NEVER invent words.',
 }
+
+const LANG_SYSTEM_NOTE: Record<string, string> = {
+  cs: 'You are a professional Czech translator. You MUST write exclusively in standard written Czech (spisovná čeština) with full correct diacritics. NEVER omit háčky or čárky. NEVER invent words. If you do not know a word, use a synonym.',
+  sk: 'You are a professional Slovak translator. You MUST write exclusively in standard written Slovak (spisovná slovenčina). NEVER omit diacritics. NEVER mix Czech and Slovak — they are different languages. NEVER invent or guess words by Slovakizing Czech words. If you are unsure of a Slovak word, use a real Slovak synonym instead.',
+  en: 'You are a professional English translator. Use only real English words.',
+}
+
+type AnswerOption = { text: string; correct: boolean }
 
 function buildPrompt(
   label: string,
   quiz_question: string,
-  quiz_options: string[],
-  quiz_correct: string,
+  answers: AnswerOption[] | null,
+  quiz_options: string[] | null,
+  quiz_correct: string | null,
   fun_fact: string,
   source_lang: string,
   target_lang: string,
 ): string {
-  return `You are translating an educational quiz card about "${label}" from ${LANG_NAMES[source_lang] ?? source_lang} to ${LANG_NAMES[target_lang] ?? target_lang}.
+  // Normalize to answers format
+  const normalizedAnswers: AnswerOption[] = answers && answers.length > 0
+    ? answers
+    : (quiz_options ?? []).map(o => ({ text: o, correct: o === quiz_correct }))
+
+  const answerCount = normalizedAnswers.length
+  const exampleAnswers = normalizedAnswers.map(a => `  {"text": "...", "correct": ${a.correct}}`).join(',\n')
+
+  return `You are translating an educational quiz card from ${LANG_NAMES[source_lang] ?? source_lang} to ${LANG_NAMES[target_lang] ?? target_lang}.
 
 Source content:
+- label: "${label}"
 - question: "${quiz_question}"
-- options: ${JSON.stringify(quiz_options)}
-- correct: "${quiz_correct}"
+- answers (${answerCount} items): ${JSON.stringify(normalizedAnswers)}
 - fun_fact: "${fun_fact}"
 
-Translate ALL fields to ${LANG_NAMES[target_lang] ?? target_lang}. Keep the same meaning. The correct answer in the translation must correspond to the translated version of "${quiz_correct}".
+Translate ALL fields to ${LANG_NAMES[target_lang] ?? target_lang}. Keep the same meaning and keep correct:true/false flags unchanged.
 
-Return JSON only (no other text):
+Return JSON only (no other text), with EXACTLY ${answerCount} items in the answers array:
 {
+  "label": "...",
   "quiz_question": "...",
-  "quiz_options": ["...", "...", "...", "..."],
-  "quiz_correct": "...",
+  "answers": [
+${exampleAnswers}
+  ],
   "fun_fact": "..."
 }
 
 Rules:
 - Translate ALL text to ${LANG_NAMES[target_lang] ?? target_lang} only
 - ${LANG_ALPHABET_NOTE[target_lang] ?? ''}
-- quiz_correct must be one of the items in quiz_options (exact match)
-- Keep all 4 options`
+- answers array MUST have exactly ${answerCount} items — no more, no less
+- correct:true/false flags must remain exactly as in the source`
 }
 
 function parseResult(text: string) {
@@ -92,29 +111,46 @@ async function callGeminiRaw(prompt: string, apiKey: string): Promise<string> {
   return (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim().replace(/^"|"$/g, '')
 }
 
-async function callClaude(prompt: string, apiKey: string) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1024, messages: [{ role: 'user', content: prompt }] }),
-  })
-  if (!response.ok) throw new Error(`Claude error: ${response.status}`)
-  const data = await response.json()
-  return parseResult(data.content[0].text.trim())
+async function callClaude(prompt: string, apiKey: string, target_lang = 'cs') {
+  const systemPrompt = LANG_SYSTEM_NOTE[target_lang] ?? 'You are a professional translator.'
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 20000)
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1024, system: systemPrompt, messages: [{ role: 'user', content: prompt }] }),
+      signal: controller.signal,
+    })
+    if (!response.ok) throw new Error(`Claude error: ${response.status}`)
+    const data = await response.json()
+    return parseResult(data.content[0].text.trim())
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
-async function callGemini(prompt: string, apiKey: string, retries = 3): Promise<ReturnType<typeof parseResult>> {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 1024, responseMimeType: 'application/json' } }),
-    }
-  )
+async function callGemini(prompt: string, apiKey: string, target_lang = 'cs', retries = 3): Promise<ReturnType<typeof parseResult>> {
+  const systemInstruction = LANG_SYSTEM_NOTE[target_lang] ?? 'You are a professional translator.'
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 20000)
+  let response: Response
+  try {
+    response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: systemInstruction }] }, contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 1024, responseMimeType: 'application/json' } }),
+        signal: controller.signal,
+      }
+    )
+  } finally {
+    clearTimeout(timeout)
+  }
   if (response.status === 429 && retries > 0) {
     await new Promise(r => setTimeout(r, 10000))
-    return callGemini(prompt, apiKey, retries - 1)
+    return callGemini(prompt, apiKey, target_lang, retries - 1)
   }
   if (!response.ok) throw new Error(`Gemini error: ${response.status}`)
   const data = await response.json()
@@ -155,13 +191,13 @@ Each tier has a "title" and "messages" array. Translate all text fields. Return 
 ${tiersJson}`
       const primaryKey = aiSettings.primary === 'claude' ? claudeKey : geminiKey
       const primaryCall = aiSettings.primary === 'claude'
-        ? (k: string) => callClaude(rcPrompt, k)
-        : (k: string) => callGemini(rcPrompt, k)
+        ? (k: string) => callClaude(rcPrompt, k, target_lang)
+        : (k: string) => callGemini(rcPrompt, k, target_lang)
       const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
       const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
       const fallbackCall = fallbackProvider === 'claude'
-        ? (k: string) => callClaude(rcPrompt, k)
-        : (k: string) => callGemini(rcPrompt, k)
+        ? (k: string) => callClaude(rcPrompt, k, target_lang)
+        : (k: string) => callGemini(rcPrompt, k, target_lang)
       let rcResult
       if (primaryKey) {
         try { rcResult = await primaryCall(primaryKey) }
@@ -208,9 +244,9 @@ ${tiersJson}`
       })
     }
 
-    const { label, quiz_question, quiz_options, quiz_correct, fun_fact } = body
+    const { label, quiz_question, answers, quiz_options, quiz_correct, fun_fact } = body
 
-    if (!quiz_question || !quiz_options || !quiz_correct) {
+    if (!quiz_question || (!answers?.length && !quiz_options?.length)) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -222,17 +258,17 @@ ${tiersJson}`
     const geminiKey   = Deno.env.get('GEMINI_API_KEY')
     const aiSettings  = await getAiSettings(supabaseUrl, serviceKey)
 
-    const prompt = buildPrompt(label ?? '', quiz_question, quiz_options, quiz_correct, fun_fact ?? '', source_lang, target_lang)
+    const prompt = buildPrompt(label ?? '', quiz_question, answers ?? null, quiz_options ?? null, quiz_correct ?? null, fun_fact ?? '', source_lang, target_lang)
 
     const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
     const primaryCall = aiSettings.primary === 'claude'
-      ? (k: string) => callClaude(prompt, k)
-      : (k: string) => callGemini(prompt, k)
+      ? (k: string) => callClaude(prompt, k, target_lang)
+      : (k: string) => callGemini(prompt, k, target_lang)
     const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
     const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
     const fallbackCall = fallbackProvider === 'claude'
-      ? (k: string) => callClaude(prompt, k)
-      : (k: string) => callGemini(prompt, k)
+      ? (k: string) => callClaude(prompt, k, target_lang)
+      : (k: string) => callGemini(prompt, k, target_lang)
 
     let result
     if (primaryKey) {
@@ -240,6 +276,7 @@ ${tiersJson}`
         result = await primaryCall(primaryKey)
       } catch (e) {
         if (!aiSettings.fallback || !fallbackKey) throw e
+        console.warn(`[translate-quiz] ${aiSettings.primary} failed (${String(e)}), falling back to ${fallbackProvider}`)
         result = await fallbackCall(fallbackKey)
       }
     } else if (aiSettings.fallback && fallbackKey) {
