@@ -6,19 +6,19 @@ const LANG_CONFIG = {
 
 const DIFFICULTY_CONFIG = {
   easy: {
-    question: 'Simple, straightforward question about a well-known basic fact.',
-    options: 'Wrong answers are clearly different and easy to rule out.',
-    fun_fact: 'Simple, easy to understand fact.',
+    question: 'Ask about the single most obvious, well-known fact. The question must be answerable by a 7-year-old child with no special knowledge. Use simple vocabulary. Avoid any technical terms.',
+    options: 'Wrong answers must be clearly and obviously incorrect — even a child can immediately rule them out. They can be funny or absurd. Do NOT use plausible distractors.',
+    fun_fact: 'One short, simple sentence. No numbers, statistics or complex concepts. Something a young child finds delightful.',
   },
   medium: {
-    question: 'Moderately specific question requiring some knowledge.',
-    options: 'Wrong answers are plausible but distinguishable.',
-    fun_fact: 'Interesting fact that adds context.',
+    question: 'Ask about a moderately specific fact. Suitable for a curious 10-year-old. Can include one simple number or common characteristic.',
+    options: 'Wrong answers are plausible but clearly distinguishable with basic knowledge.',
+    fun_fact: 'Interesting fact that adds context. One or two sentences.',
   },
   hard: {
-    question: 'Specific, detailed question about a less obvious fact or characteristic.',
-    options: 'Wrong answers are very similar and plausible — requires precise knowledge to distinguish.',
-    fun_fact: 'Surprising or lesser-known fact.',
+    question: 'Ask about a specific, detailed or lesser-known fact. Requires real knowledge of the subject. Can include precise numbers, dates, or technical details.',
+    options: 'Wrong answers are very similar and highly plausible — requires precise knowledge to distinguish.',
+    fun_fact: 'Surprising or lesser-known fact. Can be more detailed.',
   },
 }
 
@@ -72,7 +72,13 @@ function parseResult(text: string) {
   }
 }
 
-async function callClaude(prompt: string, apiKey: string) {
+async function callClaude(prompt: string, apiKey: string, difficulty: string) {
+  const systemPrompt = difficulty === 'easy'
+    ? 'You write quiz questions for young children (ages 6–9). Use only very simple words. Questions must be obvious and trivial. Wrong answers must be clearly wrong, even silly. Never use technical terms, statistics, or complex concepts.'
+    : difficulty === 'hard'
+    ? 'You write challenging quiz questions for knowledgeable adults and teens. Questions should test precise, specific knowledge. Wrong answers should be highly plausible and require careful thinking to distinguish.'
+    : 'You write quiz questions for a general audience. Keep questions clear and fair.'
+
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -83,6 +89,7 @@ async function callClaude(prompt: string, apiKey: string) {
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 512,
+      system: systemPrompt,
       messages: [{ role: 'user', content: prompt }],
     }),
   })
@@ -159,13 +166,13 @@ Deno.serve(async (req) => {
 
     const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
     const primaryCall = aiSettings.primary === 'claude'
-      ? (k: string) => callClaude(prompt, k)
+      ? (k: string) => callClaude(prompt, k, difficulty)
       : (k: string) => callGemini(prompt, k)
 
     const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
     const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
     const fallbackCall = fallbackProvider === 'claude'
-      ? (k: string) => callClaude(prompt, k)
+      ? (k: string) => callClaude(prompt, k, difficulty)
       : (k: string) => callGemini(prompt, k)
 
     let result
