@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination'
 import { ChevronDown } from 'lucide-react'
 
 type Deck = {
@@ -68,12 +69,23 @@ type TranslateState = {
 
 type CardValidationRow = { deck_id: string; answers: AnswerOption[] | null; display_count: number }
 
+type SortOption = 'newest' | 'oldest' | 'az' | 'za'
+const SORT_LABELS: Record<SortOption, string> = {
+  newest: 'Nejnovější',
+  oldest: 'Nejstarší',
+  az:     'A → Z',
+  za:     'Z → A',
+}
+const PAGE_SIZE = 10
+
 export default function DeckList({ role, onNew, onEdit }: Props) {
   const [decks, setDecks]         = useState<Deck[]>([])
   const [loading, setLoading]     = useState(true)
   const [importing, setImporting] = useState(false)
   const [translate, setTranslate] = useState<TranslateState | null>(null)
   const [cardStats, setCardStats] = useState<CardValidationRow[]>([])
+  const [sort, setSort]           = useState<SortOption>('newest')
+  const [page, setPage]           = useState(1)
   const importRef                 = useRef<HTMLInputElement>(null)
 
   async function load() {
@@ -271,6 +283,17 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
 
   useEffect(() => { load() }, [])
 
+  const sortedDecks = [...decks].sort((a, b) => {
+    if (sort === 'az') return a.title.localeCompare(b.title, 'cs')
+    if (sort === 'za') return b.title.localeCompare(a.title, 'cs')
+    if (sort === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime() // newest
+  })
+  const totalPages = Math.max(1, Math.ceil(sortedDecks.length / PAGE_SIZE))
+  const pagedDecks = sortedDecks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  function handleSort(s: SortOption) { setSort(s); setPage(1) }
+
   if (loading) return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -306,6 +329,18 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-800">Vlastní sady</h1>
         <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="text-gray-600 gap-1.5 min-w-32 justify-between font-normal">
+                {SORT_LABELS[sort]} <ChevronDown className="size-3.5 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {(Object.entries(SORT_LABELS) as [SortOption, string][]).map(([val, label]) => (
+                <DropdownMenuItem key={val} onClick={() => handleSort(val)}>{label}</DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           {role === 'superadmin' && (
             <>
               <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
@@ -325,7 +360,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
         </div>
       ) : (
         <div className="space-y-3">
-          {decks.map(deck => {
+          {pagedDecks.map(deck => {
             const isTranslating = translate?.deckId === deck.id && !!translate.progress
             const isPickingLang = translate?.deckId === deck.id && !translate.progress
             const targetLangs   = ALL_LANGS.filter(l => l !== deck.language)
@@ -419,6 +454,50 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
               </Card>
             )
           })}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="mt-6">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  aria-disabled={page === 1}
+                  className={page === 1 ? 'pointer-events-none opacity-40' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => {
+                const show = p === 1 || p === totalPages || Math.abs(p - page) <= 1
+                const showEllipsisBefore = p === page - 2 && page - 2 > 1
+                const showEllipsisAfter  = p === page + 2 && page + 2 < totalPages
+                if (showEllipsisBefore || showEllipsisAfter) {
+                  return <PaginationItem key={`ellipsis-${p}`}><PaginationEllipsis /></PaginationItem>
+                }
+                if (!show) return null
+                return (
+                  <PaginationItem key={p}>
+                    <PaginationLink isActive={p === page} onClick={() => setPage(p)} className="cursor-pointer">
+                      {p}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              })}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  aria-disabled={page === totalPages}
+                  className={page === totalPages ? 'pointer-events-none opacity-40' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+          <div className="text-center text-xs text-gray-400 mt-2">
+            {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, sortedDecks.length)} z {sortedDecks.length} sád
+          </div>
         </div>
       )}
     </div>
