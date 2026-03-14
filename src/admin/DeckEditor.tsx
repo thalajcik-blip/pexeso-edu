@@ -63,6 +63,7 @@ type Deck = {
   private_code: string | null
   language: 'cs' | 'sk' | 'en'
   difficulty: 'easy' | 'medium' | 'hard'
+  supported_modes: string[]
 }
 
 type Props = {
@@ -87,6 +88,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [editCard, setEditCard]   = useState<CardData | 'new' | null>(null)
   const [bulkOpen, setBulkOpen]   = useState(false)
   const [saving, setSaving]     = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [loading, setLoading]   = useState(!!deckId)
   const [saved, setSaved]       = useState(false)
   const [sort, setSort] = useState<'default' | 'newest' | 'oldest' | 'az' | 'za'>('default')
@@ -95,6 +97,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [translating, setTranslating]   = useState(false)
   const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number } | null>(null)
   const [translateError, setTranslateError] = useState('')
+  const [supportedModes, setSupportedModes] = useState<string[]>(['pexequiz', 'lightning'])
   const [customizeResults, setCustomizeResults] = useState(false)
   const [resultsConfig, setResultsConfig] = useState<TierConfig[]>([])
   const [globalResultsDefaults, setGlobalResultsDefaults] = useState<Record<string, TierConfig[]> | null>(null)
@@ -122,6 +125,9 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
         setLanguage(d.language ?? 'cs')
         setDifficulty(d.difficulty ?? 'medium')
         setStatus(d.status)
+        if (d.supported_modes && Array.isArray(d.supported_modes) && d.supported_modes.length > 0) {
+          setSupportedModes(d.supported_modes)
+        }
         if (d.results_config && Array.isArray(d.results_config) && d.results_config.length === 6) {
           setCustomizeResults(true)
           setResultsConfig(d.results_config as TierConfig[])
@@ -135,6 +141,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   async function saveDeck(): Promise<string | null> {
     setSaving(true)
     setSaved(false)
+    setSaveError('')
     const payload = {
       title: title.trim(),
       description: desc.trim() || null,
@@ -143,20 +150,22 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       language,
       difficulty,
       status,
+      supported_modes: supportedModes.length > 0 ? supportedModes : ['pexequiz', 'lightning'],
       results_config: customizeResults && resultsConfig.length === 6 ? resultsConfig : null,
       updated_at: new Date().toISOString(),
     }
 
     if (deck) {
-      await supabase.from('custom_decks').update(payload).eq('id', deck.id)
+      const { error } = await supabase.from('custom_decks').update(payload).eq('id', deck.id)
       setSaving(false)
+      if (error) { setSaveError(error.message); return null }
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
       return deck.id
     } else {
       const { data, error } = await supabase.from('custom_decks').insert(payload).select().single()
       setSaving(false)
-      if (error || !data) return null
+      if (error || !data) { setSaveError(error?.message ?? 'Neznámá chyba'); return null }
       setDeck(data)
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -454,11 +463,39 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-1">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-2">Herní módy</label>
+            <div className="flex gap-4">
+              {([['pexequiz', '🃏 PexeQuiz'], ['lightning', '🔥 Bleskový kvíz']] as const).map(([mode, label]) => (
+                <div key={mode} className="flex items-center gap-2">
+                  <input
+                    id={`mode-${mode}`}
+                    type="checkbox"
+                    checked={supportedModes.includes(mode)}
+                    onChange={e => {
+                      if (e.target.checked) {
+                        setSupportedModes(prev => [...prev, mode])
+                      } else {
+                        // prevent unchecking both
+                        if (supportedModes.length > 1) {
+                          setSupportedModes(prev => prev.filter(m => m !== mode))
+                        }
+                      }
+                    }}
+                    className="accent-indigo-600"
+                  />
+                  <label htmlFor={`mode-${mode}`} className="text-sm text-gray-700">{label}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-1 flex-wrap">
             <Button onClick={saveDeck} disabled={saving || !title.trim()}>
               {saving ? 'Ukládání…' : deck ? 'Uložit změny' : 'Vytvořit sadu'}
             </Button>
             {saved && <span className="text-xs text-green-600">✓ Uloženo</span>}
+            {saveError && <span className="text-xs text-red-600">Chyba: {saveError}</span>}
           </div>
         </Card>
       )}

@@ -27,6 +27,7 @@ type CustomDeckMeta = {
   id: string
   title: string
   thumbnail: string | null
+  supported_modes: string[]
 }
 
 
@@ -61,21 +62,26 @@ export default function SetupScreen() {
   useEffect(() => {
     supabase
       .from('custom_decks')
-      .select('id, title, status')
+      .select('id, title, status, supported_modes')
       .eq('status', 'approved')
       .eq('language', language)
       .then(({ data }) => {
         if (!data) return
         // Fetch first card thumbnail for each deck
         Promise.all(
-          data.map(async (d: { id: string; title: string }) => {
+          data.map(async (d: { id: string; title: string; supported_modes: string[] | null }) => {
             const { data: cards } = await supabase
               .from('custom_cards')
               .select('image_url')
               .eq('deck_id', d.id)
               .order('sort_order')
               .limit(1)
-            return { id: d.id, title: d.title, thumbnail: cards?.[0]?.image_url ?? null }
+            return {
+              id: d.id,
+              title: d.title,
+              thumbnail: cards?.[0]?.image_url ?? null,
+              supported_modes: d.supported_modes ?? ['pexequiz', 'lightning'],
+            }
           })
         ).then(setCustomDecks)
       })
@@ -193,7 +199,7 @@ export default function SetupScreen() {
                   </div>
                 </button>
               ))}
-              {customDecks.map(cd => (
+              {customDecks.filter(cd => cd.supported_modes.includes(gameMode)).map(cd => (
                 <button
                   key={cd.id}
                   onClick={() => handleSelectCustomDeck(cd)}
