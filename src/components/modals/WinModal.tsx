@@ -291,11 +291,15 @@ export default function WinModal() {
                   </span>
                   <span className="text-base font-bold tabular-nums" style={{ color: tc.accent }}>{p.score}</span>
                 </div>
-                <div className="text-xs mt-0.5 pl-9" style={{ color: tc.textDim }}>
-                  🃏 {pluralize(p.pairs, tr, 'pairOne', 'pairFew', 'pairMany')}
-                  {' '}+{' '}
-                  🧠 {pluralize(p.quizzes, tr, 'quizOne', 'quizFew', 'quizMany')}
-                  {totalQ > 0 && <span style={{ color: tc.textMuted }}> · {acc}%</span>}
+                <div className="flex items-center gap-2.5 mt-0.5">
+                  {showMedals && <span className="w-6 shrink-0" />}
+                  <span className="w-2.5 shrink-0" />
+                  <span className="text-xs" style={{ color: tc.textDim }}>
+                    🃏 {pluralize(p.pairs, tr, 'pairOne', 'pairFew', 'pairMany')}
+                    {' '}+{' '}
+                    🧠 {pluralize(p.quizzes, tr, 'quizOne', 'quizFew', 'quizMany')}
+                    {totalQ > 0 && <span style={{ color: tc.textMuted }}> · {acc}%</span>}
+                  </span>
                 </div>
               </div>
             )

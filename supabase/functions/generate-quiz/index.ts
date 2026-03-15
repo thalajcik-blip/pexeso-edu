@@ -86,9 +86,9 @@ function parseResult(text: string) {
 
 async function callClaude(prompt: string, apiKey: string, difficulty: string, language: string) {
   const langNote = language === 'cs'
-    ? 'You MUST write ALL text exclusively in standard written Czech (spisovná čeština). ALWAYS use correct diacritics — háčky and čárky are mandatory (e.g. "přechod", "řídit", "průjezd"). NEVER omit diacritics. NEVER invent words — use only real Czech words. Never use Cyrillic or any other language.'
+    ? 'You MUST write ALL text exclusively in standard written Czech (spisovná čeština). Use ONLY Latin script — NEVER use Cyrillic, Devanagari, Arabic, Greek, or any other non-Latin characters or scripts. ALWAYS use correct diacritics — háčky and čárky are mandatory (e.g. "přechod", "řídit", "průjezd"). NEVER omit diacritics. NEVER use English words or phrases. NEVER invent words — use only real Czech words. Never use Slovak, Russian or any other language. If you are unsure of a Czech word, use a simpler synonym.'
     : language === 'sk'
-    ? 'You MUST write ALL text exclusively in standard written Slovak (spisovná slovenčina). ALWAYS use correct diacritics — háčky, dĺžne and mäkčene are mandatory (e.g. "križovatka", "rýchlosť", "priechod"). NEVER omit diacritics. NEVER invent words — use only real Slovak words. Never use Cyrillic or any other language.'
+    ? 'You MUST write ALL text exclusively in standard written Slovak (spisovná slovenčina). Use ONLY Latin script — NEVER use Cyrillic, Devanagari, Arabic, Greek, or any other non-Latin characters or scripts. ALWAYS use correct diacritics — háčky, dĺžne and mäkčene are mandatory (e.g. "križovatka", "rýchlosť", "priechod"). NEVER omit diacritics. NEVER use English words or phrases — not even a single English word (e.g. write "ulice" not "streets", "hudobníci" not "musicians"). NEVER invent words — use only real Slovak words that exist in standard Slovak dictionaries. NEVER use Polish, Czech, Russian or any other language. If you are unsure of a Slovak word, use a simpler synonym.'
     : ''
 
   const diffNote = difficulty === 'easy'
@@ -168,7 +168,9 @@ async function callGemini(prompt: string, apiKey: string, difficulty: string, la
   }
   if (!response.ok) throw new Error(`Gemini error: ${response.status} ${await response.text()}`)
   const data = await response.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+  const parts: Array<{ text?: string; thought?: boolean }> = data.candidates?.[0]?.content?.parts ?? []
+  const textPart = parts.find(p => !p.thought) ?? parts[0]
+  const text = textPart?.text
   if (!text) throw new Error('Empty Gemini response')
   return parseResult(text.trim())
 }
