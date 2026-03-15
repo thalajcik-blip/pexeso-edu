@@ -248,6 +248,7 @@ export default function BulkUploadModal({ deckId, language, difficulty, startInd
 
                   {/* Fields */}
                   <div className="p-2 space-y-1.5">
+                    <div className="text-[10px] text-gray-400 truncate" title={card.file.name}>{card.file.name}</div>
                     <div className="flex gap-1">
                       <Input
                         value={card.label}
