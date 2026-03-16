@@ -664,7 +664,7 @@ export default function LightningGame() {
             style={getOptionStyle(option)}
           >
             <span className="flex items-start gap-1.5">
-              <span className="opacity-60 text-xs font-bold shrink-0">{OPTION_LABELS[i]}</span>
+              <span className="opacity-60 text-xs font-bold shrink-0 mt-0.5">{OPTION_LABELS[i]}</span>
               <span>{option}</span>
             </span>
           </button>
