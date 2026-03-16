@@ -46,16 +46,18 @@ function buildLightningQuestions(
       // New: use flexible answer pool
       if (item.answers && item.answers.length > 0) {
         const { options, correct } = selectAnswers(item.answers, item.display_count || 4)
-        if (!correct || options.length === 0) return []
-        return [{
-          symbol,
-          label: item.label,
-          imageUrl: item.image_url || undefined,
-          question: item.quiz_question || item.label,
-          options,
-          correct,
-          funFact: item.fun_fact || undefined,
-        }]
+        if (correct && options.length >= 2) {
+          return [{
+            symbol,
+            label: item.label,
+            imageUrl: item.image_url || undefined,
+            question: item.quiz_question || item.label,
+            options,
+            correct,
+            funFact: item.fun_fact || undefined,
+          }]
+        }
+        // fall through to legacy if answers path failed
       }
       // Fallback: legacy quiz_options/quiz_correct
       if (item.quiz_options && item.quiz_correct) {
