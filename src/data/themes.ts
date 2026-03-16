@@ -123,7 +123,7 @@ export const THEMES: Record<Theme, ThemeColors> = {
     errorColor:         '#dc2626',
     errorBg:            'rgba(220,38,38,0.12)',
     accent:             '#5533cc',
-    accentGradient:     'linear-gradient(135deg, #5533cc 0%, #a040e0 100%)',
+    accentGradient:     'linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%)',
     accentText:         '#ffffff',
     accentGlow:         'rgba(85,51,204,0.25)',
     accentBorderActive: 'rgba(85,51,204,0.7)',
