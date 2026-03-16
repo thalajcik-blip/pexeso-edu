@@ -46,7 +46,7 @@ export interface ThemeColors {
 
 export const THEMES: Record<Theme, ThemeColors> = {
   dark: {
-    bg:                 '#0d1b2a',
+    bg:                 'linear-gradient(135deg, #152331 0%, #000000 100%)',
     surface:            'rgba(255,255,255,0.05)',
     surfaceBorder:      'rgba(255,255,255,0.1)',
     text:               '#ffffff',
