@@ -1,6 +1,7 @@
-import { useEffect, useState, useMemo, startTransition } from 'react'
+import { useEffect, useState, useMemo, startTransition, useRef } from 'react'
 import { supabase } from '../services/supabase'
 import CardModal, { type CardData } from './CardModal'
+import CropModal from './CropModal'
 import { validateAnswers } from '../utils/quizValidation'
 import BulkUploadModal from './BulkUploadModal'
 import { Badge } from '@/components/ui/badge'
@@ -64,6 +65,7 @@ type Deck = {
   language: 'cs' | 'sk' | 'en'
   difficulty: 'easy' | 'medium' | 'hard'
   supported_modes: string[]
+  thumbnail_url: string | null
 }
 
 type Props = {
@@ -102,6 +104,10 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [resultsConfig, setResultsConfig] = useState<TierConfig[]>([])
   const [globalResultsDefaults, setGlobalResultsDefaults] = useState<Record<string, TierConfig[]> | null>(null)
   const [view, setView] = useState<View>('info')
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null)
+  const [thumbCropSrc, setThumbCropSrc] = useState<string | null>(null)
+  const [uploadingThumb, setUploadingThumb] = useState(false)
+  const thumbInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     // Fetch global defaults from admin_settings
@@ -132,6 +138,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           setCustomizeResults(true)
           setResultsConfig(d.results_config as TierConfig[])
         }
+        setThumbnailUrl(d.thumbnail_url ?? null)
       }
       setCards(c ?? [])
       setLoading(false)
@@ -152,6 +159,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       status,
       supported_modes: supportedModes.length > 0 ? supportedModes : ['pexequiz', 'lightning'],
       results_config: customizeResults && resultsConfig.length === 6 ? resultsConfig : null,
+      thumbnail_url: thumbnailUrl,
       updated_at: new Date().toISOString(),
     }
 
@@ -171,6 +179,23 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       setTimeout(() => setSaved(false), 2000)
       return data.id
     }
+  }
+
+  function handleThumbFileSelect(file: File) {
+    const reader = new FileReader()
+    reader.onload = e => setThumbCropSrc(e.target?.result as string)
+    reader.readAsDataURL(file)
+  }
+
+  async function handleThumbCropped(blob: Blob) {
+    setThumbCropSrc(null)
+    setUploadingThumb(true)
+    const path = `thumbnails/${Date.now()}.jpg`
+    const { error } = await supabase.storage.from('card-images').upload(path, blob, { contentType: 'image/jpeg', upsert: true })
+    if (error) { setUploadingThumb(false); return }
+    const { data: { publicUrl } } = supabase.storage.from('card-images').getPublicUrl(path)
+    setThumbnailUrl(publicUrl)
+    setUploadingThumb(false)
   }
 
   async function translateAll() {
@@ -392,6 +417,40 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       {/* View: Základní informace */}
       {view === 'info' && (
         <Card className="p-6 gap-0 space-y-4 border-gray-100">
+
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-2">Náhledový obrázek <span className="text-gray-300">(volitelné)</span></label>
+            <div className="flex items-center gap-4">
+              <div
+                className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden cursor-pointer hover:border-indigo-400 transition-colors flex-shrink-0"
+                onClick={() => thumbInputRef.current?.click()}
+              >
+                {thumbnailUrl ? (
+                  <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl">{uploadingThumb ? '⏳' : '🖼️'}</span>
+                )}
+              </div>
+              <div className="flex flex-col gap-1">
+                <Button variant="outline" size="sm" onClick={() => thumbInputRef.current?.click()} disabled={uploadingThumb}>
+                  {uploadingThumb ? 'Nahrávání…' : thumbnailUrl ? 'Změnit obrázek' : 'Nahrát obrázek'}
+                </Button>
+                {thumbnailUrl && (
+                  <button className="text-xs text-gray-400 hover:text-red-500 text-left" onClick={() => setThumbnailUrl(null)}>
+                    Odebrat
+                  </button>
+                )}
+              </div>
+            </div>
+            <input
+              ref={thumbInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleThumbFileSelect(f); e.target.value = '' }}
+            />
+          </div>
+
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Název *</label>
             <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="např. Dinosauři" />
@@ -668,6 +727,13 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       )}
 
       {/* Modals */}
+      {thumbCropSrc && (
+        <CropModal
+          imageSrc={thumbCropSrc}
+          onCrop={handleThumbCropped}
+          onClose={() => setThumbCropSrc(null)}
+        />
+      )}
       {bulkOpen && currentDeckId && (
         <BulkUploadModal
           deckId={currentDeckId}

@@ -62,14 +62,22 @@ export default function SetupScreen() {
   useEffect(() => {
     supabase
       .from('custom_decks')
-      .select('id, title, status, supported_modes')
+      .select('id, title, status, supported_modes, thumbnail_url')
       .eq('status', 'approved')
       .eq('language', language)
       .then(({ data }) => {
         if (!data) return
-        // Fetch first card thumbnail for each deck
+        // Use thumbnail_url if set; fallback to first card image only when missing
         Promise.all(
-          data.map(async (d: { id: string; title: string; supported_modes: string[] | null }) => {
+          data.map(async (d: { id: string; title: string; supported_modes: string[] | null; thumbnail_url: string | null }) => {
+            if (d.thumbnail_url) {
+              return {
+                id: d.id,
+                title: d.title,
+                thumbnail: d.thumbnail_url,
+                supported_modes: d.supported_modes ?? ['pexequiz', 'lightning'],
+              }
+            }
             const { data: cards } = await supabase
               .from('custom_cards')
               .select('image_url')
