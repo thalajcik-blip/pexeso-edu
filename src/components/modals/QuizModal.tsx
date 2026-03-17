@@ -9,6 +9,8 @@ import { selectAnswers } from '../../utils/quizValidation'
 import { soundQuizSelect, soundQuizWrong, soundQuizTimeout, soundTick } from '../../services/audioService'
 import type { DeckId } from '../../types/game'
 
+const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+
 export default function QuizModal() {
   const quizSymbol        = useGameStore(s => s.quizSymbol)
   const selectedDeckId    = useGameStore(s => s.selectedDeckId)
@@ -233,8 +235,8 @@ export default function QuizModal() {
         )}
 
         {/* Options */}
-        <div className={`grid gap-2 ${isEn ? 'grid-cols-1' : 'grid-cols-2'}`}>
-          {options.map((opt: string) => {
+        <div className="grid grid-cols-2 gap-3">
+          {options.map((opt: string, i: number) => {
             let style: React.CSSProperties = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.text }
             if (myVote) {
               if (revealed && opt === resultCorrect)   style = { background: tc.successBg, border: `2px solid ${tc.successColor}`, color: tc.successColor }
@@ -247,10 +249,13 @@ export default function QuizModal() {
                 key={opt}
                 disabled={!!myVote || !!quizRevealCorrect}
                 onClick={() => handleAnswer(opt)}
-                className={`py-2.5 px-3 rounded-xl font-medium transition-all text-left ${isEn ? 'text-xs' : 'text-sm text-center'}`}
+                className="py-3 px-3 rounded-xl border-2 font-semibold text-sm text-left transition-all cursor-pointer disabled:cursor-default"
                 style={style}
               >
-                {opt}
+                <span className="flex items-start gap-1.5">
+                  <span className="opacity-60 text-xs font-bold shrink-0 mt-0.5">{OPTION_LABELS[i]}</span>
+                  <span>{opt}</span>
+                </span>
               </button>
             )
           })}
