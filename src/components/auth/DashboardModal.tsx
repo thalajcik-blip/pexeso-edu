@@ -243,11 +243,12 @@ export default function DashboardModal() {
                   return (
                     <div
                       key={g.id}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 overflow-hidden"
+                      className="flex items-center gap-3 px-3 py-2.5 overflow-hidden"
                       style={{
                         background: tc.btnInactiveBg,
                         border: `1px solid ${tc.btnInactiveBorder}`,
-                        borderLeft: `3px solid ${resultColor}`,
+                        borderLeft: `8px solid ${resultColor}`,
+                        borderRadius: 8,
                       }}
                     >
                       <div className="text-lg flex-shrink-0">
