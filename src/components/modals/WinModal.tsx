@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
 import { useAuthStore } from '../../store/authStore'
 import { saveGameResult } from '../../services/gameService'
+import { DECKS } from '../../data/decks'
 import { TRANSLATIONS, pluralize } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { trunc } from '../../utils'
@@ -163,8 +164,10 @@ export default function WinModal() {
     savedRef.current = true
     const p = players[0]
     const quizTotal = p.quizzes + p.wrongQuizzes
+    const builtInDeck = customDeck ? null : DECKS.find(d => d.id === selectedDeckId)
     saveGameResult({
       setSlug:      customDeck ? null : selectedDeckId,
+      setTitle:     customDeck ? customDeck.title : (builtInDeck?.label ?? selectedDeckId),
       customDeckId: customDeck?.id ?? null,
       mode:         'pexequiz',
       score:        p.score,

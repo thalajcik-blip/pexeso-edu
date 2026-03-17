@@ -12,6 +12,7 @@ export interface Profile {
   show_stats: boolean
   show_favorites: boolean
   show_activity: boolean
+  created_at: string
 }
 
 const LEVEL_XP = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000]

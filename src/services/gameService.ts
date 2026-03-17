@@ -3,8 +3,9 @@ import { useAuthStore } from '../store/authStore'
 
 export interface GameResult {
   setSlug: string | null       // built-in deck ID (e.g. 'flags', 'animals')
+  setTitle: string | null      // display name snapshot
   customDeckId: string | null  // custom deck UUID
-  mode: 'pexequiz' | 'bleskovy_kviz'
+  mode: 'pexequiz' | 'lightning'
   score: number
   quizCorrect: number
   quizTotal: number
@@ -25,15 +26,16 @@ export async function saveGameResult(result: GameResult): Promise<void> {
   const { user } = useAuthStore.getState()
   if (!user) return
   const { error } = await supabase.from('game_history').insert({
-    user_id: user.id,
-    set_slug: result.setSlug,
-    custom_deck_id: result.customDeckId,
-    game_mode: result.mode,
-    score: result.score,
-    quiz_correct: result.quizCorrect,
-    quiz_total: result.quizTotal,
-    total_pairs: result.totalPairs,
-    duration_sec: result.durationSec,
+    user_id:       user.id,
+    set_slug:      result.setSlug,
+    set_title:     result.setTitle,
+    set_id:        result.customDeckId,
+    game_mode:     result.mode,
+    score:         result.score,
+    correct_quiz:  result.quizCorrect,
+    total_quiz:    result.quizTotal,
+    total_pairs:   result.totalPairs,
+    duration_sec:  result.durationSec,
     is_multiplayer: result.isMultiplayer,
   })
   if (!error) {
