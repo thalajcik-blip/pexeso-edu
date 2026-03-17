@@ -190,7 +190,7 @@ export default function LightningGame() {
 
   const question = lightningQuestions[lightningCurrentIndex]
   const isReveal  = phase === 'lightning_reveal'
-  const isResults = phase === 'lightning_results'
+  const isResults = phase === 'lightning_results' && lightningAnswers.length > 0
   const total     = lightningQuestions.length
 
   // Reset on new question
