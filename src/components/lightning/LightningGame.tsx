@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
+import { useAuthStore } from '../../store/authStore'
+import { saveGameResult } from '../../services/gameService'
+import { DECKS } from '../../data/decks'
 import { TRANSLATIONS } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { soundQuizSelect, soundQuizCorrect, soundQuizWrong, soundQuizTimeout, soundTick, soundWin, isMuted, toggleMuted } from '../../services/audioService'
@@ -156,8 +159,12 @@ export default function LightningGame() {
   const playerIds                 = useGameStore(s => s.playerIds)
   const myPlayerId                = useGameStore(s => s.myPlayerId)
   const customDeck                = useGameStore(s => s.customDeck)
+  const selectedDeckId            = useGameStore(s => s.selectedDeckId)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
+
+  const { user } = useAuthStore()
+  const savedRef = useRef(false)
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState(lightningTimeLimit)
@@ -323,6 +330,27 @@ export default function LightningGame() {
       if (Date.now() < end) requestAnimationFrame(frame)
     }
     frame()
+  }, [phase])
+
+  // Auto-save solo lightning result for logged-in players
+  useEffect(() => {
+    if (phase !== 'lightning_results' || isOnline || !user || savedRef.current) return
+    savedRef.current = true
+    const correctCount = lightningAnswers.filter(a => a.correct).length
+    const builtInDeck = customDeck ? null : DECKS.find(d => d.id === selectedDeckId)
+    saveGameResult({
+      setSlug:       customDeck ? null : selectedDeckId,
+      setTitle:      customDeck ? customDeck.title : (builtInDeck?.label ?? selectedDeckId),
+      customDeckId:  customDeck?.id ?? null,
+      mode:          'lightning',
+      score:         correctCount,
+      quizCorrect:   correctCount,
+      quizTotal:     lightningAnswers.length,
+      totalPairs:    0,
+      durationSec:   0,
+      isMultiplayer: false,
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
 
   function handleAnswer(answer: string) {
