@@ -197,8 +197,7 @@ export default function SettingsModal() {
 
         {/* Username */}
         <div>
-          <div style={sectionLabel}>{t.sectionAccount}</div>
-          <div className="text-xs mb-1" style={{ color: tc.textMuted }}>{t.username}</div>
+          <div style={sectionLabel}>{t.username}</div>
           <div className="flex gap-2">
             <div className="flex-1 relative">
               <input
