@@ -114,7 +114,6 @@ export default function DashboardModal() {
   const [games, setGames]     = useState<GameRow[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage]       = useState(1)
-  const [avatarError, setAvatarError] = useState(false)
 
   useEffect(() => {
     if (!user) return
