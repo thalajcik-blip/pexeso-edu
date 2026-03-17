@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { Toaster } from 'sonner'
 import { useGameStore } from './store/gameStore'
 import { useAuthStore } from './store/authStore'
 import { supabase } from './services/supabase'
@@ -117,6 +118,8 @@ export default function App() {
       {isOnboarding && !authModalOpen && <OnboardingModal />}
       {settingsModalOpen && <PlayerSettingsModal />}
       {dashboardModalOpen && <DashboardModal />}
+
+      <Toaster theme={theme} richColors />
 
       {/* Player left — brief banner */}
       {isOnline && disconnectedPlayer && !isAlone && (

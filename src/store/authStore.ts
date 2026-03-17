@@ -15,7 +15,7 @@ export interface Profile {
   created_at: string
 }
 
-const LEVEL_XP = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000]
+export const LEVEL_XP = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000]
 
 export function getLevel(xp: number): number {
   let level = 1
