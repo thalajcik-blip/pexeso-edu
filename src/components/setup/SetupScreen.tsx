@@ -7,6 +7,7 @@ import type { Language } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { useEffect, useRef, useState } from 'react'
 import { supabase, fetchCustomDeckFull } from '../../services/supabase'
+import { useAuthStore } from '../../store/authStore'
 
 const SIZES: { id: BoardSize; labelKey: 'sizeLarge' | 'sizeMedium' | 'sizeSmall'; grid: string }[] = [
   { id: 'small',  labelKey: 'sizeSmall',  grid: '4×4' },
@@ -105,6 +106,8 @@ export default function SetupScreen() {
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
+  const { profile, openAuthModal, signOut } = useAuthStore()
+
   const inactiveBtn = { background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }
   const activeBtn   = { background: tc.accentGradient, borderColor: tc.accent, color: tc.accentText }
 
@@ -121,6 +124,24 @@ export default function SetupScreen() {
           </h1>
         </div>
         <div className="flex items-center gap-1.5 justify-end -translate-y-6">
+          {profile ? (
+            <button
+              onClick={signOut}
+              className="flex items-center gap-1 rounded-lg border text-xs px-2 py-1.5 transition-opacity hover:opacity-70 max-w-24 truncate"
+              style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
+              title={profile.username ?? ''}
+            >
+              👤 {profile.username}
+            </button>
+          ) : (
+            <button
+              onClick={openAuthModal}
+              className="flex items-center gap-1 rounded-lg border text-xs px-2 py-1.5 transition-opacity hover:opacity-80"
+              style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
+            >
+              Přihlásit
+            </button>
+          )}
           <button
             onClick={toggleTheme}
             className="w-8 h-8 flex items-center justify-center rounded-lg border text-sm transition-all"

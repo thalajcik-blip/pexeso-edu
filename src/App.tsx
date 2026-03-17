@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useGameStore } from './store/gameStore'
+import { useAuthStore } from './store/authStore'
+import { supabase } from './services/supabase'
 import { THEMES } from './data/themes'
 import { TRANSLATIONS } from './data/translations'
 import SetupScreen from './components/setup/SetupScreen'
@@ -10,6 +12,8 @@ import WinModal from './components/modals/WinModal'
 import RulesModal from './components/modals/RulesModal'
 import LightningGame from './components/lightning/LightningGame'
 import SettingsModal from './components/lobby/SettingsModal'
+import AuthModal from './components/auth/AuthModal'
+import OnboardingModal from './components/auth/OnboardingModal'
 
 export default function App() {
   const phase              = useGameStore(s => s.phase)
@@ -27,9 +31,30 @@ export default function App() {
   const tc = THEMES[theme]
   const tr = TRANSLATIONS[language]
 
+  const { authModalOpen, isOnboarding, _setUser, loadProfile, closeAuthModal } = useAuthStore()
+
   const inGame        = phase === 'playing' || phase === 'quiz'
   const inLightning   = phase === 'lightning_playing' || phase === 'lightning_reveal'
   const isAlone = isOnline && (inGame || inLightning) && lobbyPlayers.length < 2
+
+  // Supabase auth state listener
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      _setUser(session?.user ?? null)
+      if (session?.user) loadProfile()
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      _setUser(session?.user ?? null)
+      if (event === 'SIGNED_IN' && session?.user) {
+        loadProfile()
+        closeAuthModal()
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Back button → return to setup instead of leaving the app
   const prevPhaseRef = useRef(phase)
@@ -84,6 +109,10 @@ export default function App() {
       {(phase === 'lightning_playing' || phase === 'lightning_reveal' || phase === 'lightning_results') && <LightningGame />}
       <RulesModal />
       {isHost && hostOpeningSettings && <SettingsModal />}
+
+      {/* Auth modals */}
+      {authModalOpen && <AuthModal />}
+      {isOnboarding && !authModalOpen && <OnboardingModal />}
 
       {/* Player left — brief banner */}
       {isOnline && disconnectedPlayer && !isAlone && (

@@ -8,10 +8,14 @@ import AdminApp from './admin/AdminApp.tsx'
 
 inject()
 
-// If Supabase redirects with auth tokens to root (e.g. password recovery),
-// forward to /admin so AdminApp can handle the auth event.
+// If Supabase redirects with auth tokens to root, forward to /admin only for
+// admin flows (password recovery or admin OAuth). Player Google OAuth is flagged
+// via localStorage so it stays on root.
 const hash = window.location.hash
-if (!window.location.pathname.startsWith('/admin') && (hash.includes('type=recovery') || hash.includes('access_token'))) {
+const isPlayerOAuth = localStorage.getItem('pexedu_oauth_player') === '1'
+if (isPlayerOAuth && hash.includes('access_token')) {
+  localStorage.removeItem('pexedu_oauth_player')
+} else if (!window.location.pathname.startsWith('/admin') && (hash.includes('type=recovery') || hash.includes('access_token'))) {
   window.location.replace('/admin' + hash)
 }
 

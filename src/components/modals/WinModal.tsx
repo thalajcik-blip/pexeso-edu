@@ -1,6 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
+import { useAuthStore } from '../../store/authStore'
+import { saveGameResult } from '../../services/gameService'
 import { TRANSLATIONS, pluralize } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { trunc } from '../../utils'
@@ -146,10 +148,34 @@ export default function WinModal() {
   const requestRematch   = useGameStore(s => s.requestRematch)
   const rematchRequested = useGameStore(s => s.rematchRequested)
   const customDeck       = useGameStore(s => s.customDeck)
+  const selectedDeckId   = useGameStore(s => s.selectedDeckId)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
+  const { user, openAuthModal } = useAuthStore()
+  const savedRef = useRef(false)
+
   const isSolo = players.length === 1
+
+  // Auto-save solo result for logged-in players
+  useEffect(() => {
+    if (!isSolo || !user || savedRef.current) return
+    savedRef.current = true
+    const p = players[0]
+    const quizTotal = p.quizzes + p.wrongQuizzes
+    saveGameResult({
+      setSlug:      customDeck ? null : selectedDeckId,
+      customDeckId: customDeck?.id ?? null,
+      mode:         'pexequiz',
+      score:        p.score,
+      quizCorrect:  p.quizzes,
+      quizTotal,
+      totalPairs:   p.pairs,
+      durationSec:  0,
+      isMultiplayer: false,
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function getPexeTierDisplay(accuracy: number): { icon: string; title: string; message: string } {
     const idx = getTierIdx(accuracy)
@@ -207,9 +233,28 @@ export default function WinModal() {
             </div>
           </div>
 
+          {/* Save result CTA — only if not logged in */}
+          {!user && (
+            <div
+              className="mt-6 flex items-center justify-between gap-3 rounded-xl px-4 py-3"
+              style={{ background: tc.btnInactiveBg, border: `1px solid ${tc.btnInactiveBorder}` }}
+            >
+              <span className="text-xs" style={{ color: tc.textMuted }}>
+                {{ cs: 'Ulož výsledek a sleduj pokrok', sk: 'Ulož výsledok a sleduj pokrok', en: 'Save your result & track progress' }[language]}
+              </span>
+              <button
+                onClick={openAuthModal}
+                className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
+                style={{ background: tc.accentGradient, color: tc.accentText }}
+              >
+                {{ cs: 'Přihlásit se', sk: 'Prihlásiť sa', en: 'Sign in' }[language]}
+              </button>
+            </div>
+          )}
+
           <button
             onClick={playAgain}
-            className="mt-8 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105 w-full"
+            className="mt-4 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105 w-full"
             style={{ background: tc.accentGradient, color: tc.accentText }}
           >
             {tr.playAgain}
