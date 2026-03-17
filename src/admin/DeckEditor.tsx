@@ -95,6 +95,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [saved, setSaved]       = useState(false)
   const [sort, setSort] = useState<'default' | 'newest' | 'oldest' | 'az' | 'za'>('default')
   const [showInvalid, setShowInvalid] = useState(false)
+  const [search, setSearch] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [translating, setTranslating]   = useState(false)
   const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number } | null>(null)
@@ -307,12 +308,22 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
     return validateAnswers(c.answers, c.display_count ?? 4).state !== 'valid'
   }).length, [cards])
 
-  const displayedCards = showInvalid
-    ? sortedCards.filter(c => {
-        if (!c.answers || c.answers.length === 0) return true
-        return validateAnswers(c.answers, c.display_count ?? 4).state !== 'valid'
-      })
-    : sortedCards
+  const displayedCards = useMemo(() => {
+    let result = showInvalid
+      ? sortedCards.filter(c => {
+          if (!c.answers || c.answers.length === 0) return true
+          return validateAnswers(c.answers, c.display_count ?? 4).state !== 'valid'
+        })
+      : sortedCards
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      result = result.filter(c =>
+        c.label?.toLowerCase().includes(q) ||
+        c.quiz_question?.toLowerCase().includes(q)
+      )
+    }
+    return result
+  }, [sortedCards, showInvalid, search])
 
   if (loading) return (
     <div>
@@ -563,9 +574,9 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       {view === 'cards' && currentDeckId && (
         <div>
           <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h2 className="font-semibold text-gray-700">
-                Kartičky <span className="text-gray-400 font-normal">({cards.length})</span>
+                Kartičky <span className="text-gray-400 font-normal">({displayedCards.length}{search.trim() || showInvalid ? `/${cards.length}` : ''})</span>
               </h2>
               {invalidCount > 0 && (
                 <button
@@ -576,6 +587,23 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
                   {invalidCount} neúplných
                 </button>
               )}
+              <div className="relative">
+                <Input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Hledat kartičky…"
+                  className="h-8 w-48 pr-7 text-sm"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {cards.length > 1 && (

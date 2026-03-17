@@ -6,6 +6,7 @@ import { validateAnswers } from '../utils/quizValidation'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination'
@@ -86,6 +87,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
   const [cardStats, setCardStats] = useState<CardValidationRow[]>([])
   const [sort, setSort]           = useState<SortOption>('newest')
   const [page, setPage]           = useState(1)
+  const [search, setSearch]       = useState('')
   const importRef                 = useRef<HTMLInputElement>(null)
 
   async function load() {
@@ -283,7 +285,12 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
 
   useEffect(() => { load() }, [])
 
-  const sortedDecks = [...decks].sort((a, b) => {
+  const filteredDecks = decks.filter(d => {
+    if (!search.trim()) return true
+    const q = search.trim().toLowerCase()
+    return d.title.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q)
+  })
+  const sortedDecks = [...filteredDecks].sort((a, b) => {
     if (sort === 'az') return a.title.localeCompare(b.title, 'cs')
     if (sort === 'za') return b.title.localeCompare(a.title, 'cs')
     if (sort === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -293,6 +300,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
   const pagedDecks = sortedDecks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   function handleSort(s: SortOption) { setSort(s); setPage(1) }
+  function handleSearch(q: string) { setSearch(q); setPage(1) }
 
   if (loading) return (
     <div>
@@ -326,9 +334,29 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-800">Vlastní sady</h1>
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
+        <h1 className="text-xl font-bold text-gray-800">
+          Vlastní sady
+          {search.trim() && <span className="text-sm font-normal text-gray-400 ml-2">({sortedDecks.length}/{decks.length})</span>}
+        </h1>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative">
+            <Input
+              value={search}
+              onChange={e => handleSearch(e.target.value)}
+              placeholder="Hledat sady…"
+              className="h-9 w-48 pr-7 text-sm"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => handleSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+              >
+                ✕
+              </button>
+            )}
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="text-gray-600 gap-1.5 min-w-32 justify-between font-normal">
