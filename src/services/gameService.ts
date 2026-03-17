@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { toast } from 'sonner'
 import { supabase } from './supabase'
-import { useAuthStore, getLevel, LEVEL_XP } from '../store/authStore'
+import { useAuthStore, getLevel } from '../store/authStore'
 import { useGameStore } from '../store/gameStore'
 import { XPToast } from '../components/auth/XPToast'
 
