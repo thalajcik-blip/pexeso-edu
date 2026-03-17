@@ -71,21 +71,6 @@ export async function saveGameResult(result: GameResult): Promise<void> {
       })
     }
 
-    if (leveledUp) {
-      const levelUpMsg: Record<string, string> = {
-        cs: `Postoupil jsi na level ${levelAfter}!`,
-        sk: `Postúpil si na level ${levelAfter}!`,
-        en: `You reached level ${levelAfter}!`,
-      }
-      setTimeout(() => {
-        toast(`⬆️ Level UP!`, {
-          description: levelUpMsg[language] ?? levelUpMsg['cs'],
-          duration: 4000,
-        })
-        setTimeout(showXPProgress, 600)
-      }, 800)
-    } else {
-      setTimeout(showXPProgress, 800)
-    }
+    setTimeout(showXPProgress, 800)
   }
 }

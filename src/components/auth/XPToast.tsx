@@ -25,7 +25,16 @@ function getXPMessage(xp: number, lang: string): string {
   return pool[0]
 }
 
-export function XPToast({ xpEarned, xpBefore, xpAfter, levelAfter, language }: XPToastProps) {
+function getLevelUpLabel(level: number, lang: string): string {
+  const msgs: Record<string, string> = {
+    cs: `⬆️ Level ${level}!`,
+    sk: `⬆️ Level ${level}!`,
+    en: `⬆️ Level ${level}!`,
+  }
+  return msgs[lang] ?? msgs['cs']
+}
+
+export function XPToast({ xpEarned, xpBefore, xpAfter, levelAfter, leveledUp, language }: XPToastProps) {
   const theme = useGameStore(s => s.theme)
   const tc = THEMES[theme]
 
@@ -35,7 +44,7 @@ export function XPToast({ xpEarned, xpBefore, xpAfter, levelAfter, language }: X
   const levelCeil  = isMaxLevel ? levelFloor + 1 : (LEVEL_XP[levelAfter] ?? levelFloor + 1)
   const range = Math.max(1, levelCeil - levelFloor)
 
-  const startPct = Math.min(100, Math.max(0, (xpBefore - levelFloor) / range * 100))
+  const startPct = leveledUp ? 0 : Math.min(100, Math.max(0, (xpBefore - levelFloor) / range * 100))
   const endPct   = isMaxLevel ? 100 : Math.min(100, Math.max(0, (xpAfter - levelFloor) / range * 100))
 
   const [width, setWidth] = useState(startPct)
@@ -51,12 +60,26 @@ export function XPToast({ xpEarned, xpBefore, xpAfter, levelAfter, language }: X
     <div style={{
       minWidth: 240,
       background: tc.modalSurface,
-      border: `1px solid ${tc.modalSurfaceBorder}`,
+      border: `1px solid ${leveledUp ? accentColor : tc.modalSurfaceBorder}`,
       borderRadius: 12,
       padding: '12px 16px',
       color: tc.text,
       fontFamily: "'Readex Pro', sans-serif",
     }}>
+      {/* Level-up banner */}
+      {leveledUp && (
+        <div style={{
+          fontSize: 13,
+          fontWeight: 700,
+          color: accentColor,
+          marginBottom: 8,
+          textAlign: 'center',
+          letterSpacing: '0.02em',
+        }}>
+          {getLevelUpLabel(levelAfter, language)}
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
         <span style={{ fontSize: 16 }}>⚡</span>
