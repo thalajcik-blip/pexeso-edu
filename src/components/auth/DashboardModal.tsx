@@ -3,6 +3,7 @@ import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
 import { supabase } from '../../services/supabase'
+import { Avatar } from './Avatar'
 
 const LEVEL_XP = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000]
 function xpForLevel(level: number) { return LEVEL_XP[Math.min(level - 1, LEVEL_XP.length - 1)] }
@@ -176,18 +177,7 @@ export default function DashboardModal() {
           <div className="rounded-lg p-4 space-y-3" style={{ background: tc.btnInactiveBg, border: `1px solid ${tc.btnInactiveBorder}` }}>
             <div className="flex items-center gap-3">
               {/* Avatar */}
-              {!avatarError && profile?.avatar_id ? (
-                <img
-                  src={`/avatars/avatar_${profile.avatar_id}.svg`}
-                  alt={profile.username ?? ''}
-                  className="w-12 h-12 rounded-full flex-shrink-0"
-                  onError={() => setAvatarError(true)}
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0" style={{ background: tc.surface, border: `1px solid ${tc.btnInactiveBorder}` }}>
-                  👤
-                </div>
-              )}
+              <Avatar avatarId={profile?.avatar_id ?? 1} size={48} />
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-base truncate" style={{ color: tc.text }}>{profile?.username}</div>
                 <div className="text-xs mt-0.5" style={{ color: tc.textMuted }}>

@@ -3,6 +3,8 @@ import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
 import { supabase } from '../../services/supabase'
+import { Avatar } from './Avatar'
+import { AvatarPicker } from './AvatarPicker'
 
 const TEXTS = {
   cs: {
@@ -23,6 +25,9 @@ const TEXTS = {
     showStats: 'Zobrazit statistiky na veřejném profilu',
     showFavorites: 'Zobrazit oblíbené sady',
     showActivity: 'Zobrazit historii aktivit',
+    sectionAvatar: 'Avatar',
+    saveAvatar: 'Uložit avatar',
+    avatarSaved: 'Uloženo ✓',
     sectionDanger: 'Nebezpečná zóna',
     deleteAccount: 'Smazat účet',
     deleteConfirmTitle: 'Opravdu smazat účet?',
@@ -51,6 +56,9 @@ const TEXTS = {
     showStats: 'Zobraziť štatistiky na verejnom profile',
     showFavorites: 'Zobraziť obľúbené sady',
     showActivity: 'Zobraziť históriu aktivít',
+    sectionAvatar: 'Avatar',
+    saveAvatar: 'Uložiť avatar',
+    avatarSaved: 'Uložené ✓',
     sectionDanger: 'Nebezpečná zóna',
     deleteAccount: 'Zmazať účet',
     deleteConfirmTitle: 'Naozaj zmazať účet?',
@@ -79,6 +87,9 @@ const TEXTS = {
     showStats: 'Show stats on public profile',
     showFavorites: 'Show favourite sets',
     showActivity: 'Show activity history',
+    sectionAvatar: 'Avatar',
+    saveAvatar: 'Save avatar',
+    avatarSaved: 'Saved ✓',
     sectionDanger: 'Danger zone',
     deleteAccount: 'Delete account',
     deleteConfirmTitle: 'Really delete account?',
@@ -113,6 +124,10 @@ export default function SettingsModal() {
   const [showStats, setShowStats]       = useState(profile?.show_stats ?? true)
   const [showFavorites, setShowFavorites] = useState(profile?.show_favorites ?? true)
   const [showActivity, setShowActivity] = useState(profile?.show_activity ?? false)
+
+  // Avatar
+  const [avatarId, setAvatarId]     = useState(profile?.avatar_id ?? 1)
+  const [avatarSaved, setAvatarSaved] = useState(false)
 
   // Delete confirm
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -160,6 +175,12 @@ export default function SettingsModal() {
     await updateProfile({ [field]: value } as never)
   }
 
+  async function saveAvatarFn() {
+    await updateProfile({ avatar_id: avatarId } as never)
+    setAvatarSaved(true)
+    setTimeout(() => setAvatarSaved(false), 2000)
+  }
+
   async function handleDelete() {
     setDeleting(true)
     const err = await deleteAccount()
@@ -194,6 +215,26 @@ export default function SettingsModal() {
         </div>
 
         {error && <div className="text-xs rounded-lg px-3 py-2" style={{ background: tc.errorBg, color: tc.errorColor }}>{error}</div>}
+
+        {/* Avatar */}
+        <div>
+          <div style={sectionLabel}>{t.sectionAvatar}</div>
+          <div className="flex items-center gap-3 mb-3">
+            <Avatar avatarId={avatarId} size={48} />
+          </div>
+          <AvatarPicker
+            selected={avatarId}
+            onChange={setAvatarId}
+            accentColor={theme === 'light' ? '#6d41a1' : '#f9d74e'}
+          />
+          <button
+            onClick={saveAvatarFn}
+            className="mt-3 px-3 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80"
+            style={{ background: tc.accentGradient, color: tc.accentText }}
+          >
+            {avatarSaved ? t.avatarSaved : t.saveAvatar}
+          </button>
+        </div>
 
         {/* Username */}
         <div>

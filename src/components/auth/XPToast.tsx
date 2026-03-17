@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useGameStore } from '../../store/gameStore'
+import { useAuthStore } from '../../store/authStore'
 import { THEMES } from '../../data/themes'
 import { LEVEL_XP } from '../../store/authStore'
+import { Avatar } from './Avatar'
 
 interface XPToastProps {
   xpEarned: number
@@ -35,7 +37,8 @@ function getLevelUpLabel(level: number, lang: string): string {
 }
 
 export function XPToast({ xpEarned, xpBefore, xpAfter, levelAfter, leveledUp, language }: XPToastProps) {
-  const theme = useGameStore(s => s.theme)
+  const theme   = useGameStore(s => s.theme)
+  const profile = useAuthStore(s => s.profile)
   const tc = THEMES[theme]
 
   const maxLevel = LEVEL_XP.length
@@ -81,7 +84,8 @@ export function XPToast({ xpEarned, xpBefore, xpAfter, levelAfter, leveledUp, la
       )}
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <Avatar avatarId={profile?.avatar_id ?? 1} size={32} />
         <span style={{ fontSize: 16 }}>⚡</span>
         <span style={{ fontWeight: 700, fontSize: 15, color: accentColor }}>
           +{xpEarned} XP
