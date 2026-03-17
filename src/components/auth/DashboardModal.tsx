@@ -108,7 +108,7 @@ export default function DashboardModal() {
   const tc = THEMES[theme]
   const t  = TEXTS[language]
 
-  const { profile, closeDashboardModal } = useAuthStore()
+  const { user, profile, closeDashboardModal } = useAuthStore()
 
   const [games, setGames]     = useState<GameRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -116,9 +116,11 @@ export default function DashboardModal() {
   const [avatarError, setAvatarError] = useState(false)
 
   useEffect(() => {
+    if (!user) return
     supabase
       .from('game_history')
       .select('id, set_title, set_slug, game_mode, is_multiplayer, correct_quiz, total_quiz, total_pairs, played_at')
+      .eq('user_id', user.id)
       .order('played_at', { ascending: false })
       .limit(100)
       .then(({ data }) => {
