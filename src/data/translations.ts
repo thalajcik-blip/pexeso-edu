@@ -74,6 +74,8 @@ export interface Translations {
   lightningFastest: string
   lightningPractice: string
   lightningChooseOther: string
+  signIn: string
+  signOut: string
   // Lobby / online
   localBtn: string
   onlineBtn: string
@@ -225,6 +227,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningFastest: 'Nejrychlejší odpověď ⚡',
     lightningPractice: 'Procvič si 📚',
     lightningChooseOther: 'Vybrat jinou sadu',
+    signIn: 'Přihlásit',
+    signOut: 'Odhlásit',
     changeGameSettings: 'Nastavit hru',
     settingsModalTitle: 'Nastavení hry',
     saveAndGoToLobby: 'Uložit a jít do lobby',
@@ -349,6 +353,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningFastest: 'Najrýchlejšia odpoveď ⚡',
     lightningPractice: 'Precvič si 📚',
     lightningChooseOther: 'Vybrať inú sadu',
+    signIn: 'Prihlásiť',
+    signOut: 'Odhlásiť',
     changeGameSettings: 'Nastaviť hru',
     settingsModalTitle: 'Nastavenie hry',
     saveAndGoToLobby: 'Uložiť a ísť do lobby',
@@ -473,6 +479,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningFastest: 'Fastest answer ⚡',
     lightningPractice: 'Practice 📚',
     lightningChooseOther: 'Choose another deck',
+    signIn: 'Sign in',
+    signOut: 'Sign out',
     changeGameSettings: 'Game settings',
     settingsModalTitle: 'Game Settings',
     saveAndGoToLobby: 'Save and go to lobby',

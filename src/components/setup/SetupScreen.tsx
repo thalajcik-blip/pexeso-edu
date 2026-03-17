@@ -139,7 +139,7 @@ export default function SetupScreen() {
               className="flex items-center gap-1 rounded-lg border text-xs px-2 py-1.5 transition-opacity hover:opacity-80"
               style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
             >
-              Přihlásit
+              {tr.signIn}
             </button>
           )}
           <button
