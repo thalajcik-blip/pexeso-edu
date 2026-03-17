@@ -119,7 +119,7 @@ export default function App() {
       {settingsModalOpen && <PlayerSettingsModal />}
       {dashboardModalOpen && <DashboardModal />}
 
-      <Toaster theme={theme} richColors />
+      <Toaster theme={theme} richColors position="bottom-right" />
 
       {/* Player left — brief banner */}
       {isOnline && disconnectedPlayer && !isAlone && (

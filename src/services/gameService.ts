@@ -66,7 +66,6 @@ export async function saveGameResult(result: GameResult): Promise<void> {
         language,
       }), {
         duration: 5000,
-        position: 'bottom-right',
         unstyled: true,
       })
     }
@@ -81,7 +80,6 @@ export async function saveGameResult(result: GameResult): Promise<void> {
         toast(`⬆️ Level UP!`, {
           description: levelUpMsg[language] ?? levelUpMsg['cs'],
           duration: 4000,
-          position: 'bottom-right',
         })
         setTimeout(showXPProgress, 600)
       }, 800)
