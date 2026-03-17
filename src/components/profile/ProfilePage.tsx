@@ -3,6 +3,13 @@ import { supabase } from '../../services/supabase'
 import { THEMES } from '../../data/themes'
 
 const LEVEL_XP = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000]
+
+const SET_NAMES: Record<string, string> = {
+  flags:   'Vlajky',
+  animals: 'Zvířátka',
+  fruits:  'Ovoce & zelenina',
+  jobs:    'Povolání',
+}
 function xpForLevel(level: number) { return LEVEL_XP[Math.min(level - 1, LEVEL_XP.length - 1)] }
 function xpForNextLevel(level: number) { return LEVEL_XP[Math.min(level, LEVEL_XP.length - 1)] }
 
@@ -200,9 +207,11 @@ export default function ProfilePage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium truncate" style={{ color: tc.text }}>
-                              {g.set_title ?? '—'}
+                              {g.set_title ?? (g.set_slug ? (SET_NAMES[g.set_slug] ?? g.set_slug) : '—')}
                             </div>
                             <div className="text-xs flex items-center gap-2 mt-0.5" style={{ color: tc.textMuted }}>
+                              <span>{g.game_mode === 'lightning' ? 'Bleskový kvíz' : 'PexeQuiz'}</span>
+                              <span>·</span>
                               <span>{g.is_multiplayer ? 'Multiplayer' : 'Solo'}</span>
                               {g.total_pairs && <><span>·</span><span>{g.total_pairs} párů</span></>}
                             </div>
