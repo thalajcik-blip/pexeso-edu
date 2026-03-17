@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import QRCode from 'react-qr-code'
 import { useGameStore, getSavedSession } from '../../store/gameStore'
+import { useAuthStore } from '../../store/authStore'
 import { THEMES } from '../../data/themes'
 import { TRANSLATIONS } from '../../data/translations'
 import { PLAYER_COLORS, MAX_LIGHTNING_PLAYERS } from '../../types/game'
@@ -29,12 +30,14 @@ export default function LobbyScreen() {
   const openSettingsModal         = useGameStore(s => s.openSettingsModal)
   const changeMyLobbyName         = useGameStore(s => s.changeMyLobbyName)
   const hostOpeningSettings       = useGameStore(s => s.hostOpeningSettings)
+  const { profile } = useAuthStore()
 
   const tc = THEMES[theme]
   const tr = TRANSLATIONS[language]
 
   const [view, setView]       = useState<'choice' | 'join-code'>('choice')
   const [myName, setMyName]   = useState(() => {
+    if (profile?.username) return profile.username
     const base = (playerNames[0] || 'Hráč').replace(/\s*\d+$/, '')
     return `${base} ${Math.floor(Math.random() * 900) + 100}`
   })

@@ -139,6 +139,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       .maybeSingle()
     if (data) {
       set({ profile: data as Profile, isOnboarding: !data.username })
+      if (data.username) {
+        // Pre-fill player name with profile username
+        const { setPlayerName } = (await import('./gameStore')).useGameStore.getState()
+        setPlayerName(0, data.username)
+      }
     } else {
       set({ isOnboarding: true })
     }
