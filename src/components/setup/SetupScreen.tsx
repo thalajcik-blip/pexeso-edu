@@ -114,44 +114,11 @@ export default function SetupScreen() {
   return (
     <div className="flex flex-col items-center justify-start min-h-screen px-4 pb-6 gap-4" style={{ paddingTop: 'max(5vh, 1.5rem)' }}>
 
-      {/* Header row: logo centered, controls top-right */}
+      {/* Header row: left = lang + theme, center = logo, right = sign in */}
       <div className="w-full grid items-start px-2 relative z-10" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
-        <div />
-        <div className="flex items-center gap-2">
-          <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="Pexedu logo" className="w-10 h-10" />
-          <h1 className="text-3xl font-semibold tracking-tight lowercase relative -top-0.5" style={{ color: tc.textMuted }}>
-            Pexedu
-          </h1>
-        </div>
-        <div className="flex items-center gap-1.5 justify-end -translate-y-6">
-          {profile ? (
-            <button
-              onClick={signOut}
-              className="flex items-center gap-1 rounded-lg border text-xs px-2 py-1.5 transition-opacity hover:opacity-70 max-w-24 truncate"
-              style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
-              title={profile.username ?? ''}
-            >
-              👤 {profile.username}
-            </button>
-          ) : (
-            <button
-              onClick={openAuthModal}
-              className="flex items-center gap-1 rounded-lg border text-xs px-2 py-1.5 transition-opacity hover:opacity-80"
-              style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
-            >
-              {tr.signIn}
-            </button>
-          )}
-          <button
-            onClick={toggleTheme}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border text-sm transition-all"
-            style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder }}
-            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
+        {/* Left: lang picker + theme toggle */}
+        <div className="flex items-center gap-1.5 -translate-y-6">
           <div className="relative">
-            {/* Custom dropdown: mobile = flag only trigger, desktop = flag + code trigger; both show flag + label in options */}
             <button
               ref={langBtnRef}
               onClick={() => setLangDropdownOpen(o => !o)}
@@ -166,7 +133,7 @@ export default function SetupScreen() {
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setLangDropdownOpen(false)} />
                 <div
-                  className="absolute right-0 top-full mt-1 z-50 rounded-lg border shadow-lg overflow-hidden"
+                  className="absolute left-0 top-full mt-1 z-50 rounded-lg border shadow-lg overflow-hidden"
                   style={{ background: tc.bg, borderColor: tc.btnInactiveBorder }}
                 >
                   {LANGUAGES.map(lang => (
@@ -187,6 +154,44 @@ export default function SetupScreen() {
               </>
             )}
           </div>
+          <button
+            onClick={toggleTheme}
+            className="w-8 h-8 flex items-center justify-center rounded-lg border text-sm transition-all"
+            style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder }}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </div>
+
+        {/* Center: logo */}
+        <div className="flex items-center gap-2">
+          <img src={theme === 'light' ? '/logo-light.svg' : '/logo.svg'} alt="Pexedu logo" className="w-10 h-10" />
+          <h1 className="text-3xl font-semibold tracking-tight lowercase relative -top-0.5" style={{ color: tc.textMuted }}>
+            Pexedu
+          </h1>
+        </div>
+
+        {/* Right: sign in / profile */}
+        <div className="flex items-center gap-1.5 justify-end -translate-y-6">
+          {profile ? (
+            <button
+              onClick={signOut}
+              className="flex items-center gap-1 rounded-lg border text-xs px-2 py-1.5 transition-opacity hover:opacity-70 max-w-24 truncate"
+              style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
+              title={profile.username ?? ''}
+            >
+              👤 {profile.username}
+            </button>
+          ) : (
+            <button
+              onClick={openAuthModal}
+              className="flex items-center gap-1 rounded-lg border text-xs px-2 py-1.5 transition-opacity hover:opacity-80"
+              style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
+            >
+              {tr.signIn}
+            </button>
+          )}
         </div>
       </div>
 
