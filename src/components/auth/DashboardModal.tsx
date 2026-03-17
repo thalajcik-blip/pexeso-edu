@@ -204,9 +204,8 @@ export default function DashboardModal() {
               <div className="h-2 rounded-full overflow-hidden" style={{ background: tc.btnInactiveBorder }}>
                 <div className="h-full rounded-full" style={{ width: `${xpPct}%`, background: tc.accentGradient }} />
               </div>
-              <div className="text-xs mt-1 flex justify-between" style={{ color: tc.textMuted }}>
-                <span>{isMax ? t.maxLevel : `${xp - xpStart} / ${xpEnd - xpStart} XP — ${t.xpToNext}`}</span>
-                <span>{xp} XP {t.totalXpLabel}</span>
+              <div className="text-xs mt-1 text-center" style={{ color: tc.textMuted }}>
+                {isMax ? t.maxLevel : `${xp - xpStart} / ${xpEnd - xpStart} XP — ${t.xpToNext}`}
               </div>
             </div>
           </div>
