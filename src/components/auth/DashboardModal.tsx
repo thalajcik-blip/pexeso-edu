@@ -36,7 +36,7 @@ const MODE_LABEL: Record<string, Record<string, string>> = {
 
 const TEXTS = {
   cs: {
-    title: 'Můj přehled', level: 'Level', xpToNext: 'XP do dalšího levelu',
+    title: 'Můj přehled', level: 'Level', xpToNext: 'XP do dalšího levelu', totalXpLabel: 'celkem',
     maxLevel: 'Maximální level', totalGames: 'Odehráno her',
     avgAccuracy: 'Přesnost kvízu', totalXp: 'Celkem XP', streak: 'Série dní',
     historyTitle: 'Historie her', noGames: 'Zatím žádné hry. Zahraj si!',
@@ -45,7 +45,7 @@ const TEXTS = {
     memberSince: 'Hraje od',
   },
   sk: {
-    title: 'Môj prehľad', level: 'Level', xpToNext: 'XP do ďalšieho levelu',
+    title: 'Môj prehľad', level: 'Level', xpToNext: 'XP do ďalšieho levelu', totalXpLabel: 'celkom',
     maxLevel: 'Maximálny level', totalGames: 'Odohraných hier',
     avgAccuracy: 'Presnosť kvízu', totalXp: 'Celkom XP', streak: 'Séria dní',
     historyTitle: 'História hier', noGames: 'Zatiaľ žiadne hry. Zahraj sa!',
@@ -54,7 +54,7 @@ const TEXTS = {
     memberSince: 'Hrá od',
   },
   en: {
-    title: 'My overview', level: 'Level', xpToNext: 'XP to next level',
+    title: 'My overview', level: 'Level', xpToNext: 'XP to next level', totalXpLabel: 'total',
     maxLevel: 'Max level reached', totalGames: 'Games played',
     avgAccuracy: 'Quiz accuracy', totalXp: 'Total XP', streak: 'Day streak',
     historyTitle: 'Game history', noGames: 'No games yet. Play one!',
@@ -206,7 +206,7 @@ export default function DashboardModal() {
               </div>
               <div className="text-xs mt-1 flex justify-between" style={{ color: tc.textMuted }}>
                 <span>{isMax ? t.maxLevel : `${xp - xpStart} / ${xpEnd - xpStart} XP — ${t.xpToNext}`}</span>
-                <span>{xp} XP celkem</span>
+                <span>{xp} XP {t.totalXpLabel}</span>
               </div>
             </div>
           </div>
