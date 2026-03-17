@@ -461,15 +461,18 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => onEdit(deck)}>
-                          <Settings className="size-4" /> Upravit
+                          <Settings className="size-4 shrink-0" />
+                          <span>Upravit</span>
                         </DropdownMenuItem>
                         {role === 'superadmin' && (
                           <DropdownMenuItem onClick={() => setTranslate(isPickingLang ? null : { deckId: deck.id, targetLang: null, progress: null, error: '' })} disabled={isTranslating}>
-                            🌐 Přeložit
+                            <span className="size-4 shrink-0 flex items-center justify-center text-sm leading-none">🌐</span>
+                            <span>Přeložit</span>
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={() => deleteDeck(deck.id)} className="text-red-500 focus:text-red-500">
-                          <Trash2 className="size-4" /> Smazat
+                          <Trash2 className="size-4 shrink-0" />
+                          <span>Smazat</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
