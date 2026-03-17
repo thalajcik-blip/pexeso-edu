@@ -65,6 +65,7 @@ export async function saveGameResult(result: GameResult): Promise<void> {
         leveledUp,
         language,
       }), {
+        id: `xp-${Date.now()}`,
         duration: 5000,
         unstyled: true,
       })
