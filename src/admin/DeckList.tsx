@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination'
-import { ChevronDown, Search, MoreHorizontal } from 'lucide-react'
+import { ChevronDown, Search, MoreHorizontal, Settings, Trash2 } from 'lucide-react'
 
 type Deck = {
   id: string
@@ -460,14 +460,16 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(deck)}>Upravit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit(deck)}>
+                          <Settings className="size-4" /> Upravit
+                        </DropdownMenuItem>
                         {role === 'superadmin' && (
                           <DropdownMenuItem onClick={() => setTranslate(isPickingLang ? null : { deckId: deck.id, targetLang: null, progress: null, error: '' })} disabled={isTranslating}>
                             🌐 Přeložit
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={() => deleteDeck(deck.id)} className="text-red-500 focus:text-red-500">
-                          Smazat
+                          <Trash2 className="size-4" /> Smazat
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
