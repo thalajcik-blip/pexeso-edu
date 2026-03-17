@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type View = 'info' | 'cards' | 'results'
@@ -588,11 +588,12 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
                 </button>
               )}
               <div className="relative">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-gray-400 pointer-events-none" />
                 <Input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Hledat kartičky…"
-                  className="h-8 w-48 pr-7 text-sm"
+                  className="h-8 w-48 pl-7 pr-7 text-sm"
                 />
                 {search && (
                   <button

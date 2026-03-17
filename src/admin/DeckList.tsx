@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Search } from 'lucide-react'
 
 type Deck = {
   id: string
@@ -341,11 +341,12 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
         </h1>
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-gray-400 pointer-events-none" />
             <Input
               value={search}
               onChange={e => handleSearch(e.target.value)}
               placeholder="Hledat sady…"
-              className="h-9 w-48 pr-7 text-sm"
+              className="h-9 w-48 pl-7 pr-7 text-sm"
             />
             {search && (
               <button
