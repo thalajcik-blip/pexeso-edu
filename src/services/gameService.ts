@@ -26,16 +26,16 @@ export async function saveGameResult(result: GameResult): Promise<void> {
   const { user } = useAuthStore.getState()
   if (!user) return
   const { error } = await supabase.from('game_history').insert({
-    user_id:       user.id,
-    set_slug:      result.setSlug,
-    set_title:     result.setTitle,
-    set_id:        result.customDeckId,
-    game_mode:     result.mode,
-    score:         result.score,
-    correct_quiz:  result.quizCorrect,
-    total_quiz:    result.quizTotal,
-    total_pairs:   result.totalPairs,
-    duration_sec:  result.durationSec,
+    user_id:        user.id,
+    set_slug:       result.setSlug,
+    set_title:      result.setTitle,
+    custom_deck_id: result.customDeckId,
+    game_mode:      result.mode,
+    score:          result.score,
+    quiz_correct:   result.quizCorrect,
+    quiz_total:     result.quizTotal,
+    total_pairs:    result.totalPairs,
+    duration_sec:   result.durationSec,
     is_multiplayer: result.isMultiplayer,
   })
   if (!error) {

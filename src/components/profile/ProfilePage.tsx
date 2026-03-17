@@ -19,10 +19,11 @@ type Profile = {
 type GameRow = {
   id: string
   set_title: string | null
+  set_slug: string | null
   game_mode: string
   is_multiplayer: boolean
-  correct_quiz: number | null
-  total_quiz: number | null
+  quiz_correct: number | null
+  quiz_total: number | null
   total_pairs: number | null
   played_at: string
 }
@@ -66,7 +67,7 @@ export default function ProfilePage() {
         if (data.show_activity) {
           const { data: history } = await supabase
             .from('game_history')
-            .select('id, set_title, game_mode, is_multiplayer, correct_quiz, total_quiz, total_pairs, played_at')
+            .select('id, set_title, set_slug, game_mode, is_multiplayer, quiz_correct, quiz_total, total_pairs, played_at')
             .eq('user_id', data.id)
             .order('played_at', { ascending: false })
             .limit(20)
@@ -82,9 +83,9 @@ export default function ProfilePage() {
   const xpPct = isMax ? 100 : Math.round(((xp - xpForLevel(level)) / (xpForNextLevel(level) - xpForLevel(level))) * 100)
 
   const totalGames  = games.length
-  const gamesWithQuiz = games.filter(g => (g.total_quiz ?? 0) > 0)
+  const gamesWithQuiz = games.filter(g => (g.quiz_total ?? 0) > 0)
   const avgAccuracy = gamesWithQuiz.length
-    ? Math.round(gamesWithQuiz.reduce((s, g) => s + (g.correct_quiz ?? 0) / (g.total_quiz ?? 1), 0) / gamesWithQuiz.length * 100)
+    ? Math.round(gamesWithQuiz.reduce((s, g) => s + (g.quiz_correct ?? 0) / (g.quiz_total ?? 1), 0) / gamesWithQuiz.length * 100)
     : null
 
   return (
@@ -185,8 +186,8 @@ export default function ProfilePage() {
                 ) : (
                   <div className="space-y-2">
                     {games.map(g => {
-                      const accuracy = (g.total_quiz ?? 0) > 0
-                        ? Math.round((g.correct_quiz ?? 0) / (g.total_quiz ?? 1) * 100)
+                      const accuracy = (g.quiz_total ?? 0) > 0
+                        ? Math.round((g.quiz_correct ?? 0) / (g.quiz_total ?? 1) * 100)
                         : null
                       return (
                         <div

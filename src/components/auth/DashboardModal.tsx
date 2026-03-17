@@ -22,8 +22,8 @@ type GameRow = {
   set_slug: string | null
   game_mode: string
   is_multiplayer: boolean
-  correct_quiz: number | null
-  total_quiz: number | null
+  quiz_correct: number | null
+  quiz_total: number | null
   total_pairs: number | null
   played_at: string
 }
@@ -119,7 +119,7 @@ export default function DashboardModal() {
     if (!user) return
     supabase
       .from('game_history')
-      .select('id, set_title, set_slug, game_mode, is_multiplayer, correct_quiz, total_quiz, total_pairs, played_at')
+      .select('id, set_title, set_slug, game_mode, is_multiplayer, quiz_correct, quiz_total, total_pairs, played_at')
       .eq('user_id', user.id)
       .order('played_at', { ascending: false })
       .limit(100)
@@ -137,8 +137,8 @@ export default function DashboardModal() {
   const xpPct   = isMax ? 100 : Math.round(((xp - xpStart) / (xpEnd - xpStart)) * 100)
 
   const totalGames    = games.length
-  const totalCorrect  = games.reduce((s, g) => s + (g.correct_quiz ?? 0), 0)
-  const totalQs       = games.reduce((s, g) => s + (g.total_quiz ?? 0), 0)
+  const totalCorrect  = games.reduce((s, g) => s + (g.quiz_correct ?? 0), 0)
+  const totalQs       = games.reduce((s, g) => s + (g.quiz_total ?? 0), 0)
   const avgAccuracy   = totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : null
   const streak        = calculateStreak(games)
 
@@ -236,8 +236,8 @@ export default function DashboardModal() {
             ) : (
               <div className="space-y-2">
                 {visibleGames.map(g => {
-                  const accuracy = (g.total_quiz ?? 0) > 0
-                    ? Math.round((g.correct_quiz ?? 0) / (g.total_quiz ?? 1) * 100)
+                  const accuracy = (g.quiz_total ?? 0) > 0
+                    ? Math.round((g.quiz_correct ?? 0) / (g.quiz_total ?? 1) * 100)
                     : null
                   const displayName = g.set_title ?? (g.set_slug ? (SET_NAMES[g.set_slug] ?? g.set_slug) : '—')
                   const resultColor = getResultColor(accuracy)
