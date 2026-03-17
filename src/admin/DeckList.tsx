@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination'
-import { ChevronDown, Search } from 'lucide-react'
+import { ChevronDown, Search, MoreHorizontal } from 'lucide-react'
 
 type Deck = {
   id: string
@@ -409,7 +409,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                       )}
                     </div>
                     {deck.description && (
-                      <div className="text-xs text-gray-400 truncate mt-0.5">{deck.description}</div>
+                      <div className="hidden sm:block text-xs text-gray-400 truncate mt-0.5">{deck.description}</div>
                     )}
                   </div>
 
@@ -431,7 +431,8 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                     <span className="text-xs text-indigo-500 font-mono shrink-0">🔒 {deck.private_code}</span>
                   )}
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  {/* Desktop actions */}
+                  <div className="hidden sm:flex items-center gap-2 shrink-0">
                     <Button variant="outline" size="sm" onClick={() => onEdit(deck)}>Upravit</Button>
 
                     {role === 'superadmin' && (
@@ -448,6 +449,28 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                     )}
 
                     <Button variant="ghost" size="sm" onClick={() => deleteDeck(deck.id)} className="text-red-500 hover:bg-red-50">Smazat</Button>
+                  </div>
+
+                  {/* Mobile ellipsis */}
+                  <div className="flex sm:hidden shrink-0">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="px-2">
+                          <MoreHorizontal className="size-4 text-gray-500" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEdit(deck)}>Upravit</DropdownMenuItem>
+                        {role === 'superadmin' && (
+                          <DropdownMenuItem onClick={() => setTranslate(isPickingLang ? null : { deckId: deck.id, targetLang: null, progress: null, error: '' })} disabled={isTranslating}>
+                            🌐 Přeložit
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={() => deleteDeck(deck.id)} className="text-red-500 focus:text-red-500">
+                          Smazat
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
 
