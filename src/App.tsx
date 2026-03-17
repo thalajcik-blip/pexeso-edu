@@ -14,6 +14,7 @@ import LightningGame from './components/lightning/LightningGame'
 import SettingsModal from './components/lobby/SettingsModal'
 import AuthModal from './components/auth/AuthModal'
 import OnboardingModal from './components/auth/OnboardingModal'
+import PlayerSettingsModal from './components/auth/SettingsModal'
 
 export default function App() {
   const phase              = useGameStore(s => s.phase)
@@ -31,7 +32,7 @@ export default function App() {
   const tc = THEMES[theme]
   const tr = TRANSLATIONS[language]
 
-  const { authModalOpen, isOnboarding, _setUser, loadProfile, closeAuthModal } = useAuthStore()
+  const { authModalOpen, isOnboarding, settingsModalOpen, _setUser, loadProfile, closeAuthModal } = useAuthStore()
 
   const inGame        = phase === 'playing' || phase === 'quiz'
   const inLightning   = phase === 'lightning_playing' || phase === 'lightning_reveal'
@@ -113,6 +114,7 @@ export default function App() {
       {/* Auth modals */}
       {authModalOpen && <AuthModal />}
       {isOnboarding && !authModalOpen && <OnboardingModal />}
+      {settingsModalOpen && <PlayerSettingsModal />}
 
       {/* Player left — brief banner */}
       {isOnline && disconnectedPlayer && !isAlone && (

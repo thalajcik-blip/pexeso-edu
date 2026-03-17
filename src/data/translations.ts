@@ -76,6 +76,7 @@ export interface Translations {
   lightningChooseOther: string
   signIn: string
   signOut: string
+  settings: string
   // Lobby / online
   localBtn: string
   onlineBtn: string
@@ -229,6 +230,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningChooseOther: 'Vybrat jinou sadu',
     signIn: 'Přihlásit',
     signOut: 'Odhlásit',
+    settings: 'Nastavení',
     changeGameSettings: 'Nastavit hru',
     settingsModalTitle: 'Nastavení hry',
     saveAndGoToLobby: 'Uložit a jít do lobby',
@@ -355,6 +357,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningChooseOther: 'Vybrať inú sadu',
     signIn: 'Prihlásiť',
     signOut: 'Odhlásiť',
+    settings: 'Nastavenia',
     changeGameSettings: 'Nastaviť hru',
     settingsModalTitle: 'Nastavenie hry',
     saveAndGoToLobby: 'Uložiť a ísť do lobby',
@@ -481,6 +484,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     lightningChooseOther: 'Choose another deck',
     signIn: 'Sign in',
     signOut: 'Sign out',
+    settings: 'Settings',
     changeGameSettings: 'Game settings',
     settingsModalTitle: 'Game Settings',
     saveAndGoToLobby: 'Save and go to lobby',

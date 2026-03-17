@@ -106,7 +106,8 @@ export default function SetupScreen() {
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
-  const { profile, openAuthModal, signOut } = useAuthStore()
+  const { profile, openAuthModal, signOut, openSettingsModal } = useAuthStore()
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
 
   const inactiveBtn = { background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }
   const activeBtn   = { background: tc.accentGradient, borderColor: tc.accent, color: tc.accentText }
@@ -172,17 +173,44 @@ export default function SetupScreen() {
           </h1>
         </div>
 
-        {/* Right: sign in / profile */}
-        <div className="flex items-center gap-1.5 justify-end -translate-y-6">
+        {/* Right: sign in / profile dropdown */}
+        <div className="flex items-center justify-end -translate-y-6">
           {profile ? (
-            <button
-              onClick={signOut}
-              className="flex items-center gap-1 rounded-lg border text-xs px-2 py-1.5 transition-opacity hover:opacity-70 max-w-24 truncate"
-              style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
-              title={profile.username ?? ''}
-            >
-              👤 {profile.username}
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setProfileDropdownOpen(o => !o)}
+                className="flex items-center gap-1 rounded-lg border text-xs px-2 py-1.5 transition-opacity hover:opacity-80 max-w-28"
+                style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
+              >
+                <span>👤</span>
+                <span className="truncate max-w-16">{profile.username}</span>
+                <span className="opacity-50 text-xs">▾</span>
+              </button>
+              {profileDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
+                  <div
+                    className="absolute right-0 top-full mt-1 z-50 rounded-lg border shadow-lg overflow-hidden min-w-32"
+                    style={{ background: tc.bg, borderColor: tc.btnInactiveBorder }}
+                  >
+                    <button
+                      onClick={() => { setProfileDropdownOpen(false); openSettingsModal() }}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left whitespace-nowrap hover:opacity-80"
+                      style={{ color: tc.text }}
+                    >
+                      ⚙️ {tr.settings}
+                    </button>
+                    <button
+                      onClick={() => { setProfileDropdownOpen(false); signOut() }}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left whitespace-nowrap hover:opacity-80"
+                      style={{ color: tc.textMuted }}
+                    >
+                      ← {tr.signOut}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           ) : (
             <button
               onClick={openAuthModal}

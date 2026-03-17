@@ -9,6 +9,9 @@ export interface Profile {
   xp: number
   level: number
   locale: string
+  show_stats: boolean
+  show_favorites: boolean
+  show_activity: boolean
 }
 
 const LEVEL_XP = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000]
@@ -27,6 +30,7 @@ interface AuthStore {
   isLoading: boolean
   isOnboarding: boolean
   authModalOpen: boolean
+  settingsModalOpen: boolean
 
   _setUser: (user: User | null) => void
 
@@ -35,6 +39,7 @@ interface AuthStore {
   signUpWithEmail: (email: string, password: string) => Promise<string | null>
   signInWithMagicLink: (email: string) => Promise<string | null>
   signOut: () => Promise<void>
+  deleteAccount: () => Promise<string | null>
 
   loadProfile: () => Promise<void>
   updateProfile: (data: Partial<Profile>) => Promise<void>
@@ -44,6 +49,8 @@ interface AuthStore {
 
   openAuthModal: () => void
   closeAuthModal: () => void
+  openSettingsModal: () => void
+  closeSettingsModal: () => void
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
@@ -52,11 +59,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   isLoading: true,
   isOnboarding: false,
   authModalOpen: false,
+  settingsModalOpen: false,
 
   _setUser: (user) => set({ user, isLoading: false }),
 
   openAuthModal: () => set({ authModalOpen: true }),
   closeAuthModal: () => set({ authModalOpen: false }),
+  openSettingsModal: () => set({ settingsModalOpen: true }),
+  closeSettingsModal: () => set({ settingsModalOpen: false }),
 
   signInWithGoogle: async () => {
     localStorage.setItem('pexedu_oauth_player', '1')
@@ -87,7 +97,29 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   signOut: async () => {
     await supabase.auth.signOut()
-    set({ user: null, profile: null, isOnboarding: false })
+    set({ user: null, profile: null, isOnboarding: false, settingsModalOpen: false })
+  },
+
+  deleteAccount: async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) return 'Nie si prihlásený'
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ callerToken: session.access_token }),
+      }
+    )
+    const json = await res.json()
+    if (!res.ok) return json.error ?? 'Chyba pri mazaní účtu'
+    await supabase.auth.signOut()
+    set({ user: null, profile: null, isOnboarding: false, settingsModalOpen: false })
+    return null
   },
 
   loadProfile: async () => {
