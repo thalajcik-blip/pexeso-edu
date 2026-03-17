@@ -181,7 +181,7 @@ export default function SettingsModal() {
       onClick={closeSettingsModal}
     >
       <div
-        className="w-full max-w-sm rounded-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-sm rounded-lg p-6 space-y-5 max-h-[90vh] overflow-y-auto"
         style={{ background: tc.modalSurface, border: `1px solid ${tc.modalSurfaceBorder}` }}
         onClick={e => e.stopPropagation()}
       >
@@ -205,7 +205,7 @@ export default function SettingsModal() {
                 value={username}
                 onChange={e => { setUsername(e.target.value); setUsernameSaved(false) }}
                 placeholder={t.usernamePlaceholder}
-                className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
                 style={{
                   ...inputStyle,
                   borderColor: usernameStatus === 'taken' ? tc.errorColor : usernameStatus === 'ok' ? tc.accent : tc.btnInactiveBorder,
@@ -221,7 +221,7 @@ export default function SettingsModal() {
             <button
               onClick={saveUsername}
               disabled={!username || usernameStatus === 'taken' || username === profile?.username}
-              className="px-3 py-2 rounded-xl text-sm font-semibold transition-opacity disabled:opacity-40"
+              className="px-3 py-2 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-40"
               style={{ background: tc.accentGradient, color: tc.accentText }}
             >
               {usernameSaved ? t.saved : t.save}
@@ -241,14 +241,14 @@ export default function SettingsModal() {
                 value={newPassword}
                 onChange={e => { setNewPassword(e.target.value); setPasswordSaved(false) }}
                 placeholder={t.newPasswordPlaceholder}
-                className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none"
+                className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
                 style={inputStyle}
                 onKeyDown={e => e.key === 'Enter' && savePassword()}
               />
               <button
                 onClick={savePassword}
                 disabled={newPassword.length < 6}
-                className="px-3 py-2 rounded-xl text-sm font-semibold transition-opacity disabled:opacity-40 whitespace-nowrap"
+                className="px-3 py-2 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-40 whitespace-nowrap"
                 style={{ background: tc.accentGradient, color: tc.accentText }}
               >
                 {passwordSaved ? t.passwordChanged : t.changePassword}
@@ -293,19 +293,19 @@ export default function SettingsModal() {
           {!confirmDelete ? (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="text-sm px-3 py-2 rounded-xl border transition-opacity hover:opacity-80"
+              className="text-sm px-3 py-2 rounded-lg border transition-opacity hover:opacity-80"
               style={{ color: tc.errorColor, borderColor: tc.errorColor, background: tc.errorBg }}
             >
               {t.deleteAccount}
             </button>
           ) : (
-            <div className="rounded-xl p-4 space-y-3" style={{ background: tc.errorBg, border: `1px solid ${tc.errorColor}` }}>
+            <div className="rounded-lg p-4 space-y-3" style={{ background: tc.errorBg, border: `1px solid ${tc.errorColor}` }}>
               <div className="font-semibold text-sm" style={{ color: tc.errorColor }}>{t.deleteConfirmTitle}</div>
               <div className="text-xs" style={{ color: tc.errorColor }}>{t.deleteConfirmText}</div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setConfirmDelete(false)}
-                  className="flex-1 py-2 rounded-xl text-sm border"
+                  className="flex-1 py-2 rounded-lg text-sm border"
                   style={{ borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
                 >
                   {t.cancel}
@@ -313,7 +313,7 @@ export default function SettingsModal() {
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="flex-1 py-2 rounded-xl text-sm font-bold disabled:opacity-50"
+                  className="flex-1 py-2 rounded-lg text-sm font-bold disabled:opacity-50"
                   style={{ background: tc.errorColor, color: '#fff' }}
                 >
                   {deleting ? '…' : t.deleteConfirmBtn}
