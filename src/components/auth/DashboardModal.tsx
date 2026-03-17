@@ -260,7 +260,7 @@ export default function DashboardModal() {
                           <span>{MODE_LABEL[language]?.[g.game_mode] ?? g.game_mode}</span>
                           <span>·</span>
                           <span>{g.is_multiplayer ? t.multi : t.solo}</span>
-                          {g.total_pairs && <><span>·</span><span>{g.total_pairs} {t.pairs}</span></>}
+                          {!!g.total_pairs && <><span>·</span><span>{g.total_pairs} {t.pairs}</span></>}
                         </div>
                         {accuracy !== null && (
                           <div className="flex items-center gap-2 mt-1.5">
