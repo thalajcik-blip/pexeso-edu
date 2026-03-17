@@ -8,6 +8,8 @@ import { THEMES } from '../../data/themes'
 import { useEffect, useRef, useState } from 'react'
 import { supabase, fetchCustomDeckFull } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
+import TermsModal from '../modals/TermsModal'
+import PrivacyModal from '../modals/PrivacyModal'
 
 const SIZES: { id: BoardSize; labelKey: 'sizeLarge' | 'sizeMedium' | 'sizeSmall'; grid: string }[] = [
   { id: 'small',  labelKey: 'sizeSmall',  grid: '4×4' },
@@ -108,6 +110,8 @@ export default function SetupScreen() {
 
   const { profile, openAuthModal, signOut, openSettingsModal, openDashboardModal } = useAuthStore()
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
+  const [termsOpen, setTermsOpen]   = useState(false)
+  const [privacyOpen, setPrivacyOpen] = useState(false)
 
   const inactiveBtn = { background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }
   const activeBtn   = { background: tc.accentGradient, borderColor: tc.accent, color: tc.accentText }
@@ -432,14 +436,26 @@ export default function SetupScreen() {
 
       </div>
 
-      <div className="flex flex-col items-center gap-0.5 pb-2 pt-1">
-        <button onClick={openRules} className="text-sm transition-opacity opacity-50 hover:opacity-70">
-          {tr.rulesLink}
-        </button>
-        <p className="text-xs" style={{ color: tc.textFaint }}>
-          © {new Date().getFullYear()} teamplayer.cz · v{__APP_VERSION__}
-        </p>
+      <div className="flex flex-col items-center gap-1 pb-2 pt-1">
+        <div className="flex flex-wrap justify-center items-center gap-x-2 gap-y-1 text-xs" style={{ color: tc.textFaint }}>
+          <button onClick={openRules} className="transition-opacity opacity-60 hover:opacity-90">
+            {tr.rulesLink}
+          </button>
+          <span className="opacity-40">·</span>
+          <button onClick={() => setTermsOpen(true)} className="transition-opacity opacity-60 hover:opacity-90">
+            {tr.termsLink}
+          </button>
+          <span className="opacity-40">·</span>
+          <button onClick={() => setPrivacyOpen(true)} className="transition-opacity opacity-60 hover:opacity-90">
+            {tr.privacyLink}
+          </button>
+          <span className="opacity-40">·</span>
+          <span className="opacity-40">© {new Date().getFullYear()} teamplayer.cz · v{__APP_VERSION__}</span>
+        </div>
       </div>
+
+      {termsOpen && <TermsModal onClose={() => setTermsOpen(false)} />}
+      {privacyOpen && <PrivacyModal onClose={() => setPrivacyOpen(false)} />}
     </div>
   )
 }

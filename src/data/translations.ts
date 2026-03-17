@@ -109,6 +109,9 @@ export interface Translations {
   saveAndGoToLobby: string
   cancelBtn: string
   hostChangingSettings: string
+  // Footer legal
+  termsLink: string
+  privacyLink: string
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -238,6 +241,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     saveAndGoToLobby: 'Uložit a jít do lobby',
     cancelBtn: 'Zrušit',
     hostChangingSettings: 'Hostitel mění nastavení hry...',
+    termsLink: 'Podmínky používání',
+    privacyLink: 'Ochrana údajů',
   },
 
   sk: {
@@ -366,6 +371,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     saveAndGoToLobby: 'Uložiť a ísť do lobby',
     cancelBtn: 'Zrušiť',
     hostChangingSettings: 'Hostiteľ mení nastavenia hry...',
+    termsLink: 'Podmienky používania',
+    privacyLink: 'Ochrana údajov',
   },
 
   en: {
@@ -494,6 +501,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     saveAndGoToLobby: 'Save and go to lobby',
     cancelBtn: 'Cancel',
     hostChangingSettings: 'Host is changing game settings...',
+    termsLink: 'Terms of use',
+    privacyLink: 'Privacy policy',
   },
 }
 
