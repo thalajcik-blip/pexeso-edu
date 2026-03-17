@@ -41,24 +41,36 @@ export default function UsersManager() {
 
   async function deleteUser(userId: string) {
     setDeleting(true)
-    const { data: { session } } = await supabase.auth.getSession()
-    const res = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ userId }),
+    setError('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ userId }),
+        }
+      )
+      const text = await res.text()
+      let json: Record<string, string> = {}
+      try { json = JSON.parse(text) } catch { /* not JSON */ }
+      setDeleting(false)
+      setConfirmDeleteId(null)
+      if (!res.ok) {
+        setError(`[${res.status}] ${json.error ?? text ?? 'Chyba při mazání'}`)
+        return
       }
-    )
-    const json = await res.json()
-    setDeleting(false)
-    setConfirmDeleteId(null)
-    if (!res.ok) { setError(json.error ?? 'Chyba při mazání'); return }
-    await fetchUsers()
+      await fetchUsers()
+    } catch (e) {
+      setDeleting(false)
+      setConfirmDeleteId(null)
+      setError(String(e))
+    }
   }
 
   async function setRole(userId: string, newRole: string | null) {
