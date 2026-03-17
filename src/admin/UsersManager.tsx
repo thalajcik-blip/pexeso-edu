@@ -86,6 +86,7 @@ export default function UsersManager() {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Registrace</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Role</th>
                 <th className="px-4 py-3" />
+              </tr>
             </thead>
             <tbody>
               {users.map(u => (
