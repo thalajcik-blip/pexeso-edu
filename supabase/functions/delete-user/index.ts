@@ -9,19 +9,27 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    // Verify caller is superadmin using their JWT
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
+    // Verify caller is superadmin using their token passed in body
+    const body = await req.json()
+    const { userId, callerToken } = body
+
+    if (!callerToken) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
+    if (!userId) return new Response(JSON.stringify({ error: 'Missing userId' }), { status: 400, headers: corsHeaders })
 
     const callerClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
+      { global: { headers: { Authorization: `Bearer ${callerToken}` } } }
     )
     const { data: { user: caller } } = await callerClient.auth.getUser()
-    if (!caller) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
+    if (!caller) return new Response(JSON.stringify({ error: 'Unauthorized – invalid token' }), { status: 401, headers: corsHeaders })
 
-    const { data: roleRow } = await callerClient
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    )
+
+    const { data: roleRow } = await adminClient
       .from('user_roles')
       .select('role')
       .eq('user_id', caller.id)
@@ -31,15 +39,12 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
     }
 
-    const { userId } = await req.json()
-    if (!userId) return new Response(JSON.stringify({ error: 'Missing userId' }), { status: 400, headers: corsHeaders })
     if (userId === caller.id) return new Response(JSON.stringify({ error: 'Cannot delete yourself' }), { status: 400, headers: corsHeaders })
 
-    // Delete using service role
-    const adminClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    )
+    // Explicitly clean up related records first (FKs may lack ON DELETE CASCADE)
+    await adminClient.from('user_roles').delete().eq('user_id', userId)
+    await adminClient.from('profiles').delete().eq('id', userId)
+
     const { error } = await adminClient.auth.admin.deleteUser(userId)
     if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders })
 

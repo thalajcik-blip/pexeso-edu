@@ -50,10 +50,10 @@ export default function UsersManager() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           },
-          body: JSON.stringify({ userId }),
+          body: JSON.stringify({ userId, callerToken: session?.access_token }),
         }
       )
       const text = await res.text()
