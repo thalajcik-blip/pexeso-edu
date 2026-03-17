@@ -77,6 +77,7 @@ export interface Translations {
   signIn: string
   signOut: string
   settings: string
+  dashboard: string
   // Lobby / online
   localBtn: string
   onlineBtn: string
@@ -231,6 +232,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     signIn: 'Přihlásit',
     signOut: 'Odhlásit',
     settings: 'Nastavení',
+    dashboard: 'Přehled',
     changeGameSettings: 'Nastavit hru',
     settingsModalTitle: 'Nastavení hry',
     saveAndGoToLobby: 'Uložit a jít do lobby',
@@ -358,6 +360,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     signIn: 'Prihlásiť',
     signOut: 'Odhlásiť',
     settings: 'Nastavenia',
+    dashboard: 'Prehľad',
     changeGameSettings: 'Nastaviť hru',
     settingsModalTitle: 'Nastavenie hry',
     saveAndGoToLobby: 'Uložiť a ísť do lobby',
@@ -485,6 +488,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     signIn: 'Sign in',
     signOut: 'Sign out',
     settings: 'Settings',
+    dashboard: 'Overview',
     changeGameSettings: 'Game settings',
     settingsModalTitle: 'Game Settings',
     saveAndGoToLobby: 'Save and go to lobby',

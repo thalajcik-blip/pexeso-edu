@@ -106,7 +106,7 @@ export default function SetupScreen() {
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
-  const { profile, openAuthModal, signOut, openSettingsModal } = useAuthStore()
+  const { profile, openAuthModal, signOut, openSettingsModal, openDashboardModal } = useAuthStore()
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
 
   const inactiveBtn = { background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.btnInactiveText }
@@ -193,6 +193,13 @@ export default function SetupScreen() {
                     className="absolute right-0 top-full mt-1 z-50 rounded-lg border shadow-lg overflow-hidden min-w-32"
                     style={{ background: tc.bg, borderColor: tc.btnInactiveBorder }}
                   >
+                    <button
+                      onClick={() => { setProfileDropdownOpen(false); openDashboardModal() }}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left whitespace-nowrap hover:opacity-80"
+                      style={{ color: tc.text }}
+                    >
+                      📊 {tr.dashboard}
+                    </button>
                     <button
                       onClick={() => { setProfileDropdownOpen(false); openSettingsModal() }}
                       className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left whitespace-nowrap hover:opacity-80"

@@ -31,6 +31,7 @@ interface AuthStore {
   isOnboarding: boolean
   authModalOpen: boolean
   settingsModalOpen: boolean
+  dashboardModalOpen: boolean
 
   _setUser: (user: User | null) => void
 
@@ -51,6 +52,8 @@ interface AuthStore {
   closeAuthModal: () => void
   openSettingsModal: () => void
   closeSettingsModal: () => void
+  openDashboardModal: () => void
+  closeDashboardModal: () => void
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
@@ -60,6 +63,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   isOnboarding: false,
   authModalOpen: false,
   settingsModalOpen: false,
+  dashboardModalOpen: false,
 
   _setUser: (user) => set({ user, isLoading: false }),
 
@@ -67,6 +71,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   closeAuthModal: () => set({ authModalOpen: false }),
   openSettingsModal: () => set({ settingsModalOpen: true }),
   closeSettingsModal: () => set({ settingsModalOpen: false }),
+  openDashboardModal: () => set({ dashboardModalOpen: true }),
+  closeDashboardModal: () => set({ dashboardModalOpen: false }),
 
   signInWithGoogle: async () => {
     localStorage.setItem('pexedu_oauth_player', '1')
