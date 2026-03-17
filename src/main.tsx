@@ -5,6 +5,7 @@ import { inject } from '@vercel/analytics'
 import './index.css'
 import App from './App.tsx'
 import AdminApp from './admin/AdminApp.tsx'
+import ProfilePage from './components/profile/ProfilePage.tsx'
 
 inject()
 
@@ -19,10 +20,15 @@ if (isPlayerOAuth && hash.includes('access_token')) {
   window.location.replace('/admin' + hash)
 }
 
-const isAdmin = window.location.pathname.startsWith('/admin')
+const isAdmin   = window.location.pathname.startsWith('/admin')
+const isProfile = window.location.pathname.startsWith('/profile/')
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {isAdmin ? <BrowserRouter><AdminApp /></BrowserRouter> : <App />}
+    {isAdmin
+      ? <BrowserRouter><AdminApp /></BrowserRouter>
+      : isProfile
+        ? <ProfilePage />
+        : <App />}
   </StrictMode>,
 )
