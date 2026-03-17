@@ -3,6 +3,7 @@ import { supabase } from '../services/supabase'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ChevronDown, Trash2 } from 'lucide-react'
 
@@ -25,6 +26,8 @@ export default function UsersManager() {
   const [error, setError]             = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting]       = useState(false)
+
+  const confirmDeleteUser = users.find(u => u.user_id === confirmDeleteId) ?? null
 
   async function fetchUsers() {
     setLoading(true)
@@ -121,18 +124,14 @@ export default function UsersManager() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {confirmDeleteId === u.user_id ? (
-                      <div className="flex items-center gap-1 justify-end">
-                        <Button variant="ghost" size="sm" onClick={() => deleteUser(u.user_id)} disabled={deleting} className="text-xs text-red-500 hover:bg-red-50">
-                          {deleting ? '…' : 'Smazat'}
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(null)} className="text-xs px-2">✕</Button>
-                      </div>
-                    ) : (
-                      <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(u.user_id)} className="text-gray-300 hover:text-red-400 hover:bg-red-50 px-2">
-                        <Trash2 className="size-4" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setConfirmDeleteId(u.user_id)}
+                      className="text-gray-300 hover:text-red-400 hover:bg-red-50 px-2"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -143,6 +142,29 @@ export default function UsersManager() {
           )}
         </Card>
       )}
+
+      <Dialog open={!!confirmDeleteId} onOpenChange={open => { if (!open) setConfirmDeleteId(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Smazat uživatele?</DialogTitle>
+            <DialogDescription>
+              Tato akce je nevratná. Uživatel <span className="font-medium text-gray-800">{confirmDeleteUser?.email}</span> bude trvale odstraněn včetně všech jeho dat.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDeleteId(null)} disabled={deleting}>
+              Zrušit
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => confirmDeleteId && deleteUser(confirmDeleteId)}
+              disabled={deleting}
+            >
+              {deleting ? 'Mazání…' : 'Smazat uživatele'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
