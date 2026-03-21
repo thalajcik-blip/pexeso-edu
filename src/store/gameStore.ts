@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { DeckId, BoardSize, GamePhase, CardData, Player, CustomDeckData, LightningQuestion, LightningAnswer } from '../types/game'
 import { SIZE_CONFIG, PLAYER_COLORS, DEFAULT_NAMES } from '../types/game'
+import { AVATAR_COUNT } from '../utils/avatar'
 import { DECKS } from '../data/decks'
 import { EN_QUIZ } from '../data/enQuiz'
 import { shuffle } from '../utils/shuffle'
@@ -418,6 +419,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const players: Player[] = playerNames.map((name, i) => ({
       name: name.trim() || TRANSLATIONS[language].defaultPlayerNames[i] || `Player ${i + 1}`,
       color: PLAYER_COLORS[i] ?? PLAYER_COLORS[0],
+      avatarId: i % AVATAR_COUNT,
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
     const myIndex = playerIds.indexOf(myPlayerId)
@@ -492,6 +494,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const players: Player[] = Array.from({ length: numPlayers }, (_, i) => ({
       name: playerNames[i]?.trim() || TRANSLATIONS[get().language].defaultPlayerNames[i],
       color: PLAYER_COLORS[i],
+      avatarId: i % AVATAR_COUNT,
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
     set({ phase: 'playing', cards, players, playerIds: [], currentPlayer: numPlayers === 1 ? 0 : Math.floor(Math.random() * players.length), flipped: [], locked: false, turnMessage: '', quizSymbol: null, soloMoves: 0 })
@@ -599,6 +602,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const players: Player[] = playerNames.map((name, i) => ({
       name: name.trim() || TRANSLATIONS[language].defaultPlayerNames[i],
       color: PLAYER_COLORS[i],
+      avatarId: i % AVATAR_COUNT,
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
     const myIndex = playerIds.indexOf(myPlayerId)

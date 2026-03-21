@@ -8,6 +8,7 @@ import { shuffle } from '../../utils/shuffle'
 import { selectAnswers } from '../../utils/quizValidation'
 import { soundQuizSelect, soundQuizWrong, soundQuizTimeout, soundTick } from '../../services/audioService'
 import type { DeckId } from '../../types/game'
+import { Avatar } from '../auth/Avatar'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
@@ -219,9 +220,11 @@ export default function QuizModal() {
                 const voted = !!quizVotes[playerIds[i]]
                 return (
                   <div key={i} title={p.name}
-                    className="w-2.5 h-2.5 rounded-full transition-all duration-300"
-                    style={{ background: voted ? p.color : tc.textFaint, opacity: voted ? 1 : 0.25 }}
-                  />
+                    className="rounded-full overflow-hidden transition-all duration-300"
+                    style={{ opacity: voted ? 1 : 0.25, width: 20, height: 20 }}
+                  >
+                    <Avatar avatarId={p.avatarId} size={20} />
+                  </div>
                 )
               })}
             </div>

@@ -73,6 +73,7 @@ export interface Deck {
 export interface Player {
   name: string
   color: string
+  avatarId: number
   score: number
   pairs: number
   quizzes: number

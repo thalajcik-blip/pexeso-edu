@@ -4,6 +4,7 @@ import { TRANSLATIONS, t, pluralize } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { soundTick } from '../../services/audioService'
 import { trunc } from '../../utils'
+import { Avatar } from '../auth/Avatar'
 
 export default function ScoreBoard() {
   const players        = useGameStore(s => s.players)
@@ -131,7 +132,7 @@ export default function ScoreBoard() {
                 : { borderColor: 'transparent', background: tc.scorePillBg }
               }
             >
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
+              <Avatar avatarId={p.avatarId} size={22} className="rounded-full flex-shrink-0" />
               <span className="font-medium">{trunc(p.name)}</span>
               {players.length === 1
                 ? <span key={`${i}-${p.quizzes}-${p.wrongQuizzes}`} className="score-pop font-bold" style={{ color: tc.accent, marginLeft: '0.25rem' }}>

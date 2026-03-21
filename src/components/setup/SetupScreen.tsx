@@ -2,6 +2,7 @@ import { useGameStore } from '../../store/gameStore'
 import { DECKS } from '../../data/decks'
 import { TRANSLATIONS } from "../../data/translations"
 import { DEFAULT_NAMES, PLAYER_COLORS } from '../../types/game'
+import { Avatar } from '../auth/Avatar'
 import type { DeckId, BoardSize } from '../../types/game'
 import type { Language } from '../../data/translations'
 import { THEMES } from '../../data/themes'
@@ -338,7 +339,7 @@ export default function SetupScreen() {
               <div className="flex flex-col gap-2">
                 {Array.from({ length: numPlayers }, (_, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[i] }} />
+                    <Avatar avatarId={i} size={24} className="rounded-full flex-shrink-0" />
                     <input
                       className="flex-1 rounded-lg px-3 py-2 text-sm outline-none transition-colors"
                       style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}`, color: tc.text }}

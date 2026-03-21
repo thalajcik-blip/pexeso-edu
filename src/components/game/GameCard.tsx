@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { CardData } from '../../types/game'
 import { useGameStore } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
+import { Avatar } from '../auth/Avatar'
 
 interface Props {
   card: CardData
@@ -76,15 +77,9 @@ const GameCard = memo(function GameCard({ card }: Props) {
                     {card.quizCorrect ? '✓' : '✗'}
                   </span>
                 )
-              : <span
-                  className="absolute top-1 right-1 rounded-full"
-                  style={{
-                    width: 'clamp(6px, 1.2vw, 10px)',
-                    height: 'clamp(6px, 1.2vw, 10px)',
-                    background: players[card.matchedBy].color,
-                    opacity: 0.9,
-                  }}
-                />
+              : <span className="absolute top-1 right-1 rounded-full overflow-hidden" style={{ width: 'clamp(14px, 2vw, 20px)', height: 'clamp(14px, 2vw, 20px)' }}>
+                  <Avatar avatarId={players[card.matchedBy].avatarId} size={20} />
+                </span>
           )}
         </div>
       </div>
