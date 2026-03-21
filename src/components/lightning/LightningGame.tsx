@@ -7,6 +7,7 @@ import { DECKS } from '../../data/decks'
 import { TRANSLATIONS } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { soundQuizSelect, soundQuizCorrect, soundQuizWrong, soundQuizTimeout, soundTick, soundWin, isMuted, toggleMuted } from '../../services/audioService'
+import { Avatar } from '../auth/Avatar'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 const REVEAL_DURATION = 4000
@@ -457,7 +458,7 @@ export default function LightningGame() {
                       <span className="text-base w-6 text-center shrink-0">
                         {pTied ? '🤝' : rank < 3 ? MEDALS[rank] : `${rank + 1}.`}
                       </span>
-                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: p.color }} />
+                      <Avatar avatarId={p.avatarId} size={20} className="rounded-full shrink-0" />
                       <span className="flex-1 text-sm font-semibold truncate" style={{ color: isMe ? tc.accent : tc.text }}>
                         {p.name}{isMe ? ` ${tr.you}` : ''}
                       </span>
@@ -658,21 +659,17 @@ export default function LightningGame() {
       </div>
 
       {/* Player answer dots — always reserved (online only) to prevent layout shift */}
-      <div className="flex justify-center gap-1.5 mb-3 h-3">
+      <div className="flex justify-center gap-1.5 mb-3 h-5">
         {isOnline && players.map((p, i) => {
           const answered = lightningPlayerAnswers[playerIds[i]] !== undefined
           return (
             <div
               key={i}
-              className="rounded-full transition-all duration-300"
-              style={{
-                width: 12,
-                height: 12,
-                background: answered ? p.color : 'transparent',
-                border: `2px solid ${p.color}`,
-                opacity: answered ? 1 : 0.3,
-              }}
-            />
+              className="rounded-full overflow-hidden transition-all duration-300"
+              style={{ width: 20, height: 20, opacity: answered ? 1 : 0.25 }}
+            >
+              <Avatar avatarId={p.avatarId} size={20} />
+            </div>
           )
         })}
       </div>
@@ -728,7 +725,7 @@ export default function LightningGame() {
                   <span className="text-sm w-5 text-center shrink-0" style={{ color: tc.textMuted }}>
                     {rank < 3 ? MEDALS[rank] : `${rank + 1}.`}
                   </span>
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
+                  <Avatar avatarId={p.avatarId} size={18} className="rounded-full shrink-0" />
                   <span className="flex-1 text-sm font-medium truncate" style={{ color: isMe ? tc.accent : tc.text }}>
                     {p.name}
                   </span>
