@@ -725,16 +725,6 @@ export default function LightningGame() {
         ))}
       </div>
 
-      {/* Fun fact */}
-      {isReveal && question.funFact && (
-        <div
-          className="max-w-lg mx-auto w-full mt-4 px-4 py-2.5 rounded-xl text-xs text-center"
-          style={{ background: tc.factBg, color: tc.factText }}
-        >
-          💡 {question.funFact}
-        </div>
-      )}
-
       {/* Emoji reactions — online only, not on results screen */}
       {isOnline && !isResults && (
         <div className="flex justify-center gap-2 mt-4">
@@ -753,6 +743,16 @@ export default function LightningGame() {
               {e}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Fun fact */}
+      {isReveal && question.funFact && (
+        <div
+          className="max-w-lg mx-auto w-full mt-4 px-4 py-2.5 rounded-xl text-xs text-center"
+          style={{ background: tc.factBg, color: tc.factText }}
+        >
+          💡 {question.funFact}
         </div>
       )}
 
