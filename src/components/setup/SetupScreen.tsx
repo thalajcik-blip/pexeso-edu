@@ -187,7 +187,7 @@ export default function SetupScreen() {
                 className="flex items-center gap-1 rounded-lg border text-xs px-2 py-1.5 transition-opacity hover:opacity-80 max-w-28"
                 style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
               >
-                <span>👤</span>
+                <Avatar avatarId={profile.avatar_id ?? 0} size={18} className="rounded-full flex-shrink-0" />
                 <span className="truncate max-w-16">{profile.username}</span>
                 <span className="opacity-50 text-xs">▾</span>
               </button>
