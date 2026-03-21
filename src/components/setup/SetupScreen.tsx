@@ -1,7 +1,7 @@
 import { useGameStore } from '../../store/gameStore'
 import { DECKS } from '../../data/decks'
 import { TRANSLATIONS } from "../../data/translations"
-import { DEFAULT_NAMES, PLAYER_COLORS } from '../../types/game'
+import { DEFAULT_NAMES } from '../../types/game'
 import { Avatar } from '../auth/Avatar'
 import type { DeckId, BoardSize } from '../../types/game'
 import type { Language } from '../../data/translations'
