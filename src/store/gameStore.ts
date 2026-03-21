@@ -673,6 +673,22 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
         })
         break
       }
+      case 'lightning_snapshot': {
+        const myIndex = action.playerIds.indexOf(myPlayerId)
+        set({
+          phase: 'lightning_playing',
+          lightningQuestions: action.questions,
+          lightningCurrentIndex: action.currentIndex,
+          lightningQuestionEndTime: action.questionEndTime,
+          lightningQuestionStart: Date.now(),
+          players: action.players,
+          playerIds: action.playerIds,
+          lightningAnswers: [],
+          lightningPlayerAnswers: {},
+          ...(myIndex >= 0 ? { myPlayerIndex: myIndex } : {}),
+        })
+        break
+      }
       case 'host_opening_settings':
         // Guests go back to lobby to wait; host stays where they are (they opened the modal themselves)
         set(s => s.isHost
@@ -703,10 +719,14 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   _broadcastStateIfHost: () => {
-    const { isHost, phase, cards, players, playerIds, currentPlayer, quizSymbol } = get()
+    const { isHost, phase, cards, players, playerIds, currentPlayer, quizSymbol,
+            lightningQuestions, lightningCurrentIndex, lightningQuestionEndTime } = get()
     if (!isHost) return
-    if (phase !== 'playing' && phase !== 'quiz') return
-    broadcastGameAction({ type: 'state_snapshot', phase, cards, players, currentPlayer, quizSymbol, playerIds })
+    if (phase === 'playing' || phase === 'quiz') {
+      broadcastGameAction({ type: 'state_snapshot', phase, cards, players, currentPlayer, quizSymbol, playerIds })
+    } else if (phase === 'lightning_playing' || phase === 'lightning_reveal') {
+      broadcastGameAction({ type: 'lightning_snapshot', questions: lightningQuestions, playerIds, players, currentIndex: lightningCurrentIndex, questionEndTime: lightningQuestionEndTime })
+    }
   },
 
   // ── Public game interface ──

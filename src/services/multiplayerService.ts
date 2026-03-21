@@ -45,6 +45,7 @@ export type GameAction =
   | { type: 'emoji_react'; playerId: string; emoji: string }
   | { type: 'game_start'; cards: CardData[]; playerIds: string[]; playerNames: string[]; deckId: string; size: string; turnTime: number; quizTime: number; startingPlayer: number }
   | { type: 'state_snapshot'; phase: GamePhase; cards: CardData[]; players: Player[]; currentPlayer: number; quizSymbol: string | null; playerIds: string[] }
+  | { type: 'lightning_snapshot'; questions: LightningQuestion[]; playerIds: string[]; players: Player[]; currentIndex: number; questionEndTime: number }
   | { type: 'rematch_request' }
   | { type: 'lightning_start'; questions: LightningQuestion[]; playerIds: string[]; playerNames: string[]; questionEndTime: number }
   | { type: 'lightning_answer'; playerId: string; answer: string; timeMs: number }
