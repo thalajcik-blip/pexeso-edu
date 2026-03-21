@@ -26,6 +26,7 @@ export default function ScoreBoard() {
 
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; playerIndex: number }[]>([])
   const floatIdRef = useRef(0)
+  const prevReactionsRef = useRef<Record<string, string>>({})
 
   // Flash "Je tvůj tah!" when turn switches to me
   const [showYourTurnFlash, setShowYourTurnFlash] = useState(false)
@@ -52,15 +53,16 @@ export default function ScoreBoard() {
   }, [])
 
   useEffect(() => {
-    const entries = Object.entries(emojiReactions)
-    if (entries.length === 0) return
-    entries.forEach(([pid, emoji]) => {
+    const prev = prevReactionsRef.current
+    Object.entries(emojiReactions).forEach(([pid, emoji]) => {
+      if (prev[pid] === emoji) return  // already shown, skip
       const playerIndex = playerIds.indexOf(pid)
       if (playerIndex < 0) return
       const id = floatIdRef.current++
-      setFloatingEmojis(prev => [...prev, { id, emoji, playerIndex }])
+      setFloatingEmojis(p => [...p, { id, emoji, playerIndex }])
       setTimeout(() => removeFloat(id), 1400)
     })
+    prevReactionsRef.current = emojiReactions
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emojiReactions])
 
