@@ -121,7 +121,12 @@ function buildLightningQuestions(
 
 function computeCorrectAnswer(quizSymbol: string, selectedDeckId: string, language: string, customDeck: CustomDeckData | null): string {
   if (customDeck && customDeck.id === selectedDeckId) {
-    return customDeck.pool[quizSymbol]?.quiz_correct ?? ''
+    const item = customDeck.pool[quizSymbol]
+    // New flexible answers format: find correct answer text
+    if (item?.answers && item.answers.length > 0) {
+      return item.answers.find(a => a.correct)?.text ?? ''
+    }
+    return item?.quiz_correct ?? ''
   }
   const deck = DECKS.find(d => d.id === selectedDeckId) ?? DECKS[0]
   const item = deck.pool[quizSymbol]
