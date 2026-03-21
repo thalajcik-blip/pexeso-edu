@@ -158,24 +158,32 @@ export default function WinModal() {
 
   const isSolo = players.length === 1
 
-  // Auto-save solo result for logged-in players
+  // Auto-save result for solo + online multiplayer (skip local multiplayer — shared screen)
   useEffect(() => {
-    if (!isSolo || !user || savedRef.current) return
+    if (!user || savedRef.current) return
+    if (!isSolo && !isOnline) return
     savedRef.current = true
-    const p = players[0]
+    let p: typeof players[0]
+    if (isSolo) {
+      p = players[0]
+    } else {
+      const myIdx = playerIds.indexOf(myPlayerId)
+      p = players[myIdx]
+      if (!p) return
+    }
     const quizTotal = p.quizzes + p.wrongQuizzes
     const builtInDeck = customDeck ? null : DECKS.find(d => d.id === selectedDeckId)
     saveGameResult({
-      setSlug:      customDeck ? null : selectedDeckId,
-      setTitle:     customDeck ? customDeck.title : (builtInDeck?.label ?? selectedDeckId),
-      customDeckId: customDeck?.id ?? null,
-      mode:         'pexequiz',
-      score:        p.score,
-      quizCorrect:  p.quizzes,
+      setSlug:       customDeck ? null : selectedDeckId,
+      setTitle:      customDeck ? customDeck.title : (builtInDeck?.label ?? selectedDeckId),
+      customDeckId:  customDeck?.id ?? null,
+      mode:          'pexequiz',
+      score:         p.score,
+      quizCorrect:   p.quizzes,
       quizTotal,
-      totalPairs:   p.pairs,
-      durationSec:  0,
-      isMultiplayer: false,
+      totalPairs:    p.pairs,
+      durationSec:   0,
+      isMultiplayer: !isSolo,
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

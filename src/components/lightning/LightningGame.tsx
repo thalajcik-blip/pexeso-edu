@@ -332,9 +332,9 @@ export default function LightningGame() {
     frame()
   }, [phase])
 
-  // Auto-save solo lightning result for logged-in players
+  // Auto-save lightning result for logged-in players (solo + online multiplayer)
   useEffect(() => {
-    if (phase !== 'lightning_results' || isOnline || !user || savedRef.current) return
+    if (phase !== 'lightning_results' || !user || savedRef.current) return
     savedRef.current = true
     const correctCount = lightningAnswers.filter(a => a.correct).length
     const builtInDeck = customDeck ? null : DECKS.find(d => d.id === selectedDeckId)
@@ -348,7 +348,7 @@ export default function LightningGame() {
       quizTotal:     lightningAnswers.length,
       totalPairs:    0,
       durationSec:   0,
-      isMultiplayer: false,
+      isMultiplayer: isOnline,
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
