@@ -191,7 +191,10 @@ export default function QuizModal() {
       <div className="pop-in w-full max-w-md rounded-2xl p-6 text-center space-y-4"
         style={{ background: tc.modalSurface, border: `1px solid ${tc.modalSurfaceBorder}`, color: tc.text }}>
 
-        <div className="text-sm font-semibold" style={{ color: player.color }}>{player.name}</div>
+        <div className="flex items-center justify-center gap-2">
+          <Avatar avatarId={player.avatarId} size={24} className="rounded-full shrink-0" />
+          <span className="text-sm font-semibold" style={{ color: player.color }}>{player.name}</span>
+        </div>
 
         {isCustomDeck ? (
           <img

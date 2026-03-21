@@ -7,6 +7,7 @@ import { DECKS } from '../../data/decks'
 import { TRANSLATIONS, pluralize } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { trunc } from '../../utils'
+import { Avatar } from '../auth/Avatar'
 
 const MEDALS = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣']
 
@@ -341,7 +342,7 @@ export default function WinModal() {
                       {rank < 3 ? MEDALS[rank] : `${rank + 1}.`}
                     </span>
                   )}
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: p.color }} />
+                  <Avatar avatarId={p.avatarId} size={22} className="rounded-full shrink-0" />
                   <span className="flex-1 text-sm font-semibold truncate" style={{ color: isMe ? tc.accent : tc.text }}>
                     {trunc(p.name)}
                   </span>
@@ -349,7 +350,7 @@ export default function WinModal() {
                 </div>
                 <div className="flex items-center gap-2.5 mt-0.5">
                   {showMedals && <span className="w-6 shrink-0" />}
-                  <span className="w-2.5 shrink-0" />
+                  <span className="w-[22px] shrink-0" />
                   <span className="text-xs" style={{ color: tc.textDim }}>
                     🃏 {pluralize(p.pairs, tr, 'pairOne', 'pairFew', 'pairMany')}
                     {' '}+{' '}
