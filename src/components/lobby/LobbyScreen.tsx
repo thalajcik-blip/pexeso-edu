@@ -4,7 +4,8 @@ import { useGameStore, getSavedSession } from '../../store/gameStore'
 import { useAuthStore } from '../../store/authStore'
 import { THEMES } from '../../data/themes'
 import { TRANSLATIONS } from '../../data/translations'
-import { PLAYER_COLORS, MAX_LIGHTNING_PLAYERS } from '../../types/game'
+import { MAX_LIGHTNING_PLAYERS } from '../../types/game'
+import { Avatar } from '../auth/Avatar'
 
 
 export default function LobbyScreen() {
@@ -246,7 +247,7 @@ export default function LobbyScreen() {
                   const isMe = p.id === myPlayerId
                   return (
                     <div key={p.id} className="flex items-center gap-2">
-                      <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: PLAYER_COLORS[displayIdx] }} />
+                      <Avatar avatarId={displayIdx} size={28} className="rounded-full flex-shrink-0" />
                       <div
                         className="flex flex-1 items-center gap-2 px-3 py-2.5 rounded-[10px] transition-colors"
                         style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }}
@@ -285,7 +286,7 @@ export default function LobbyScreen() {
                 {/* Empty slot */}
                 {sortedPlayers.length < (gameMode === 'lightning' ? MAX_LIGHTNING_PLAYERS : 6) && (
                   <div className="flex items-center gap-2 opacity-40">
-                    <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: tc.textFaint }} />
+                    <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-base" style={{ background: tc.inputBg, border: `1px dashed ${tc.textFaint}` }}>?</div>
                     <div
                       className="flex flex-1 items-center px-3 py-2.5 rounded-[10px]"
                       style={{ background: tc.inputBg, border: `1px dashed ${tc.inputBorder}` }}
