@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
 import { useAuthStore } from '../../store/authStore'
@@ -10,6 +10,7 @@ import { soundQuizSelect, soundQuizCorrect, soundQuizWrong, soundQuizTimeout, so
 import { Avatar } from '../auth/Avatar'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+const EMOJI_OPTS = ['👍', '😱', '🎉', '😂', '🔥', '😅']
 const REVEAL_DURATION = 4000
 const MEDALS = ['🥇', '🥈', '🥉']
 
@@ -161,6 +162,8 @@ export default function LightningGame() {
   const myPlayerId                = useGameStore(s => s.myPlayerId)
   const customDeck                = useGameStore(s => s.customDeck)
   const selectedDeckId            = useGameStore(s => s.selectedDeckId)
+  const emojiReactions            = useGameStore(s => s.emojiReactions)
+  const sendEmojiReact            = useGameStore(s => s.sendEmojiReact)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
@@ -173,10 +176,14 @@ export default function LightningGame() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [muted, setMuted] = useState(isMuted)
   const [revealSecondsLeft, setRevealSecondsLeft] = useState(REVEAL_DURATION / 1000)
+  const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; playerIndex: number }[]>([])
+  const [emojiCooldown, setEmojiCooldown] = useState(false)
 
   const remainingRef = useRef(lightningTimeLimit)
   const lastTickSecRef = useRef(lightningTimeLimit + 1)
   const hasAnsweredRef = useRef(false)
+  const floatIdRef = useRef(0)
+  const prevReactionsRef = useRef<Record<string, string>>({})
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close menu on outside click
@@ -188,6 +195,25 @@ export default function LightningGame() {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [menuOpen])
+
+  const removeFloat = useCallback((id: number) => {
+    setFloatingEmojis(prev => prev.filter(e => e.id !== id))
+  }, [])
+
+  // Floating emoji reactions
+  useEffect(() => {
+    const prev = prevReactionsRef.current
+    Object.entries(emojiReactions).forEach(([pid, emoji]) => {
+      if (prev[pid] === emoji) return
+      const playerIndex = playerIds.indexOf(pid)
+      if (playerIndex < 0) return
+      const id = floatIdRef.current++
+      setFloatingEmojis(p => [...p, { id, emoji, playerIndex }])
+      setTimeout(() => removeFloat(id), 1400)
+    })
+    prevReactionsRef.current = emojiReactions
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emojiReactions])
 
   const question = lightningQuestions[lightningCurrentIndex]
   const isReveal  = phase === 'lightning_reveal'
@@ -665,10 +691,13 @@ export default function LightningGame() {
           return (
             <div
               key={i}
-              className="rounded-full overflow-hidden transition-all duration-300"
+              className="relative rounded-full transition-all duration-300"
               style={{ width: 20, height: 20, opacity: answered ? 1 : 0.25 }}
             >
-              <Avatar avatarId={p.avatarId} size={20} />
+              <Avatar avatarId={p.avatarId} size={20} className="rounded-full" />
+              {floatingEmojis.filter(fe => fe.playerIndex === i).map(fe => (
+                <span key={fe.id} className="emoji-float">{fe.emoji}</span>
+              ))}
             </div>
           )
         })}
@@ -703,6 +732,27 @@ export default function LightningGame() {
           style={{ background: tc.factBg, color: tc.factText }}
         >
           💡 {question.funFact}
+        </div>
+      )}
+
+      {/* Emoji reactions — online only, not on results screen */}
+      {isOnline && !isResults && (
+        <div className="flex justify-center gap-2 mt-4">
+          {EMOJI_OPTS.map(e => (
+            <button
+              key={e}
+              onClick={() => {
+                if (emojiCooldown) return
+                setEmojiCooldown(true)
+                sendEmojiReact(e)
+                setTimeout(() => setEmojiCooldown(false), 2000)
+              }}
+              className="text-xl leading-none px-2 py-1.5 rounded-xl transition-opacity"
+              style={{ background: tc.scorePillBg, opacity: emojiCooldown ? 0.4 : 1 }}
+            >
+              {e}
+            </button>
+          ))}
         </div>
       )}
 
