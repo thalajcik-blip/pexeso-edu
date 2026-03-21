@@ -339,7 +339,7 @@ export default function SetupScreen() {
               <div className="flex flex-col gap-2">
                 {Array.from({ length: numPlayers }, (_, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <Avatar avatarId={i} size={24} className="rounded-full flex-shrink-0" />
+                    <Avatar avatarId={i === 0 && profile?.avatar_id != null ? profile.avatar_id : i} size={24} className="rounded-full flex-shrink-0" />
                     <input
                       className="flex-1 rounded-lg px-3 py-2 text-sm outline-none transition-colors"
                       style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}`, color: tc.text }}
