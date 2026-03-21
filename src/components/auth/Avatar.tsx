@@ -9,7 +9,7 @@ interface AvatarProps {
 export function Avatar({ avatarId, size = 40, className }: AvatarProps) {
   return (
     <img
-      src={getAvatarDataUri(avatarId)}
+      src={getAvatarDataUri(avatarId ?? 0)}
       alt={`Avatar ${avatarId}`}
       width={size}
       height={size}
