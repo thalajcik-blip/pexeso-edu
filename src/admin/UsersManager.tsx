@@ -75,11 +75,20 @@ export default function UsersManager() {
 
   async function setRole(userId: string, newRole: string | null) {
     setSaving(userId)
+    setError('')
+    const hasRole = users.find(u => u.user_id === userId)?.role != null
+    let err
     if (newRole === null) {
-      await supabase.from('user_roles').delete().eq('user_id', userId)
+      const res = await supabase.from('user_roles').delete().eq('user_id', userId)
+      err = res.error
+    } else if (hasRole) {
+      const res = await supabase.from('user_roles').update({ role: newRole }).eq('user_id', userId)
+      err = res.error
     } else {
-      await supabase.from('user_roles').upsert({ user_id: userId, role: newRole })
+      const res = await supabase.from('user_roles').insert({ user_id: userId, role: newRole })
+      err = res.error
     }
+    if (err) setError(err.message)
     await fetchUsers()
     setSaving(null)
   }
