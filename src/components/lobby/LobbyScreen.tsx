@@ -247,7 +247,7 @@ export default function LobbyScreen() {
                   const isMe = p.id === myPlayerId
                   return (
                     <div key={p.id} className="flex items-center gap-2">
-                      <Avatar avatarId={displayIdx} size={28} className="rounded-full flex-shrink-0" />
+                      <Avatar avatarId={p.avatarId ?? displayIdx} size={28} className="rounded-full flex-shrink-0" />
                       <div
                         className="flex flex-1 items-center gap-2 px-3 py-2.5 rounded-[10px] transition-colors"
                         style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}` }}

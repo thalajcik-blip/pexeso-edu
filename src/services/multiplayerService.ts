@@ -23,6 +23,7 @@ export type LobbyPlayer = {
   name: string
   isHost: boolean
   joinedAt: number
+  avatarId?: number
 }
 
 export type RoomSettings = {

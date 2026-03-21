@@ -26,6 +26,7 @@ import {
   updateMyPresence,
 } from '../services/multiplayerService'
 import { fetchCustomDeckFull } from '../services/supabase'
+import { useAuthStore } from './authStore'
 import type { LobbyPlayer, GameAction } from '../services/multiplayerService'
 
 const SESSION_ROOM_KEY = 'qm_last_room'
@@ -415,11 +416,11 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   _applyLightningStart: (questions, playerIds, playerNames, questionEndTime) => {
-    const { language, myPlayerId } = get()
+    const { language, myPlayerId, lobbyPlayers } = get()
     const players: Player[] = playerNames.map((name, i) => ({
       name: name.trim() || TRANSLATIONS[language].defaultPlayerNames[i] || `Player ${i + 1}`,
       color: PLAYER_COLORS[i] ?? PLAYER_COLORS[0],
-      avatarId: i % AVATAR_COUNT,
+      avatarId: lobbyPlayers.find(lp => lp.id === playerIds[i])?.avatarId ?? i % AVATAR_COUNT,
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
     const myIndex = playerIds.indexOf(myPlayerId)
@@ -491,10 +492,11 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const symbols = shuffle(poolKeys).slice(0, size.pairs)
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
+    const profileAvatarId = useAuthStore.getState().profile?.avatar_id
     const players: Player[] = Array.from({ length: numPlayers }, (_, i) => ({
       name: playerNames[i]?.trim() || TRANSLATIONS[get().language].defaultPlayerNames[i],
       color: PLAYER_COLORS[i],
-      avatarId: i % AVATAR_COUNT,
+      avatarId: i === 0 && profileAvatarId != null ? profileAvatarId : i % AVATAR_COUNT,
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
     set({ phase: 'playing', cards, players, playerIds: [], currentPlayer: numPlayers === 1 ? 0 : Math.floor(Math.random() * players.length), flipped: [], locked: false, turnMessage: '', quizSymbol: null, soloMoves: 0 })
@@ -599,10 +601,11 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       customDeck = cached?.id === deckId ? cached : await fetchCustomDeckFull(deckId)
     }
 
+    const { lobbyPlayers } = get()
     const players: Player[] = playerNames.map((name, i) => ({
       name: name.trim() || TRANSLATIONS[language].defaultPlayerNames[i],
       color: PLAYER_COLORS[i],
-      avatarId: i % AVATAR_COUNT,
+      avatarId: lobbyPlayers.find(lp => lp.id === playerIds[i])?.avatarId ?? i % AVATAR_COUNT,
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
     const myIndex = playerIds.indexOf(myPlayerId)
@@ -838,7 +841,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const code = generateRoomCode()
     const playerId = getPlayerId()
     await createRoomInDb(code, playerId, { deckId: selectedDeckId, size: selectedSize, language, turnTime, quizTime, gameMode, lightningQuestionCount, lightningTimeLimit })
-    const myPresence: LobbyPlayer = { id: playerId, name: myName, isHost: true, joinedAt: Date.now() }
+    const myPresence: LobbyPlayer = { id: playerId, name: myName, isHost: true, joinedAt: Date.now(), avatarId: useAuthStore.getState().profile?.avatar_id }
     await joinRealtimeChannel(
       code,
       myPresence,
@@ -854,7 +857,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const upperCode = code.toUpperCase()
     const room = await fetchRoomFromDb(upperCode)
     const playerId = getPlayerId()
-    const myPresence: LobbyPlayer = { id: playerId, name: myName, isHost: false, joinedAt: Date.now() }
+    const myPresence: LobbyPlayer = { id: playerId, name: myName, isHost: false, joinedAt: Date.now(), avatarId: useAuthStore.getState().profile?.avatar_id }
     await joinRealtimeChannel(
       upperCode,
       myPresence,
