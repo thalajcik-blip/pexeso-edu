@@ -63,6 +63,7 @@ export default function IntentScreen() {
   const [reason, setReason] = useState('')
 
   function handlePlayer() {
+    localStorage.setItem('pexedu_intent', 'player')
     useAuthStore.setState({ registrationType: 'player', showIntentScreen: false })
     openAuthModalForRegister()
   }
@@ -70,6 +71,8 @@ export default function IntentScreen() {
   function handleTeacherContinue(e: React.FormEvent) {
     e.preventDefault()
     if (!school.trim()) return
+    localStorage.setItem('pexedu_intent', 'pending_teacher')
+    localStorage.setItem('pexedu_teacher_form', JSON.stringify({ school: school.trim(), reason: reason.trim() }))
     useAuthStore.setState({
       registrationType: 'pending_teacher',
       teacherFormData: { school: school.trim(), reason: reason.trim() },

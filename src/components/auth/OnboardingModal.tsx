@@ -97,6 +97,8 @@ export default function OnboardingModal() {
     setSaving(false)
     if (err) { setError(err); return }
 
+    localStorage.removeItem('pexedu_intent')
+    localStorage.removeItem('pexedu_teacher_form')
     useAuthStore.setState({ registrationType: null, teacherFormData: null })
     if (registrationType === 'player') {
       toast.success(`🎮 Vítej, ${username.trim()}! Účet je připraven.`, { duration: 4000 })

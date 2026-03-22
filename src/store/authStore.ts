@@ -177,9 +177,19 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         setPlayerName(0, profile.username)
       }
     } else {
-      // No profile row — if intent already chosen, go straight to onboarding
-      const alreadyChoseIntent = !!get().registrationType
-      set({ isOnboarding: true, showIntentScreen: !alreadyChoseIntent })
+      // No profile row — restore intent from localStorage if store was reset (e.g. after email confirmation redirect)
+      let { registrationType, teacherFormData } = get()
+      if (!registrationType) {
+        const savedIntent = localStorage.getItem('pexedu_intent') as 'player' | 'pending_teacher' | null
+        if (savedIntent) {
+          registrationType = savedIntent
+          if (savedIntent === 'pending_teacher') {
+            const saved = localStorage.getItem('pexedu_teacher_form')
+            teacherFormData = saved ? JSON.parse(saved) : null
+          }
+        }
+      }
+      set({ isOnboarding: true, showIntentScreen: !registrationType, registrationType, teacherFormData })
     }
   },
 
