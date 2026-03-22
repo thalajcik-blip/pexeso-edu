@@ -116,7 +116,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   signUpWithEmail: async (email, password) => {
     localStorage.setItem('pexedu_oauth_player', '1')
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { registrationType, teacherFormData } = get()
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          pexedu_intent: registrationType ?? 'player',
+          pexedu_teacher_school: teacherFormData?.school ?? null,
+          pexedu_teacher_reason: teacherFormData?.reason ?? null,
+        },
+      },
+    })
     if (error) localStorage.removeItem('pexedu_oauth_player')
     return error?.message ?? null
   },
@@ -177,15 +188,25 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         setPlayerName(0, profile.username)
       }
     } else {
-      // No profile row — restore intent from localStorage if store was reset (e.g. after email confirmation redirect)
+      // No profile row — restore intent from store, localStorage, or user metadata (survives page reload + email confirmation)
       let { registrationType, teacherFormData } = get()
       if (!registrationType) {
+        // 1. Try localStorage
         const savedIntent = localStorage.getItem('pexedu_intent') as 'player' | 'pending_teacher' | null
         if (savedIntent) {
           registrationType = savedIntent
           if (savedIntent === 'pending_teacher') {
             const saved = localStorage.getItem('pexedu_teacher_form')
             teacherFormData = saved ? JSON.parse(saved) : null
+          }
+        } else {
+          // 2. Fall back to user metadata (set during signUpWithEmail)
+          const meta = user.user_metadata
+          if (meta?.pexedu_intent) {
+            registrationType = meta.pexedu_intent as 'player' | 'pending_teacher'
+            if (registrationType === 'pending_teacher' && meta.pexedu_teacher_school) {
+              teacherFormData = { school: meta.pexedu_teacher_school, reason: meta.pexedu_teacher_reason ?? '' }
+            }
           }
         }
       }
