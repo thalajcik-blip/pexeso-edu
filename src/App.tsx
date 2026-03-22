@@ -34,6 +34,7 @@ export default function App() {
   const leaveRoom          = useGameStore(s => s.leaveRoom)
   const goToLobby          = useGameStore(s => s.goToLobby)
   const resetToSetup       = useGameStore(s => s.resetToSetup)
+  const applyDeepLink      = useGameStore(s => s.applyDeepLink)
   const tc = THEMES[theme]
   const tr = TRANSLATIONS[language]
 
@@ -80,9 +81,17 @@ export default function App() {
   }, [phase, resetToSetup])
 
   // Auto-navigate to lobby if ?room= param is present
+  // Also apply deep-link pre-selections (?set=, ?mode=, ?challenge=, ?time=)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('room')) goToLobby()
+    const set = params.get('set')
+    const mode = params.get('mode')
+    const challenge = params.get('challenge')
+    const time = params.get('time')
+    if (set || mode || challenge) {
+      applyDeepLink({ set, mode, challenge, time })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

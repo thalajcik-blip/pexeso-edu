@@ -8,6 +8,7 @@ import { TRANSLATIONS } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { soundQuizSelect, soundQuizCorrect, soundQuizWrong, soundQuizTimeout, soundTick, soundWin, isMuted, toggleMuted } from '../../services/audioService'
 import { Avatar } from '../auth/Avatar'
+import { shareResult } from '../../services/shareService'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 const EMOJI_OPTS = ['👍', '😱', '🎉', '😂', '🔥', '😅']
@@ -522,6 +523,21 @@ export default function LightningGame() {
           )}
 
           {/* CTA */}
+          <button
+            onClick={() => shareResult({
+              deckId: selectedDeckId,
+              mode: 'lightning',
+              ctx: isOnline && onlineResult
+                ? { kind: 'multiplayer', result: onlineResult }
+                : { kind: 'lightning_solo', accuracy, avgTime: parseFloat(avgTimeS) || undefined },
+              language,
+            })}
+            className="mt-2 w-full py-2.5 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80 border"
+            style={{ background: 'transparent', borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
+          >
+            📤 {tr.shareBtn}
+          </button>
+
           {(!isOnline || isHost) ? (
             <button
               onClick={isOnline ? startOnlineLightningGame : startLightningGame}

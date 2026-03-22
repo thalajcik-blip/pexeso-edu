@@ -11,6 +11,7 @@ import { supabase, fetchCustomDeckFull } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import TermsModal from '../modals/TermsModal'
 import PrivacyModal from '../modals/PrivacyModal'
+import { buildChallengeBanner } from '../../services/shareService'
 
 const SIZES: { id: BoardSize; labelKey: 'sizeLarge' | 'sizeMedium' | 'sizeSmall'; grid: string }[] = [
   { id: 'small',  labelKey: 'sizeSmall',  grid: '4×4' },
@@ -48,6 +49,7 @@ export default function SetupScreen() {
     lightningQuestionCount, setLightningQuestionCount,
     lightningTimeLimit, setLightningTimeLimit,
     startLightningGame,
+    challengeScore, challengeTime,
   } = useGameStore()
 
   const [customDecks, setCustomDecks] = useState<CustomDeckMeta[]>([])
@@ -244,6 +246,20 @@ export default function SetupScreen() {
           )}
         </div>
       </div>
+
+      {/* Challenge banner */}
+      {challengeScore !== null && (
+        <div
+          className="w-full max-w-md rounded-2xl px-4 py-3 text-sm font-medium text-center"
+          style={{
+            background: theme === 'dark' ? 'rgba(249,215,78,0.1)' : 'rgba(249,215,78,0.2)',
+            border: '1.5px solid rgba(249,215,78,0.5)',
+            color: theme === 'dark' ? '#f9d74e' : '#92600a',
+          }}
+        >
+          {buildChallengeBanner(challengeScore, language, challengeTime ?? undefined)}
+        </div>
+      )}
 
       <div className="w-full max-w-md rounded-2xl p-6 space-y-5" style={{ background: tc.surface, border: `1px solid ${tc.surfaceBorder}` }}>
 
