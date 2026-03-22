@@ -34,8 +34,10 @@ interface AuthStore {
   isOnboarding: boolean
   showIntentScreen: boolean
   registrationType: 'player' | 'pending_teacher' | null
+  teacherFormData: { school: string; reason: string } | null
   showTeacherPendingModal: boolean
   authModalOpen: boolean
+  authModalTab: 'login' | 'register'
   settingsModalOpen: boolean
   dashboardModalOpen: boolean
 
@@ -57,6 +59,8 @@ interface AuthStore {
   addXP: (amount: number) => Promise<void>
 
   openAuthModal: () => void
+  openAuthModalForLogin: () => void
+  openAuthModalForRegister: () => void
   closeAuthModal: () => void
   openSettingsModal: () => void
   closeSettingsModal: () => void
@@ -73,14 +77,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   isOnboarding: false,
   showIntentScreen: false,
   registrationType: null,
+  teacherFormData: null,
   showTeacherPendingModal: false,
   authModalOpen: false,
+  authModalTab: 'login',
   settingsModalOpen: false,
   dashboardModalOpen: false,
 
   _setUser: (user) => set({ user, isLoading: false }),
 
-  openAuthModal: () => set({ authModalOpen: true }),
+  // Opens intent screen first (for new users)
+  openAuthModal: () => set({ showIntentScreen: true }),
+  // Direct login (skip intent — for returning users)
+  openAuthModalForLogin: () => set({ authModalOpen: true, authModalTab: 'login', showIntentScreen: false }),
+  // Direct register after intent selection
+  openAuthModalForRegister: () => set({ authModalOpen: true, authModalTab: 'register', showIntentScreen: false }),
   closeAuthModal: () => set({ authModalOpen: false }),
   openSettingsModal: () => set({ settingsModalOpen: true }),
   closeSettingsModal: () => set({ settingsModalOpen: false }),
@@ -164,8 +175,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         setPlayerName(0, profile.username)
       }
     } else {
-      // No profile row — new user, show intent screen
-      set({ isOnboarding: true, showIntentScreen: true })
+      // No profile row — if intent already chosen, go straight to onboarding
+      const alreadyChoseIntent = !!get().registrationType
+      set({ isOnboarding: true, showIntentScreen: !alreadyChoseIntent })
     }
   },
 

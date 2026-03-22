@@ -10,12 +10,12 @@ const TEXTS = {
     playerDesc: 'Studenti, děti, kdokoliv kdo chce hrát a učit se',
     teacherBtn: '👨‍🏫 Jsem učitel/ka',
     teacherDesc: 'Vytvářej sady karet a spravuj svou třídu',
+    alreadyHaveAccount: 'Už mám účet → Přihlásit se',
     schoolLabel: 'Název školy',
     schoolPlaceholder: 'ZŠ Brno, Masarykova 1',
     reasonLabel: 'Proč chceš pexedu používat? (volitelné)',
     reasonPlaceholder: 'Např. výuka angličtiny, přírodověda…',
-    sendRequest: 'Odeslat žádost',
-    sending: 'Odesílání…',
+    next: 'Pokračovat →',
     back: '← Zpět',
   },
   sk: {
@@ -24,12 +24,12 @@ const TEXTS = {
     playerDesc: 'Študenti, deti, každý kto chce hrať a učiť sa',
     teacherBtn: '👨‍🏫 Som učiteľ/ka',
     teacherDesc: 'Vytváraj sady kariet a spravuj svoju triedu',
+    alreadyHaveAccount: 'Už mám účet → Prihlásiť sa',
     schoolLabel: 'Názov školy',
     schoolPlaceholder: 'ZŠ Bratislava, Hlavná 1',
     reasonLabel: 'Prečo chceš pexedu používať? (voliteľné)',
     reasonPlaceholder: 'Napr. výučba angličtiny, prírodoveda…',
-    sendRequest: 'Odoslať žiadosť',
-    sending: 'Odosielanie…',
+    next: 'Pokračovať →',
     back: '← Späť',
   },
   en: {
@@ -38,12 +38,12 @@ const TEXTS = {
     playerDesc: 'Students, kids, anyone who wants to learn through games',
     teacherBtn: '👨‍🏫 I\'m a teacher',
     teacherDesc: 'Create card sets and manage your class',
+    alreadyHaveAccount: 'Already have an account? Sign in',
     schoolLabel: 'School name',
     schoolPlaceholder: 'Springfield Elementary School',
     reasonLabel: 'Why do you want to use pexedu? (optional)',
     reasonPlaceholder: 'e.g. English vocabulary, science…',
-    sendRequest: 'Send request',
-    sending: 'Sending…',
+    next: 'Continue →',
     back: '← Back',
   },
 }
@@ -56,28 +56,31 @@ export default function IntentScreen() {
   const tc = THEMES[theme]
   const t  = TEXTS[language] ?? TEXTS['cs']
 
-  const { registerAsPlayer, registerAsTeacher } = useAuthStore()
+  const { openAuthModalForLogin, openAuthModalForRegister } = useAuthStore()
 
-  const [step, setStep]       = useState<Step>('choice')
-  const [school, setSchool]   = useState('')
-  const [reason, setReason]   = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState('')
+  const [step, setStep]     = useState<Step>('choice')
+  const [school, setSchool] = useState('')
+  const [reason, setReason] = useState('')
 
-  async function handlePlayer() {
-    setLoading(true)
-    const err = await registerAsPlayer()
-    setLoading(false)
-    if (err) setError(err)
+  function handlePlayer() {
+    useAuthStore.setState({ registrationType: 'player', showIntentScreen: false })
+    openAuthModalForRegister()
   }
 
-  async function handleTeacherSubmit(e: React.FormEvent) {
+  function handleTeacherContinue(e: React.FormEvent) {
     e.preventDefault()
     if (!school.trim()) return
-    setLoading(true)
-    const err = await registerAsTeacher(school.trim(), reason.trim())
-    setLoading(false)
-    if (err) setError(err)
+    useAuthStore.setState({
+      registrationType: 'pending_teacher',
+      teacherFormData: { school: school.trim(), reason: reason.trim() },
+      showIntentScreen: false,
+    })
+    openAuthModalForRegister()
+  }
+
+  function handleSignIn() {
+    useAuthStore.setState({ showIntentScreen: false })
+    openAuthModalForLogin()
   }
 
   const overlayStyle: React.CSSProperties = {
@@ -116,8 +119,7 @@ export default function IntentScreen() {
             <div className="flex flex-col gap-3">
               <button
                 onClick={handlePlayer}
-                disabled={loading}
-                className="w-full text-left p-4 rounded-xl border transition-all hover:opacity-90 disabled:opacity-50"
+                className="w-full text-left p-4 rounded-xl border transition-all hover:opacity-90"
                 style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder }}
               >
                 <div className="font-bold text-base mb-0.5" style={{ color: tc.text }}>{t.playerBtn}</div>
@@ -126,8 +128,7 @@ export default function IntentScreen() {
 
               <button
                 onClick={() => setStep('teacher-form')}
-                disabled={loading}
-                className="w-full text-left p-4 rounded-xl border transition-all hover:opacity-90 disabled:opacity-50"
+                className="w-full text-left p-4 rounded-xl border transition-all hover:opacity-90"
                 style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder }}
               >
                 <div className="font-bold text-base mb-0.5" style={{ color: tc.text }}>{t.teacherBtn}</div>
@@ -135,7 +136,13 @@ export default function IntentScreen() {
               </button>
             </div>
 
-            {error && <p className="text-xs text-center text-red-400 mt-3">{error}</p>}
+            <button
+              onClick={handleSignIn}
+              className="mt-5 w-full text-xs text-center opacity-50 hover:opacity-80 transition-opacity"
+              style={{ color: tc.text }}
+            >
+              {t.alreadyHaveAccount}
+            </button>
           </>
         ) : (
           <>
@@ -149,7 +156,7 @@ export default function IntentScreen() {
 
             <h2 className="text-xl font-bold mb-5" style={{ color: tc.text }}>{t.teacherBtn}</h2>
 
-            <form onSubmit={handleTeacherSubmit} className="flex flex-col gap-3">
+            <form onSubmit={handleTeacherContinue} className="flex flex-col gap-3">
               <div>
                 <label className="block text-xs font-semibold mb-1 uppercase tracking-wide" style={{ color: tc.textMuted }}>
                   {t.schoolLabel}
@@ -177,15 +184,13 @@ export default function IntentScreen() {
                 />
               </div>
 
-              {error && <p className="text-xs text-center text-red-400">{error}</p>}
-
               <button
                 type="submit"
-                disabled={loading || !school.trim()}
+                disabled={!school.trim()}
                 className="w-full py-2.5 rounded-xl font-bold text-sm transition-opacity hover:opacity-90 disabled:opacity-50 mt-1"
                 style={{ background: tc.accentGradient, color: tc.accentText }}
               >
-                {loading ? t.sending : t.sendRequest}
+                {t.next}
               </button>
             </form>
           </>

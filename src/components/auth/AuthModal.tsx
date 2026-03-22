@@ -51,9 +51,9 @@ export default function AuthModal() {
   const tc = THEMES[theme]
   const t  = TEXTS[language] ?? TEXTS['cs']
 
-  const { closeAuthModal, signInWithGoogle, signInWithEmail, signUpWithEmail, signInWithMagicLink } = useAuthStore()
+  const { closeAuthModal, signInWithGoogle, signInWithEmail, signUpWithEmail, signInWithMagicLink, authModalTab } = useAuthStore()
 
-  const [tab, setTab]         = useState<Tab>('login')
+  const [tab, setTab]         = useState<Tab>(authModalTab)
   const [method, setMethod]   = useState<Method>('email')
   const [email, setEmail]     = useState('')
   const [password, setPassword] = useState('')
