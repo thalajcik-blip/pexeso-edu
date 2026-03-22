@@ -116,8 +116,8 @@ export default function App() {
       {isHost && hostOpeningSettings && <SettingsModal />}
 
       {/* Auth modals */}
+      {showIntentScreen && !authModalOpen && <IntentScreen />}
       {authModalOpen && <AuthModal />}
-      {isOnboarding && !authModalOpen && showIntentScreen && <IntentScreen />}
       {isOnboarding && !authModalOpen && !showIntentScreen && <OnboardingModal />}
       {showTeacherPendingModal && <TeacherPendingModal />}
       {settingsModalOpen && <PlayerSettingsModal />}
