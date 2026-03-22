@@ -211,7 +211,7 @@ export default function SetupScreen() {
                       className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left whitespace-nowrap hover:opacity-80"
                       style={{ color: tc.text }}
                     >
-                      ⚙️ {tr.settings}
+                      👤 {tr.settings}
                     </button>
                     {isAdmin && (
                       <button
