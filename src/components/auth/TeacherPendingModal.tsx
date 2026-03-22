@@ -4,17 +4,17 @@ import { THEMES } from '../../data/themes'
 
 const TEXTS = {
   cs: {
-    title: 'Vítej!',
-    body1: 'Tvoje žádost o učitelský účet byla odeslána.',
-    body2: 'Superadmin ji brzy zkontroluje — dostaneš e-mail, jakmile bude schválena.',
-    note: 'Mezitím můžeš hrát všechny hry hned teď.',
+    title: 'Vítejte!',
+    body1: 'Vaše žádost o učitelský účet byla odeslána.',
+    body2: 'Superadmin ji brzy zkontroluje — dostanete e-mail, jakmile bude schválena.',
+    note: 'Mezitím můžete hrát všechny hry hned teď.',
     cta: 'Začít hrát →',
   },
   sk: {
-    title: 'Vitaj!',
-    body1: 'Tvoja žiadosť o učiteľský účet bola odoslaná.',
-    body2: 'Superadmin ju čoskoro skontroluje — dostaneš e-mail, keď bude schválená.',
-    note: 'Medzitým môžeš hrať všetky hry hneď teraz.',
+    title: 'Vitajte!',
+    body1: 'Vaša žiadosť o učiteľský účet bola odoslaná.',
+    body2: 'Superadmin ju čoskoro skontroluje — dostanete e-mail, keď bude schválená.',
+    note: 'Medzitým môžete hrať všetky hry hneď teraz.',
     cta: 'Začať hrať →',
   },
   en: {

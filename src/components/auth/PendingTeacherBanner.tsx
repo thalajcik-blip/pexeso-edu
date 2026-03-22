@@ -3,8 +3,8 @@ import { useGameStore } from '../../store/gameStore'
 import { isPendingTeacher } from '../../utils/roles'
 
 const TEXTS = {
-  cs: '⏳ Tvoje žádost o učitelský účet se prověřuje. Dostaneš e-mail, jakmile bude schválena.',
-  sk: '⏳ Tvoja žiadosť o učiteľský účet sa preveruje. Dostaneš e-mail, keď bude schválená.',
+  cs: '⏳ Vaše žádost o učitelský účet se prověřuje. Dostanete e-mail, jakmile bude schválena.',
+  sk: '⏳ Vaša žiadosť o učiteľský účet sa preveruje. Dostanete e-mail, keď bude schválená.',
   en: '⏳ Your teacher account request is being reviewed. You\'ll get an email once approved.',
 }
 
