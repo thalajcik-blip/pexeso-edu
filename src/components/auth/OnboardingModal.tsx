@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
@@ -45,7 +46,8 @@ export default function OnboardingModal() {
   const tc = THEMES[theme]
   const t  = TEXTS[language] ?? TEXTS['cs']
 
-  const { user, completeOnboarding } = useAuthStore()
+  const { user } = useAuthStore()
+  const { completeOnboarding } = useAuthStore()
 
   const [step,     setStep]     = useState<'username' | 'avatar'>('username')
   const [username, setUsername] = useState('')
@@ -80,9 +82,29 @@ export default function OnboardingModal() {
   async function handleSave() {
     if (saving) return
     setSaving(true)
+
+    // First create the profile with correct role
+    const { registrationType, teacherFormData, registerAsPlayer, registerAsTeacher, openTeacherPendingModal } = useAuthStore.getState()
+    if (registrationType === 'pending_teacher' && teacherFormData) {
+      const roleErr = await registerAsTeacher(teacherFormData.school, teacherFormData.reason)
+      if (roleErr) { setSaving(false); setError(roleErr); return }
+    } else {
+      const roleErr = await registerAsPlayer()
+      if (roleErr) { setSaving(false); setError(roleErr); return }
+    }
+
     const err = await completeOnboarding(username.trim(), avatarId)
     setSaving(false)
-    if (err) setError(err)
+    if (err) { setError(err); return }
+
+    localStorage.removeItem('pexedu_intent')
+    localStorage.removeItem('pexedu_teacher_form')
+    useAuthStore.setState({ registrationType: null, teacherFormData: null })
+    if (registrationType === 'player') {
+      toast.success(`🎮 Vítej, ${username.trim()}! Účet je připraven.`, { duration: 4000 })
+    } else if (registrationType === 'pending_teacher') {
+      openTeacherPendingModal()
+    }
   }
 
   const invalid = username.length < 3 || taken || checking

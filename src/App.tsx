@@ -15,6 +15,9 @@ import LightningGame from './components/lightning/LightningGame'
 import SettingsModal from './components/lobby/SettingsModal'
 import AuthModal from './components/auth/AuthModal'
 import OnboardingModal from './components/auth/OnboardingModal'
+import TeacherPendingModal from './components/auth/TeacherPendingModal'
+import ContextSelectModal from './components/auth/ContextSelectModal'
+import PendingTeacherBanner from './components/auth/PendingTeacherBanner'
 import PlayerSettingsModal from './components/auth/SettingsModal'
 import DashboardModal from './components/auth/DashboardModal'
 
@@ -31,10 +34,11 @@ export default function App() {
   const leaveRoom          = useGameStore(s => s.leaveRoom)
   const goToLobby          = useGameStore(s => s.goToLobby)
   const resetToSetup       = useGameStore(s => s.resetToSetup)
+  const applyDeepLink      = useGameStore(s => s.applyDeepLink)
   const tc = THEMES[theme]
   const tr = TRANSLATIONS[language]
 
-  const { authModalOpen, isOnboarding, settingsModalOpen, dashboardModalOpen, _setUser, loadProfile, closeAuthModal } = useAuthStore()
+  const { authModalOpen, isOnboarding, showIntentScreen, showTeacherPendingModal, showContextModal, settingsModalOpen, dashboardModalOpen, _setUser, loadProfile, closeAuthModal } = useAuthStore()
 
   const inGame        = phase === 'playing' || phase === 'quiz'
   const inLightning   = phase === 'lightning_playing' || phase === 'lightning_reveal'
@@ -77,9 +81,17 @@ export default function App() {
   }, [phase, resetToSetup])
 
   // Auto-navigate to lobby if ?room= param is present
+  // Also apply deep-link pre-selections (?set=, ?mode=, ?challenge=, ?time=)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('room')) goToLobby()
+    const set = params.get('set')
+    const mode = params.get('mode')
+    const challenge = params.get('challenge')
+    const time = params.get('time')
+    if (set || mode || challenge) {
+      applyDeepLink({ set, mode, challenge, time })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -104,6 +116,7 @@ export default function App() {
           DEV
         </div>
       )}
+      <PendingTeacherBanner />
       {phase === 'setup' && <SetupScreen />}
       {phase === 'lobby' && <LobbyScreen />}
       {(inGame || phase === 'win') && <GameBoard />}
@@ -115,7 +128,9 @@ export default function App() {
 
       {/* Auth modals */}
       {authModalOpen && <AuthModal />}
-      {isOnboarding && !authModalOpen && <OnboardingModal />}
+      {isOnboarding && !authModalOpen && !showIntentScreen && <OnboardingModal />}
+      {showTeacherPendingModal && <TeacherPendingModal />}
+      {showContextModal && <ContextSelectModal />}
       {settingsModalOpen && <PlayerSettingsModal />}
       {dashboardModalOpen && <DashboardModal />}
 

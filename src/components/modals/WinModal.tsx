@@ -8,6 +8,7 @@ import { TRANSLATIONS, pluralize } from '../../data/translations'
 import { THEMES } from '../../data/themes'
 import { trunc } from '../../utils'
 import { Avatar } from '../auth/Avatar'
+import { shareResult } from '../../services/shareService'
 
 const MEDALS = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣']
 
@@ -265,8 +266,21 @@ export default function WinModal() {
           )}
 
           <button
+            onClick={() => shareResult({
+              deckId: selectedDeckId,
+              mode: 'pexequiz',
+              ctx: { kind: 'pexequiz_solo', accuracy },
+              language,
+            })}
+            className="mt-4 w-full py-2.5 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80 border"
+            style={{ background: 'transparent', borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
+          >
+            📤 {tr.shareBtn}
+          </button>
+
+          <button
             onClick={playAgain}
-            className="mt-4 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105 w-full"
+            className="mt-2 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105 w-full"
             style={{ background: tc.accentGradient, color: tc.accentText }}
           >
             {tr.playAgain}
@@ -390,6 +404,20 @@ export default function WinModal() {
                 {tr.rematchRequest}
               </button>
         )}
+
+        {/* Share */}
+        <button
+          onClick={() => shareResult({
+            deckId: selectedDeckId,
+            mode: 'pexequiz',
+            ctx: { kind: 'multiplayer', result: resultKey },
+            language,
+          })}
+          className="mt-1 w-full py-2 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80 border"
+          style={{ background: 'transparent', borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
+        >
+          📤 {tr.shareBtn}
+        </button>
 
         {/* Secondary: change settings (online host) or choose deck (local) */}
         {isOnline && isHost && (

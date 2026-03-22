@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
-import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -12,12 +11,9 @@ type UserRow = {
   email: string
   role: string | null
   created_at: string
+  username: string | null
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  superadmin: 'Superadmin',
-  teacher: 'Učitel',
-}
 
 export default function UsersManager() {
   const [users, setUsers]             = useState<UserRow[]>([])
@@ -107,6 +103,7 @@ export default function UsersManager() {
             <thead>
               <tr className="border-b border-gray-100">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">E-mail</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Hráčské jméno</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Registrace</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Role</th>
                 <th className="px-4 py-3" />
@@ -116,33 +113,26 @@ export default function UsersManager() {
               {users.map(u => (
                 <tr key={u.user_id} className="border-b border-gray-50 last:border-0">
                   <td className="px-4 py-3 text-gray-700">{u.email}</td>
+                  <td className="px-4 py-3 text-gray-500 text-sm">
+                    {u.username ?? <span className="text-gray-300 italic">—</span>}
+                  </td>
                   <td className="px-4 py-3 text-gray-400 text-xs">
                     {new Date(u.created_at).toLocaleDateString('cs-CZ')}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="w-44 justify-between font-normal text-xs" disabled={saving === u.user_id}>
-                            {u.role === 'teacher' ? 'Učitel' : u.role === 'superadmin' ? 'Superadmin' : 'Čeká na schválení'}
-                            <ChevronDown className="size-4 opacity-50" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-44">
-                          <DropdownMenuItem onClick={() => setRole(u.user_id, null)}>Čeká na schválení</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setRole(u.user_id, 'teacher')}>Učitel</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setRole(u.user_id, 'superadmin')}>Superadmin</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      {u.role && (
-                        <Badge className={u.role === 'superadmin' ? 'bg-indigo-50 text-indigo-600' : 'bg-green-50 text-green-700'}>
-                          {ROLE_LABELS[u.role] ?? u.role}
-                        </Badge>
-                      )}
-                      {!u.role && (
-                        <Badge className="bg-amber-50 text-amber-600">Čeká na schválení</Badge>
-                      )}
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-36 justify-between font-normal text-xs" disabled={saving === u.user_id}>
+                          {u.role === 'teacher' ? 'Učitel' : u.role === 'superadmin' ? 'Superadmin' : 'Hráč'}
+                          <ChevronDown className="size-4 opacity-50" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-36">
+                        <DropdownMenuItem onClick={() => setRole(u.user_id, null)}>Hráč</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setRole(u.user_id, 'teacher')}>Učitel</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setRole(u.user_id, 'superadmin')}>Superadmin</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Button
