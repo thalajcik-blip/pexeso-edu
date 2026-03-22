@@ -12,6 +12,7 @@ type UserRow = {
   email: string
   role: string | null
   created_at: string
+  username: string | null
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -98,6 +99,7 @@ export default function UsersManager() {
             <thead>
               <tr className="border-b border-gray-100">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">E-mail</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Hráčské jméno</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Registrace</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Role</th>
                 <th className="px-4 py-3" />
@@ -107,6 +109,9 @@ export default function UsersManager() {
               {users.map(u => (
                 <tr key={u.user_id} className="border-b border-gray-50 last:border-0">
                   <td className="px-4 py-3 text-gray-700">{u.email}</td>
+                  <td className="px-4 py-3 text-gray-500 text-sm">
+                    {u.username ?? <span className="text-gray-300 italic">—</span>}
+                  </td>
                   <td className="px-4 py-3 text-gray-400 text-xs">
                     {new Date(u.created_at).toLocaleDateString('cs-CZ')}
                   </td>
