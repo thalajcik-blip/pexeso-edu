@@ -179,13 +179,34 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       .maybeSingle()
     if (data) {
       const profile = data as Profile
-      // Ensure roles array exists (older rows may not have it)
       if (!profile.roles) profile.roles = ['player']
       const needsUsername = !profile.username
-      set({ profile, isOnboarding: needsUsername, showIntentScreen: needsUsername })
-      if (profile.username) {
+      if (needsUsername) {
+        // Profile created by DB trigger but onboarding not done yet — restore intent
+        let { registrationType, teacherFormData } = get()
+        if (!registrationType) {
+          const savedIntent = localStorage.getItem('pexedu_intent') as 'player' | 'pending_teacher' | null
+          if (savedIntent) {
+            registrationType = savedIntent
+            if (savedIntent === 'pending_teacher') {
+              const saved = localStorage.getItem('pexedu_teacher_form')
+              teacherFormData = saved ? JSON.parse(saved) : null
+            }
+          } else {
+            const meta = user.user_metadata
+            if (meta?.pexedu_intent) {
+              registrationType = meta.pexedu_intent as 'player' | 'pending_teacher'
+              if (registrationType === 'pending_teacher' && meta.pexedu_teacher_school) {
+                teacherFormData = { school: meta.pexedu_teacher_school, reason: meta.pexedu_teacher_reason ?? '' }
+              }
+            }
+          }
+        }
+        set({ profile, isOnboarding: true, showIntentScreen: false, registrationType, teacherFormData })
+      } else {
+        set({ profile, isOnboarding: false, showIntentScreen: false })
         const { setPlayerName } = (await import('./gameStore')).useGameStore.getState()
-        setPlayerName(0, profile.username)
+        setPlayerName(0, profile.username!)
       }
     } else {
       // No profile row — restore intent from store, localStorage, or user metadata (survives page reload + email confirmation)
