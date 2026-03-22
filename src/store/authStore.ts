@@ -235,6 +235,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           }
         }
       }
+      // If joining a room via QR/link, always treat as player — skip intent screen
+      const hasRoomParam = !!new URLSearchParams(window.location.search).get('room')
+      if (hasRoomParam && !registrationType) {
+        registrationType = 'player'
+        localStorage.setItem('pexedu_intent', 'player')
+      }
       set({ isOnboarding: true, showIntentScreen: !registrationType, registrationType, teacherFormData })
     }
   },
