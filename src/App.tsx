@@ -15,7 +15,6 @@ import LightningGame from './components/lightning/LightningGame'
 import SettingsModal from './components/lobby/SettingsModal'
 import AuthModal from './components/auth/AuthModal'
 import OnboardingModal from './components/auth/OnboardingModal'
-import IntentScreen from './components/auth/IntentScreen'
 import TeacherPendingModal from './components/auth/TeacherPendingModal'
 import PlayerSettingsModal from './components/auth/SettingsModal'
 import DashboardModal from './components/auth/DashboardModal'
@@ -116,7 +115,6 @@ export default function App() {
       {isHost && hostOpeningSettings && <SettingsModal />}
 
       {/* Auth modals */}
-      {showIntentScreen && !authModalOpen && <IntentScreen />}
       {authModalOpen && <AuthModal />}
       {isOnboarding && !authModalOpen && !showIntentScreen && <OnboardingModal />}
       {showTeacherPendingModal && <TeacherPendingModal />}

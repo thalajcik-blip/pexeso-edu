@@ -86,11 +86,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   _setUser: (user) => set({ user, isLoading: false }),
 
-  // Opens intent screen first (for new users)
-  openAuthModal: () => set({ showIntentScreen: true }),
-  // Direct login (skip intent — for returning users)
+  openAuthModal: () => set({ authModalOpen: true, authModalTab: 'login', showIntentScreen: false }),
   openAuthModalForLogin: () => set({ authModalOpen: true, authModalTab: 'login', showIntentScreen: false }),
-  // Direct register after intent selection
   openAuthModalForRegister: () => set({ authModalOpen: true, authModalTab: 'register', showIntentScreen: false }),
   closeAuthModal: () => set({ authModalOpen: false }),
   openSettingsModal: () => set({ settingsModalOpen: true }),
