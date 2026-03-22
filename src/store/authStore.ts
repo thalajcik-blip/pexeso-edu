@@ -36,6 +36,7 @@ interface AuthStore {
   registrationType: 'player' | 'pending_teacher' | null
   teacherFormData: { school: string; reason: string } | null
   showTeacherPendingModal: boolean
+  showContextModal: boolean
   authModalOpen: boolean
   authModalTab: 'login' | 'register'
   settingsModalOpen: boolean
@@ -68,6 +69,7 @@ interface AuthStore {
   closeDashboardModal: () => void
   openTeacherPendingModal: () => void
   closeTeacherPendingModal: () => void
+  closeContextModal: () => void
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
@@ -79,6 +81,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   registrationType: null,
   teacherFormData: null,
   showTeacherPendingModal: false,
+  showContextModal: false,
   authModalOpen: false,
   authModalTab: 'login',
   settingsModalOpen: false,
@@ -96,6 +99,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   closeDashboardModal: () => set({ dashboardModalOpen: false }),
   openTeacherPendingModal: () => set({ showTeacherPendingModal: true }),
   closeTeacherPendingModal: () => set({ showTeacherPendingModal: false }),
+  closeContextModal: () => set({ showContextModal: false }),
 
   signInWithGoogle: async () => {
     localStorage.setItem('pexedu_oauth_player', '1')
@@ -201,7 +205,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         }
         set({ profile, isOnboarding: true, showIntentScreen: false, registrationType, teacherFormData })
       } else {
-        set({ profile, isOnboarding: false, showIntentScreen: false })
+        const isAdmin = profile.roles.some(r => r === 'teacher' || r === 'superadmin')
+        const lastContext = localStorage.getItem('pexedu_last_context')
+        const showContextModal = isAdmin && !lastContext
+        set({ profile, isOnboarding: false, showIntentScreen: false, showContextModal })
         const { setPlayerName } = (await import('./gameStore')).useGameStore.getState()
         setPlayerName(0, profile.username!)
       }

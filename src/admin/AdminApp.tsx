@@ -7,6 +7,7 @@ import DeckList from './DeckList'
 import DeckEditor from './DeckEditor'
 import UsersManager from './UsersManager'
 import AdminSettings from './AdminSettings'
+import TeacherRequestsManager from './TeacherRequestsManager'
 import type { useAuth as UseAuthType } from './useAuth'
 import { LogOut } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -120,6 +121,12 @@ function AdminSidebarContents({ isSuperadmin, email, signOut, visibleItems, navi
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => { localStorage.setItem('pexedu_last_context', 'game'); window.location.href = '/' }} tooltip="Přejít do hry">
+              <span>🎮</span>
+              <span>Přejít do hry</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton size="lg" onClick={signOut} tooltip="Odhlásit se">
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 text-xs font-semibold shrink-0">
                 {email[0]?.toUpperCase()}
@@ -139,6 +146,7 @@ function AdminSidebarContents({ isSuperadmin, email, signOut, visibleItems, navi
 
 const NAV_ITEMS = [
   { path: '/admin', label: 'Sady', icon: '🃏', exact: true, superadminOnly: false },
+  { path: '/admin/teacher-requests', label: 'Žádosti učitelů', icon: '👨‍🏫', exact: false, superadminOnly: true },
   { path: '/admin/users', label: 'Uživatelé', icon: '👥', exact: false, superadminOnly: true },
   { path: '/admin/settings', label: 'Nastavení', icon: '⚙️', exact: false, superadminOnly: true },
 ]
@@ -177,6 +185,7 @@ function AdminLayout({ role, email, signOut }: { role: AdminRole; email: string;
               />
             } />
             <Route path="/admin/decks/:id" element={<DeckEditorRoute isSuperadmin={isSuperadmin} />} />
+            {isSuperadmin && <Route path="/admin/teacher-requests" element={<TeacherRequestsManager />} />}
             {isSuperadmin && <Route path="/admin/users" element={<UsersManager />} />}
             {isSuperadmin && <Route path="/admin/settings" element={<AdminSettings />} />}
           </Routes>

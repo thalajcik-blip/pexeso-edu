@@ -110,6 +110,7 @@ export default function SetupScreen() {
   const tc = THEMES[theme]
 
   const { profile, openAuthModal, signOut, openSettingsModal, openDashboardModal } = useAuthStore()
+  const isAdmin = profile?.roles?.some(r => r === 'teacher' || r === 'superadmin') ?? false
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [termsOpen, setTermsOpen]   = useState(false)
   const [privacyOpen, setPrivacyOpen] = useState(false)
@@ -212,6 +213,15 @@ export default function SetupScreen() {
                     >
                       ⚙️ {tr.settings}
                     </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => { setProfileDropdownOpen(false); localStorage.setItem('pexedu_last_context', 'admin'); window.location.href = '/admin' }}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left whitespace-nowrap hover:opacity-80"
+                        style={{ color: tc.text }}
+                      >
+                        ⚙️ Administrace
+                      </button>
+                    )}
                     <button
                       onClick={() => { setProfileDropdownOpen(false); signOut() }}
                       className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left whitespace-nowrap hover:opacity-80"
