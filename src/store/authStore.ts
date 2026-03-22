@@ -13,6 +13,8 @@ export interface Profile {
   show_favorites: boolean
   show_activity: boolean
   created_at: string
+  roles: string[]
+  teacher_request_status: string | null
 }
 
 export const LEVEL_XP = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000]
@@ -30,6 +32,7 @@ interface AuthStore {
   profile: Profile | null
   isLoading: boolean
   isOnboarding: boolean
+  showIntentScreen: boolean
   authModalOpen: boolean
   settingsModalOpen: boolean
   dashboardModalOpen: boolean
@@ -46,6 +49,8 @@ interface AuthStore {
   loadProfile: () => Promise<void>
   updateProfile: (data: Partial<Profile>) => Promise<void>
   completeOnboarding: (username: string, avatarId: number) => Promise<string | null>
+  registerAsPlayer: () => Promise<string | null>
+  registerAsTeacher: (school: string, reason: string) => Promise<string | null>
 
   addXP: (amount: number) => Promise<void>
 
@@ -62,6 +67,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   profile: null,
   isLoading: true,
   isOnboarding: false,
+  showIntentScreen: false,
   authModalOpen: false,
   settingsModalOpen: false,
   dashboardModalOpen: false,
@@ -95,10 +101,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   signInWithMagicLink: async (email) => {
+    localStorage.setItem('pexedu_oauth_player', '1')
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { shouldCreateUser: true },
     })
+    if (error) localStorage.removeItem('pexedu_oauth_player')
     return error?.message ?? null
   },
 
@@ -138,14 +146,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       .eq('id', user.id)
       .maybeSingle()
     if (data) {
-      set({ profile: data as Profile, isOnboarding: !data.username })
-      if (data.username) {
-        // Pre-fill player name with profile username
+      const profile = data as Profile
+      // Ensure roles array exists (older rows may not have it)
+      if (!profile.roles) profile.roles = ['player']
+      const needsUsername = !profile.username
+      set({ profile, isOnboarding: needsUsername, showIntentScreen: needsUsername })
+      if (profile.username) {
         const { setPlayerName } = (await import('./gameStore')).useGameStore.getState()
-        setPlayerName(0, data.username)
+        setPlayerName(0, profile.username)
       }
     } else {
-      set({ isOnboarding: true })
+      // No profile row — new user, show intent screen
+      set({ isOnboarding: true, showIntentScreen: true })
     }
   },
 
@@ -167,6 +179,42 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set(s => ({
       profile: s.profile ? { ...s.profile, username, avatar_id: avatarId } : null,
       isOnboarding: false,
+    }))
+    return null
+  },
+
+  registerAsPlayer: async () => {
+    const { user } = get()
+    if (!user) return 'Nie si prihlásený'
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: user.id, roles: ['player'] }, { onConflict: 'id' })
+    if (error) return error.message
+    set(s => ({
+      profile: s.profile
+        ? { ...s.profile, roles: ['player'] }
+        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: true, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: null },
+      showIntentScreen: false,
+    }))
+    return null
+  },
+
+  registerAsTeacher: async (school, reason) => {
+    const { user } = get()
+    if (!user) return 'Nie si prihlásený'
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({ id: user.id, roles: ['player'], teacher_request_status: 'pending' }, { onConflict: 'id' })
+    if (profileError) return profileError.message
+    const { error: reqError } = await supabase
+      .from('teacher_requests')
+      .insert({ user_id: user.id, school, reason: reason || null })
+    if (reqError) return reqError.message
+    set(s => ({
+      profile: s.profile
+        ? { ...s.profile, roles: ['player'], teacher_request_status: 'pending' }
+        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: true, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: 'pending' },
+      showIntentScreen: false,
     }))
     return null
   },
