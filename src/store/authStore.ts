@@ -115,7 +115,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   signUpWithEmail: async (email, password) => {
+    localStorage.setItem('pexedu_oauth_player', '1')
     const { error } = await supabase.auth.signUp({ email, password })
+    if (error) localStorage.removeItem('pexedu_oauth_player')
     return error?.message ?? null
   },
 
