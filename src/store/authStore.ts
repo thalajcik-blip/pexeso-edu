@@ -33,6 +33,8 @@ interface AuthStore {
   isLoading: boolean
   isOnboarding: boolean
   showIntentScreen: boolean
+  registrationType: 'player' | 'pending_teacher' | null
+  showTeacherPendingModal: boolean
   authModalOpen: boolean
   settingsModalOpen: boolean
   dashboardModalOpen: boolean
@@ -60,6 +62,8 @@ interface AuthStore {
   closeSettingsModal: () => void
   openDashboardModal: () => void
   closeDashboardModal: () => void
+  openTeacherPendingModal: () => void
+  closeTeacherPendingModal: () => void
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
@@ -68,6 +72,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   isLoading: true,
   isOnboarding: false,
   showIntentScreen: false,
+  registrationType: null,
+  showTeacherPendingModal: false,
   authModalOpen: false,
   settingsModalOpen: false,
   dashboardModalOpen: false,
@@ -80,6 +86,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   closeSettingsModal: () => set({ settingsModalOpen: false }),
   openDashboardModal: () => set({ dashboardModalOpen: true }),
   closeDashboardModal: () => set({ dashboardModalOpen: false }),
+  openTeacherPendingModal: () => set({ showTeacherPendingModal: true }),
+  closeTeacherPendingModal: () => set({ showTeacherPendingModal: false }),
 
   signInWithGoogle: async () => {
     localStorage.setItem('pexedu_oauth_player', '1')
@@ -195,6 +203,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         ? { ...s.profile, roles: ['player'] }
         : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: true, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: null },
       showIntentScreen: false,
+      registrationType: 'player',
     }))
     return null
   },
@@ -215,6 +224,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         ? { ...s.profile, roles: ['player'], teacher_request_status: 'pending' }
         : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: true, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: 'pending' },
       showIntentScreen: false,
+      registrationType: 'pending_teacher',
     }))
     return null
   },

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
@@ -82,7 +83,15 @@ export default function OnboardingModal() {
     setSaving(true)
     const err = await completeOnboarding(username.trim(), avatarId)
     setSaving(false)
-    if (err) setError(err)
+    if (err) { setError(err); return }
+    const { registrationType: regType, openTeacherPendingModal } = useAuthStore.getState()
+    if (regType === 'player') {
+      toast.success(`🎮 Vítej, ${username.trim()}! Účet je připraven.`, { duration: 4000 })
+      useAuthStore.setState({ registrationType: null })
+    } else if (regType === 'pending_teacher') {
+      openTeacherPendingModal()
+      useAuthStore.setState({ registrationType: null })
+    }
   }
 
   const invalid = username.length < 3 || taken || checking
