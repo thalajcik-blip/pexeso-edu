@@ -171,7 +171,7 @@ export default function AuthModal() {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: tc.overlayBg }}
-      onClick={e => { if (e.target === e.currentTarget) closeAuthModal() }}
+      onMouseDown={e => { if (e.target === e.currentTarget) closeAuthModal() }}
     >
       <div
         className="w-full max-w-sm rounded-2xl p-6 relative"
