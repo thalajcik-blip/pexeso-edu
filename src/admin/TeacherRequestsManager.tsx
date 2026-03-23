@@ -25,7 +25,7 @@ export default function TeacherRequestsManager() {
     setLoading(true)
     const { data, error } = await supabase
       .from('teacher_requests')
-      .select(`id, user_id, school, reason, status, created_at, email, profiles(username)`)
+      .select(`id, user_id, school, reason, status, created_at, email, profiles!user_id(username)`)
       .order('created_at', { ascending: false })
 
     if (error) setError(error.message)
