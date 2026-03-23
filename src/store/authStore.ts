@@ -293,7 +293,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     if (profileError) return profileError.message
     const { error: reqError } = await supabase
       .from('teacher_requests')
-      .insert({ user_id: user.id, school, reason: reason || null })
+      .insert({ user_id: user.id, school, reason: reason || null, email: user.email })
     if (reqError) return reqError.message
     set(s => ({
       profile: s.profile

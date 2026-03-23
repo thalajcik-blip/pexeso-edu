@@ -25,33 +25,15 @@ export default function TeacherRequestsManager() {
     setLoading(true)
     const { data, error } = await supabase
       .from('teacher_requests')
-      .select(`
-        id, user_id, school, reason, status, created_at,
-        profiles!inner(username),
-        auth_users:user_id(email)
-      `)
+      .select(`id, user_id, school, reason, status, created_at, email, profiles(username)`)
       .order('created_at', { ascending: false })
 
-    if (error) {
-      // Fallback: simpler query without join
-      const { data: simple, error: err2 } = await supabase
-        .from('teacher_requests')
-        .select('id, user_id, school, reason, status, created_at')
-        .order('created_at', { ascending: false })
-      if (err2) setError(err2.message)
-      else {
-        // Fetch emails separately
-        const rows = await Promise.all((simple ?? []).map(async r => {
-          const { data: p } = await supabase.from('profiles').select('username').eq('id', r.user_id).maybeSingle()
-          return { ...r, email: r.user_id, username: p?.username ?? null }
-        }))
-        setRequests(rows)
-      }
-    } else {
+    if (error) setError(error.message)
+    else {
       setRequests((data ?? []).map((r: any) => ({
         ...r,
         username: r.profiles?.username ?? null,
-        email: r.auth_users?.email ?? r.user_id,
+        email: r.email ?? r.user_id,
       })))
     }
     setLoading(false)
