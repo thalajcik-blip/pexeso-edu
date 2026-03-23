@@ -25,7 +25,10 @@ async function sendEmail(to: string, subject: string, html: string) {
 
 serve(async (req) => {
   try {
-    const body = await req.json()
+    let body: Record<string, any> = {}
+    try { body = await req.json() } catch {
+      return new Response(JSON.stringify({ skipped: 'no_body' }), { status: 200 })
+    }
     const { type, record, userId } = body
 
     // ── Manual call: teacher approved via admin panel ──────────────────────
