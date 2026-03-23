@@ -16,7 +16,7 @@ const hash = window.location.hash
 const isPlayerOAuth = localStorage.getItem('pexedu_oauth_player') === '1'
 if (isPlayerOAuth && hash.includes('access_token')) {
   localStorage.removeItem('pexedu_oauth_player')
-} else if (!window.location.pathname.startsWith('/admin') && (hash.includes('type=recovery') || hash.includes('access_token'))) {
+} else if (!window.location.pathname.startsWith('/admin') && (hash.includes('type=recovery') || (hash.includes('access_token') && !hash.includes('type=signup')))) {
   window.location.replace('/admin' + hash)
 }
 
