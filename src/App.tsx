@@ -63,6 +63,23 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Realtime profile subscription — refresh when teacher_request_status changes
+  const { user } = useAuthStore()
+  useEffect(() => {
+    if (!user) return
+    const channel = supabase
+      .channel(`profile:${user.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `id=eq.${user.id}`,
+      }, () => { loadProfile() })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
+
   // Back button → return to setup instead of leaving the app
   const prevPhaseRef = useRef(phase)
   useEffect(() => {
