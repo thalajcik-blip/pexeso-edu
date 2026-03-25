@@ -90,7 +90,7 @@ export default function AdminSettings() {
       if (aiErr) setError(aiErr.message)
       else if (aiData) {
         const v = aiData.value as AiProviderSettings
-        setSettings({ fallbackProvider: 'gemini', ...v })
+        setSettings({ ...v, fallbackProvider: v.fallbackProvider ?? 'gemini' })
       }
       if (rcData?.value) setGlobalTiers(rcData.value as Record<'cs' | 'sk' | 'en', TierConfig[]>)
       setLoading(false)
