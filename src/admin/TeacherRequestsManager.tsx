@@ -23,19 +23,10 @@ export default function TeacherRequestsManager() {
 
   async function fetchRequests() {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('teacher_requests')
-      .select(`id, user_id, school, reason, status, created_at, email, profiles!user_id(username)`)
-      .order('created_at', { ascending: false })
+    const { data, error } = await supabase.rpc('get_teacher_requests')
 
     if (error) setError(error.message)
-    else {
-      setRequests((data ?? []).map((r: any) => ({
-        ...r,
-        username: r.profiles?.username ?? null,
-        email: r.email ?? r.user_id,
-      })))
-    }
+    else setRequests((data ?? []) as TeacherRequest[])
     setLoading(false)
   }
 
