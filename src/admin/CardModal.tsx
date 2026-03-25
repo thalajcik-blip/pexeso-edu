@@ -68,6 +68,7 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
   const [uploading, setUploading]       = useState(false)
   const [saving, setSaving]             = useState(false)
   const [generating, setGenerating]     = useState(false)
+  const [generatingAnswers, setGeneratingAnswers] = useState(false)
   const [error, setError]               = useState('')
   const [isDragging, setIsDragging]     = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -130,6 +131,31 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
       setError('Chyba při generování: ' + String(e))
     }
     setGenerating(false)
+  }
+
+  async function handleGenerateFromQuestion() {
+    if (!question.trim()) { setError('Nejprve zadejte otázku.'); return }
+    setGeneratingAnswers(true)
+    setError('')
+    try {
+      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`
+      const resp = await fetch(fnUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ question: question.trim(), language, difficulty }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data?.error ?? `HTTP ${resp.status}`)
+      setAnswers(data.answers ?? [])
+      setFunFact(data.fun_fact)
+    } catch (e) {
+      setError('Chyba při generování: ' + String(e))
+    }
+    setGeneratingAnswers(false)
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -249,7 +275,20 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
 
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Otázka</label>
-              <Input value={question} onChange={e => setQuestion(e.target.value)} placeholder="např. Jak se jmenuje toto zvíře?" />
+              <div className="flex gap-2">
+                <Input value={question} onChange={e => setQuestion(e.target.value)} placeholder="např. Jak se jmenuje toto zvíře?" className="flex-1" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerateFromQuestion}
+                  disabled={generatingAnswers || !question.trim()}
+                  className="shrink-0 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                  title="Generovat odpovědi z otázky"
+                >
+                  {generatingAnswers ? '⏳' : '✨'}
+                </Button>
+              </div>
             </div>
 
             {/* Display count selector */}

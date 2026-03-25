@@ -34,6 +34,37 @@ const DIFFICULTY_CONFIG = {
   },
 }
 
+function buildPromptFromQuestion(question: string, language: string, difficulty: string): string {
+  const cfg = LANG_CONFIG[language as keyof typeof LANG_CONFIG] ?? LANG_CONFIG.cs
+  const diff = DIFFICULTY_CONFIG[difficulty as keyof typeof DIFFICULTY_CONFIG] ?? DIFFICULTY_CONFIG.medium
+  return `${cfg.scriptWarning ? `⚠️ LANGUAGE RULE: ${cfg.scriptWarning}\n\n` : ''}You are given a quiz question for an educational memory card game. Generate answer options and a fun fact for it.
+
+Question: "${question}"
+Difficulty level: ${difficulty.toUpperCase()}
+- Wrong answers style: ${diff.options}
+- Fun fact style: ${diff.fun_fact}
+
+Return JSON in this exact format (JSON only, no other text):
+{
+  "answers": [
+    {"text": "correct answer", "correct": true},
+    {"text": "wrong answer 2", "correct": false},
+    {"text": "wrong answer 3", "correct": false},
+    {"text": "wrong answer 4", "correct": false},
+    {"text": "wrong answer 5", "correct": false},
+    {"text": "wrong answer 6", "correct": false}
+  ],
+  "fun_fact": "..."
+}
+
+Rules:
+- ${cfg.scriptWarning ? `${cfg.scriptWarning}` : `Everything in ${cfg.lang} only`}
+- Provide exactly 1 correct answer and 5 wrong answers (6 total)
+- The correct answer must actually answer the question correctly
+- Wrong answers must be plausible but clearly wrong at the given difficulty level
+- Fun fact must be real, interesting, and related to the question topic`
+}
+
 function buildPrompt(label: string, language: string, difficulty: string): string {
   const cfg = LANG_CONFIG[language as keyof typeof LANG_CONFIG] ?? LANG_CONFIG.cs
   const diff = DIFFICULTY_CONFIG[difficulty as keyof typeof DIFFICULTY_CONFIG] ?? DIFFICULTY_CONFIG.medium
@@ -62,6 +93,7 @@ Rules:
 - ${cfg.scriptWarning ? `${cfg.scriptWarning}` : `Everything in ${cfg.lang} only`}
 - The correct answer must NOT be the label "${label}" itself or a trivial rephrasing of it. Ask about a fact, property, or characteristic of the subject — not its name.
 - Example for "George Washington": ask "How many terms did he serve?" not "Who was the first US president?"
+- CRITICAL: NEVER ask a question whose answer is directly readable or inferable from the label name itself. If the label contains a country, color, number, or other attribute — do NOT ask about that attribute. Example: for "český fúzač" do NOT ask "From which country does this breed come?" because "český" already reveals the answer. Instead ask about the breed's behavior, size, temperament, or use.
 - IMPORTANT: The player can already see the image on the card. NEVER ask about the visual appearance of the subject (e.g. "what color is it?", "what shape does it have?", "what does it look like?"). Instead ask about meaning, purpose, rules, required behavior, or real-world context.
 - Example for a "Stop sign": ask "What must a driver do when they see this sign?" not "What shape is this sign?"
 - Provide exactly 1 correct answer and 5 wrong answers (6 total) for variety
@@ -88,7 +120,7 @@ async function callClaude(prompt: string, apiKey: string, difficulty: string, la
   const langNote = language === 'cs'
     ? 'You MUST write ALL text exclusively in standard written Czech (spisovná čeština). Use ONLY Latin script — NEVER use Cyrillic, Devanagari, Arabic, Greek, or any other non-Latin characters or scripts. ALWAYS use correct diacritics — háčky and čárky are mandatory (e.g. "přechod", "řídit", "průjezd"). NEVER omit diacritics. NEVER use English words or phrases. NEVER invent words — use only real Czech words. Never use Slovak, Russian or any other language. If you are unsure of a Czech word, use a simpler synonym.'
     : language === 'sk'
-    ? 'You MUST write ALL text exclusively in standard written Slovak (spisovná slovenčina). Use ONLY Latin script — NEVER use Cyrillic, Devanagari, Arabic, Greek, or any other non-Latin characters or scripts. ALWAYS use correct diacritics — háčky, dĺžne and mäkčene are mandatory (e.g. "križovatka", "rýchlosť", "priechod"). NEVER omit diacritics. NEVER use English words or phrases — not even a single English word (e.g. write "ulice" not "streets", "hudobníci" not "musicians"). NEVER invent words — use only real Slovak words that exist in standard Slovak dictionaries. NEVER use Polish, Czech, Russian or any other language. If you are unsure of a Slovak word, use a simpler synonym.'
+    ? 'You MUST write ALL text exclusively in standard written Slovak (spisovná slovenčina). Use ONLY Latin script — NEVER use Cyrillic or any non-Latin script. ALWAYS use correct diacritics — háčky, dĺžne and mäkčene are mandatory (e.g. "križovatka", "rýchlosť", "priechod"). NEVER omit diacritics. NEVER invent words — use only real Slovak words. NEVER use Czech, Polish, Russian or any other language — not even a single word from another language. WATCH OUT for Czech words that look similar to Slovak: use "využívať" NOT "využívať", "rýb" NOT "ryb", "jazvec" NOT "jazavec", "chutný" NOT "chuťový", "oblasť" NOT "oblast", "výsledok" NOT "výsledek", "rovnaký" NOT "rovný" when meaning "same". If unsure about a Slovak word, use a simpler synonym rather than guessing.'
     : ''
 
   const diffNote = difficulty === 'easy'
@@ -111,7 +143,7 @@ async function callClaude(prompt: string, apiKey: string, difficulty: string, la
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 512,
+        max_tokens: 1024,
         system: systemPrompt,
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -129,7 +161,7 @@ async function callGemini(prompt: string, apiKey: string, difficulty: string, la
   const langNote = language === 'cs'
     ? 'You MUST write ALL text exclusively in standard written Czech (spisovná čeština). ALWAYS use correct diacritics — háčky and čárky are mandatory (e.g. "přechod", "řídit", "průjezd"). NEVER omit diacritics. NEVER invent words — use only real Czech words. Never use Cyrillic or any other language.'
     : language === 'sk'
-    ? 'You MUST write ALL text exclusively in standard written Slovak (spisovná slovenčina). ALWAYS use correct diacritics — háčky, dĺžne and mäkčene are mandatory (e.g. "križovatka", "rýchlosť", "priechod"). NEVER omit diacritics. NEVER invent words — use only real Slovak words. Never use Cyrillic or any other language.'
+    ? 'You MUST write ALL text exclusively in standard written Slovak (spisovná slovenčina). ALWAYS use correct diacritics — háčky, dĺžne and mäkčene are mandatory (e.g. "križovatka", "rýchlosť", "priechod"). NEVER omit diacritics. NEVER invent words — use only real Slovak words. NEVER use Czech, Polish, Russian or any other language. WATCH OUT for Czech words that look similar to Slovak: use "rýb" NOT "ryb", "jazvec" NOT "jazavec", "oblasť" NOT "oblast", "výsledok" NOT "výsledek". If unsure, use a simpler synonym.'
     : ''
 
   const diffNote = difficulty === 'easy'
@@ -205,9 +237,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { label, language = 'cs', difficulty = 'medium' } = await req.json()
-    if (!label) {
-      return new Response(JSON.stringify({ error: 'label is required' }), {
+    const { label, question: inputQuestion, language = 'cs', difficulty = 'medium' } = await req.json()
+    if (!label && !inputQuestion) {
+      return new Response(JSON.stringify({ error: 'label or question is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -215,7 +247,9 @@ Deno.serve(async (req) => {
 
     const claudeKey  = Deno.env.get('ANTHROPIC_API_KEY')
     const geminiKey  = Deno.env.get('GEMINI_API_KEY')
-    const prompt     = buildPrompt(label, language, difficulty)
+    const prompt     = inputQuestion
+      ? buildPromptFromQuestion(inputQuestion, language, difficulty)
+      : buildPrompt(label, language, difficulty)
     const aiSettings = await getAiSettings()
 
     const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
