@@ -12,9 +12,12 @@ import {
 } from '@/components/ui/navigation-menu'
 import { cn } from '@/lib/utils'
 
+type AiProvider = 'claude' | 'gemini' | 'openai'
+
 type AiProviderSettings = {
-  primary: 'claude' | 'gemini'
+  primary: AiProvider
   fallback: boolean
+  fallbackProvider: AiProvider
 }
 
 type TierConfig = { icon: string; title: string; messages: [string, string, string] }
@@ -53,9 +56,12 @@ const DEFAULT_GLOBAL: Record<'cs' | 'sk' | 'en', TierConfig[]> = {
   ],
 }
 
-const PROVIDER_LABELS = {
+const PROVIDERS: AiProvider[] = ['claude', 'gemini', 'openai']
+
+const PROVIDER_LABELS: Record<AiProvider, string> = {
   claude: 'Claude Haiku (Anthropic)',
   gemini: 'Gemini 2.5 Flash (Google)',
+  openai: 'GPT-4o mini (OpenAI)',
 }
 
 type View = 'ai' | 'results'
@@ -65,7 +71,7 @@ export default function AdminSettings() {
   const [loading, setLoading]   = useState(true)
 
   // AI provider
-  const [settings, setSettings] = useState<AiProviderSettings>({ primary: 'claude', fallback: true })
+  const [settings, setSettings] = useState<AiProviderSettings>({ primary: 'claude', fallback: true, fallbackProvider: 'gemini' })
   const [saving, setSaving]     = useState(false)
   const [saved, setSaved]       = useState(false)
   const [error, setError]       = useState('')
@@ -82,7 +88,10 @@ export default function AdminSettings() {
       supabase.from('admin_settings').select('value').eq('key', 'results_config').maybeSingle(),
     ]).then(([{ data: aiData, error: aiErr }, { data: rcData }]) => {
       if (aiErr) setError(aiErr.message)
-      else if (aiData) setSettings(aiData.value as AiProviderSettings)
+      else if (aiData) {
+        const v = aiData.value as AiProviderSettings
+        setSettings({ fallbackProvider: 'gemini', ...v })
+      }
       if (rcData?.value) setGlobalTiers(rcData.value as Record<'cs' | 'sk' | 'en', TierConfig[]>)
       setLoading(false)
     })
@@ -118,7 +127,7 @@ export default function AdminSettings() {
     }))
   }
 
-  const fallbackProvider = settings.primary === 'claude' ? 'gemini' : 'claude'
+  const otherProviders = PROVIDERS.filter(p => p !== settings.primary)
 
   return (
     <div className="max-w-lg">
@@ -156,7 +165,7 @@ export default function AdminSettings() {
             <div className="mb-4">
               <label className="block text-xs font-medium text-gray-600 mb-2">Primární model</label>
               <div className="flex flex-col gap-2">
-                {(['claude', 'gemini'] as const).map(p => (
+                {PROVIDERS.map(p => (
                   <label key={p} className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
                     settings.primary === p ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
                   }`}>
@@ -165,7 +174,10 @@ export default function AdminSettings() {
                       name="primary"
                       value={p}
                       checked={settings.primary === p}
-                      onChange={() => setSettings(s => ({ ...s, primary: p }))}
+                      onChange={() => setSettings(s => {
+                        const newFallback = s.fallbackProvider === p ? PROVIDERS.find(o => o !== p) ?? 'gemini' : s.fallbackProvider
+                        return { ...s, primary: p, fallbackProvider: newFallback }
+                      })}
                       className="accent-indigo-600"
                     />
                     <span className="text-sm text-gray-700">{PROVIDER_LABELS[p]}</span>
@@ -177,18 +189,40 @@ export default function AdminSettings() {
               </div>
             </div>
 
-            <label className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
-              <div>
-                <div className="text-sm text-gray-700">Fallback na {PROVIDER_LABELS[fallbackProvider]}</div>
-                <div className="text-xs text-gray-400 mt-0.5">Použije se automaticky pokud primární model selže</div>
-              </div>
-              <div
-                onClick={() => setSettings(s => ({ ...s, fallback: !s.fallback }))}
-                className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer ${settings.fallback ? 'bg-indigo-600' : 'bg-gray-200'}`}
-              >
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${settings.fallback ? 'translate-x-5' : 'translate-x-1'}`} />
-              </div>
-            </label>
+            <div className="rounded-xl border border-gray-200">
+              <label className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors rounded-xl">
+                <div>
+                  <div className="text-sm text-gray-700">Použít fallback provider</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Použije se automaticky pokud primární model selže</div>
+                </div>
+                <div
+                  onClick={() => setSettings(s => ({ ...s, fallback: !s.fallback }))}
+                  className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer shrink-0 ${settings.fallback ? 'bg-indigo-600' : 'bg-gray-200'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${settings.fallback ? 'translate-x-5' : 'translate-x-1'}`} />
+                </div>
+              </label>
+              {settings.fallback && (
+                <div className="px-4 pb-3 flex flex-col gap-1.5 border-t border-gray-100">
+                  <div className="text-xs font-medium text-gray-500 pt-2 mb-0.5">Fallback model</div>
+                  {otherProviders.map(p => (
+                    <label key={p} className={`flex items-center gap-3 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${
+                      settings.fallbackProvider === p ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="fallbackProvider"
+                        value={p}
+                        checked={settings.fallbackProvider === p}
+                        onChange={() => setSettings(s => ({ ...s, fallbackProvider: p }))}
+                        className="accent-indigo-600"
+                      />
+                      <span className="text-sm text-gray-700">{PROVIDER_LABELS[p]}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {error && <div className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</div>}

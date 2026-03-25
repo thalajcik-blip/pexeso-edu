@@ -157,6 +157,46 @@ async function callClaude(prompt: string, apiKey: string, difficulty: string, la
   }
 }
 
+async function callOpenAI(prompt: string, apiKey: string, difficulty: string, language: string) {
+  const langNote = language === 'cs'
+    ? 'You MUST write ALL text exclusively in standard written Czech (spisovná čeština). ALWAYS use correct diacritics — háčky and čárky are mandatory. NEVER omit diacritics. NEVER invent words — use only real Czech words. Never use Cyrillic or any other language.'
+    : language === 'sk'
+    ? 'You MUST write ALL text exclusively in standard written Slovak (spisovná slovenčina, Slovakia). ALWAYS use correct diacritics — háčky, dĺžne and mäkčene are mandatory. NEVER omit diacritics. NEVER invent words — use only real Slovak words. NEVER use Czech, Polish, Russian or any other language.'
+    : ''
+
+  const diffNote = difficulty === 'easy'
+    ? 'You write quiz questions for young children (ages 6–9). Use only very simple words. Questions must be obvious and trivial. Wrong answers must be clearly wrong, even silly. Never use technical terms, statistics, or complex concepts.'
+    : difficulty === 'hard'
+    ? 'You write challenging quiz questions for knowledgeable adults and teens. Questions should test precise, specific knowledge. Wrong answers should be highly plausible and require careful thinking to distinguish.'
+    : 'You write quiz questions for a general audience. Keep questions clear and fair.'
+
+  const systemPrompt = [langNote, diffNote].filter(Boolean).join(' ')
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 20000)
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 1024,
+        response_format: { type: 'json_object' },
+        messages: [
+          ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+          { role: 'user', content: prompt },
+        ],
+      }),
+      signal: controller.signal,
+    })
+    if (!response.ok) throw new Error(`OpenAI error: ${response.status} ${await response.text()}`)
+    const data = await response.json()
+    return parseResult(data.choices[0].message.content.trim())
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 async function callGemini(prompt: string, apiKey: string, difficulty: string, language: string, retries = 3): Promise<ReturnType<typeof parseResult>> {
   const langNote = language === 'cs'
     ? 'You MUST write ALL text exclusively in standard written Czech (spisovná čeština). ALWAYS use correct diacritics — háčky and čárky are mandatory (e.g. "přechod", "řídit", "průjezd"). NEVER omit diacritics. NEVER invent words — use only real Czech words. Never use Cyrillic or any other language.'
@@ -212,7 +252,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-async function getAiSettings(): Promise<{ primary: 'claude' | 'gemini'; fallback: boolean }> {
+async function getAiSettings(): Promise<{ primary: 'claude' | 'gemini' | 'openai'; fallback: boolean; fallbackProvider?: 'claude' | 'gemini' | 'openai' }> {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   if (!supabaseUrl || !serviceKey) return { primary: 'claude', fallback: true }
@@ -247,21 +287,25 @@ Deno.serve(async (req) => {
 
     const claudeKey  = Deno.env.get('ANTHROPIC_API_KEY')
     const geminiKey  = Deno.env.get('GEMINI_API_KEY')
+    const openaiKey  = Deno.env.get('OPENAI_API_KEY')
     const prompt     = inputQuestion
       ? buildPromptFromQuestion(inputQuestion, language, difficulty)
       : buildPrompt(label, language, difficulty)
     const aiSettings = await getAiSettings()
 
-    const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
-    const primaryCall = aiSettings.primary === 'claude'
-      ? (k: string) => callClaude(prompt, k, difficulty, language)
-      : (k: string) => callGemini(prompt, k, difficulty, language)
+    const getKey = (p: string) => p === 'gemini' ? geminiKey : p === 'openai' ? openaiKey : claudeKey
+    const getCall = (p: string) => p === 'gemini'
+      ? (k: string) => callGemini(prompt, k, difficulty, language)
+      : p === 'openai'
+      ? (k: string) => callOpenAI(prompt, k, difficulty, language)
+      : (k: string) => callClaude(prompt, k, difficulty, language)
 
-    const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
-    const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
-    const fallbackCall = fallbackProvider === 'claude'
-      ? (k: string) => callClaude(prompt, k, difficulty, language)
-      : (k: string) => callGemini(prompt, k, difficulty, language)
+    const fallbackProvider = aiSettings.fallbackProvider
+      ?? (aiSettings.primary === 'claude' ? 'gemini' : 'claude')
+    const primaryKey  = getKey(aiSettings.primary)
+    const primaryCall = getCall(aiSettings.primary)
+    const fallbackKey  = getKey(fallbackProvider)
+    const fallbackCall = getCall(fallbackProvider)
 
     let result
     let usedProvider = aiSettings.primary
