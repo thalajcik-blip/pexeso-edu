@@ -74,7 +74,7 @@ function parseResult(text: string) {
   }
 }
 
-async function getAiSettings(supabaseUrl: string, serviceKey: string): Promise<{ primary: 'claude' | 'gemini'; fallback: boolean }> {
+async function getAiSettings(supabaseUrl: string, serviceKey: string): Promise<{ primary: 'claude' | 'gemini' | 'openai'; fallback: boolean; fallbackProvider?: 'claude' | 'gemini' | 'openai' }> {
   try {
     const res = await fetch(`${supabaseUrl}/rest/v1/admin_settings?key=eq.ai_provider&select=value`, {
       headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` },
@@ -83,6 +83,44 @@ async function getAiSettings(supabaseUrl: string, serviceKey: string): Promise<{
     return data?.[0]?.value ?? { primary: 'claude', fallback: true }
   } catch {
     return { primary: 'claude', fallback: true }
+  }
+}
+
+async function callOpenAIRaw(prompt: string, apiKey: string): Promise<string> {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 256, messages: [{ role: 'user', content: prompt }] }),
+  })
+  if (!response.ok) throw new Error(`OpenAI error: ${response.status}`)
+  const data = await response.json()
+  return (data.choices?.[0]?.message?.content ?? '').trim().replace(/^"|"$/g, '')
+}
+
+async function callOpenAI(prompt: string, apiKey: string, target_lang = 'cs') {
+  const systemPrompt = LANG_SYSTEM_NOTE[target_lang] ?? 'You are a professional translator.'
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 20000)
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 1024,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt },
+        ],
+      }),
+      signal: controller.signal,
+    })
+    if (!response.ok) throw new Error(`OpenAI error: ${response.status}`)
+    const data = await response.json()
+    return parseResult(data.choices[0].message.content.trim())
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
@@ -189,15 +227,18 @@ Deno.serve(async (req) => {
       const rcPrompt = `Translate the following quiz result tier texts from ${LANG_NAMES[source_lang] ?? source_lang} to ${LANG_NAMES[target_lang] ?? target_lang}. ${alphabetNote}
 Each tier has a "title" and "messages" array. Translate all text fields. Return JSON only (same structure):
 ${tiersJson}`
-      const primaryKey = aiSettings.primary === 'claude' ? claudeKey : geminiKey
-      const primaryCall = aiSettings.primary === 'claude'
-        ? (k: string) => callClaude(rcPrompt, k, target_lang)
-        : (k: string) => callGemini(rcPrompt, k, target_lang)
-      const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
-      const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
-      const fallbackCall = fallbackProvider === 'claude'
-        ? (k: string) => callClaude(rcPrompt, k, target_lang)
-        : (k: string) => callGemini(rcPrompt, k, target_lang)
+      const openaiKey   = Deno.env.get('OPENAI_API_KEY')
+      const getKey = (p: string) => p === 'gemini' ? geminiKey : p === 'openai' ? openaiKey : claudeKey
+      const getCall = (p: string, prm: string) => p === 'gemini'
+        ? (k: string) => callGemini(prm, k, target_lang)
+        : p === 'openai'
+        ? (k: string) => callOpenAI(prm, k, target_lang)
+        : (k: string) => callClaude(prm, k, target_lang)
+      const fallbackProvider = aiSettings.fallbackProvider ?? (aiSettings.primary === 'claude' ? 'gemini' : 'claude')
+      const primaryKey = getKey(aiSettings.primary)
+      const primaryCall = getCall(aiSettings.primary, rcPrompt)
+      const fallbackKey  = getKey(fallbackProvider)
+      const fallbackCall = getCall(fallbackProvider, rcPrompt)
       let rcResult
       if (primaryKey) {
         try { rcResult = await primaryCall(primaryKey) }
@@ -224,11 +265,14 @@ ${tiersJson}`
       const aiSettings  = await getAiSettings(supabaseUrl, serviceKey)
       const alphabetNote = LANG_ALPHABET_NOTE[target_lang] ?? ''
       const textPrompt  = `Translate this text from ${LANG_NAMES[source_lang] ?? source_lang} to ${LANG_NAMES[target_lang] ?? target_lang}. ${alphabetNote} Return only the translated text, nothing else: ${body.text}`
-      const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
-      const primaryRaw  = aiSettings.primary === 'claude' ? callClaudeRaw : callGeminiRaw
-      const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
-      const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
-      const fallbackRaw  = fallbackProvider === 'claude' ? callClaudeRaw : callGeminiRaw
+      const openaiKey   = Deno.env.get('OPENAI_API_KEY')
+      const getKey = (p: string) => p === 'gemini' ? geminiKey : p === 'openai' ? openaiKey : claudeKey
+      const getRaw = (p: string) => p === 'gemini' ? callGeminiRaw : p === 'openai' ? callOpenAIRaw : callClaudeRaw
+      const fallbackProvider = aiSettings.fallbackProvider ?? (aiSettings.primary === 'claude' ? 'gemini' : 'claude')
+      const primaryKey  = getKey(aiSettings.primary)
+      const primaryRaw  = getRaw(aiSettings.primary)
+      const fallbackKey  = getKey(fallbackProvider)
+      const fallbackRaw  = getRaw(fallbackProvider)
       let translatedText: string
       if (primaryKey) {
         try { translatedText = await primaryRaw(textPrompt, primaryKey) }
@@ -256,19 +300,22 @@ ${tiersJson}`
     const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const claudeKey   = Deno.env.get('ANTHROPIC_API_KEY')
     const geminiKey   = Deno.env.get('GEMINI_API_KEY')
+    const openaiKey   = Deno.env.get('OPENAI_API_KEY')
     const aiSettings  = await getAiSettings(supabaseUrl, serviceKey)
 
     const prompt = buildPrompt(label ?? '', quiz_question, answers ?? null, quiz_options ?? null, quiz_correct ?? null, fun_fact ?? '', source_lang, target_lang)
 
-    const primaryKey  = aiSettings.primary === 'claude' ? claudeKey : geminiKey
-    const primaryCall = aiSettings.primary === 'claude'
-      ? (k: string) => callClaude(prompt, k, target_lang)
-      : (k: string) => callGemini(prompt, k, target_lang)
-    const fallbackProvider = aiSettings.primary === 'claude' ? 'gemini' : 'claude'
-    const fallbackKey  = fallbackProvider === 'claude' ? claudeKey : geminiKey
-    const fallbackCall = fallbackProvider === 'claude'
-      ? (k: string) => callClaude(prompt, k, target_lang)
-      : (k: string) => callGemini(prompt, k, target_lang)
+    const getKey = (p: string) => p === 'gemini' ? geminiKey : p === 'openai' ? openaiKey : claudeKey
+    const getCall = (p: string) => p === 'gemini'
+      ? (k: string) => callGemini(prompt, k, target_lang)
+      : p === 'openai'
+      ? (k: string) => callOpenAI(prompt, k, target_lang)
+      : (k: string) => callClaude(prompt, k, target_lang)
+    const fallbackProvider = aiSettings.fallbackProvider ?? (aiSettings.primary === 'claude' ? 'gemini' : 'claude')
+    const primaryKey  = getKey(aiSettings.primary)
+    const primaryCall = getCall(aiSettings.primary)
+    const fallbackKey  = getKey(fallbackProvider)
+    const fallbackCall = getCall(fallbackProvider)
 
     let result
     if (primaryKey) {
