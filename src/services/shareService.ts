@@ -102,7 +102,7 @@ function pickTextKey(ctx: ShareContext): string {
   return 'mp.loss'
 }
 
-function buildDeepLink(deckId: string, mode: 'pexequiz' | 'lightning', ctx: ShareContext): string {
+function buildDeepLink(deckId: string, mode: 'pexequiz' | 'lightning', ctx: ShareContext, from?: string): string {
   const slug = getDeckSlug(deckId)
   const modeParam = mode === 'lightning' ? 'bleskovy_kviz' : 'pexequiz'
   const params = new URLSearchParams({ set: slug, mode: modeParam })
@@ -113,6 +113,8 @@ function buildDeepLink(deckId: string, mode: 'pexequiz' | 'lightning', ctx: Shar
   } else if (ctx.kind === 'pexequiz_solo') {
     params.set('challenge', String(ctx.accuracy))
   }
+
+  if (from) params.set('from', from)
 
   return `https://pexedu.cz/?${params.toString()}`
 }
@@ -128,9 +130,10 @@ export async function shareResult(opts: {
   mode: 'pexequiz' | 'lightning'
   ctx: ShareContext
   language: Language
+  from?: string
 }) {
-  const { deckId, mode, ctx, language } = opts
-  const url  = buildDeepLink(deckId, mode, ctx)
+  const { deckId, mode, ctx, language, from } = opts
+  const url  = buildDeepLink(deckId, mode, ctx, from)
   const textKey = pickTextKey(ctx)
   const text = SHARE_TEXTS[textKey]?.[language] ?? SHARE_TEXTS[textKey]?.['cs'] ?? ''
   const full = `${text} ${url}`
@@ -148,18 +151,20 @@ export async function shareResult(opts: {
 }
 
 // Challenge banner text builders
-const CHALLENGE_BANNER: Record<Language, (score: number, time?: number) => string> = {
-  cs: (score, time) => time
-    ? `🎯 Někdo tě vyzývá! Dokážeš překonat ${score} % za ${time}s?`
-    : `🎯 Někdo tě vyzývá! Dokážeš překonat ${score} %?`,
-  sk: (score, time) => time
-    ? `🎯 Niekto ťa vyzýva! Dokážeš prekonať ${score} % za ${time}s?`
-    : `🎯 Niekto ťa vyzýva! Dokážeš prekonať ${score} %?`,
-  en: (score, time) => time
-    ? `🎯 Someone challenged you! Can you beat ${score}% in ${time}s?`
-    : `🎯 Someone challenged you! Can you beat ${score}%?`,
+const CHALLENGE_BANNER: Record<Language, (score: number, name: string, time?: number) => string> = {
+  cs: (score, name, time) => time
+    ? `🎯 ${name} tě vyzývá! Dokážeš překonat ${score} % za ${time}s?`
+    : `🎯 ${name} tě vyzývá! Dokážeš překonat ${score} %?`,
+  sk: (score, name, time) => time
+    ? `🎯 ${name} ťa vyzýva! Dokážeš prekonať ${score} % za ${time}s?`
+    : `🎯 ${name} ťa vyzýva! Dokážeš prekonať ${score} %?`,
+  en: (score, name, time) => time
+    ? `🎯 ${name} challenged you! Can you beat ${score}% in ${time}s?`
+    : `🎯 ${name} challenged you! Can you beat ${score}%?`,
 }
 
-export function buildChallengeBanner(score: number, language: Language, time?: number): string {
-  return (CHALLENGE_BANNER[language] ?? CHALLENGE_BANNER['cs'])(score, time)
+export function buildChallengeBanner(score: number, language: Language, name?: string, time?: number): string {
+  const FALLBACK: Record<Language, string> = { cs: 'Někdo', sk: 'Niekto', en: 'Someone' }
+  const displayName = name || FALLBACK[language] || FALLBACK['cs']
+  return (CHALLENGE_BANNER[language] ?? CHALLENGE_BANNER['cs'])(score, displayName, time)
 }

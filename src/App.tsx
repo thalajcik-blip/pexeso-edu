@@ -106,8 +106,9 @@ export default function App() {
     const mode = params.get('mode')
     const challenge = params.get('challenge')
     const time = params.get('time')
+    const from = params.get('from')
     if (set || mode || challenge) {
-      applyDeepLink({ set, mode, challenge, time })
+      applyDeepLink({ set, mode, challenge, time, from })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

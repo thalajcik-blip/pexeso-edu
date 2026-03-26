@@ -49,7 +49,7 @@ export default function SetupScreen() {
     lightningQuestionCount, setLightningQuestionCount,
     lightningTimeLimit, setLightningTimeLimit,
     startLightningGame,
-    challengeScore, challengeTime,
+    challengeScore, challengeTime, challengeFrom,
   } = useGameStore()
 
   const [customDecks, setCustomDecks] = useState<CustomDeckMeta[]>([])
@@ -257,7 +257,7 @@ export default function SetupScreen() {
             color: theme === 'dark' ? '#f9d74e' : '#92600a',
           }}
         >
-          {buildChallengeBanner(challengeScore, language, challengeTime ?? undefined)}
+          {buildChallengeBanner(challengeScore, language, challengeFrom ?? undefined, challengeTime ?? undefined)}
         </div>
       )}
 

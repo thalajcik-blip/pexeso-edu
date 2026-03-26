@@ -180,6 +180,7 @@ interface GameStore {
   // Challenge / deep-link
   challengeScore: number | null
   challengeTime: number | null
+  challengeFrom: string | null
 
   // Rules
   rulesOpen: boolean
@@ -209,7 +210,7 @@ interface GameStore {
   setNumPlayers: (n: number) => void
   setPlayerName: (i: number, name: string) => void
   setGameMode: (mode: 'pexequiz' | 'lightning') => void
-  applyDeepLink: (params: { set?: string | null; mode?: string | null; challenge?: string | null; time?: string | null }) => void
+  applyDeepLink: (params: { set?: string | null; mode?: string | null; challenge?: string | null; time?: string | null; from?: string | null }) => void
   setLightningQuestionCount: (n: number) => void
   setLightningTimeLimit: (t: number) => void
   startLightningGame: () => void
@@ -301,6 +302,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   quizSymbol: null,
   challengeScore: null,
   challengeTime: null,
+  challengeFrom: null,
   rulesOpen: false,
   isOnline: false,
   roomId: null,
@@ -329,7 +331,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     set({ playerNames: names })
   },
   setGameMode: (mode) => set({ gameMode: mode }),
-  applyDeepLink: ({ set: setParam, mode, challenge, time }) => {
+  applyDeepLink: ({ set: setParam, mode, challenge, time, from }) => {
     const SLUG_MAP: Record<string, string> = {
       vlajky: 'flags', zviratka: 'animals', 'ovoce-zelenina': 'fruits', povolani: 'jobs',
     }
@@ -339,6 +341,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     else if (mode === 'pexequiz') updates.gameMode = 'pexequiz'
     if (challenge) updates.challengeScore = parseInt(challenge)
     if (time)      updates.challengeTime  = parseFloat(time)
+    if (from)      updates.challengeFrom  = from
     if (Object.keys(updates).length) set(updates as any)
   },
   setLightningQuestionCount: (n) => set({ lightningQuestionCount: n }),

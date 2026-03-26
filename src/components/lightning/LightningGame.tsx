@@ -163,12 +163,14 @@ export default function LightningGame() {
   const myPlayerId                = useGameStore(s => s.myPlayerId)
   const customDeck                = useGameStore(s => s.customDeck)
   const selectedDeckId            = useGameStore(s => s.selectedDeckId)
+  const playerNames               = useGameStore(s => s.playerNames)
   const emojiReactions            = useGameStore(s => s.emojiReactions)
   const sendEmojiReact            = useGameStore(s => s.sendEmojiReact)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
-  const { user } = useAuthStore()
+  const { user, profile } = useAuthStore()
+  const sharerName = profile?.username ?? playerNames[0]
   const savedRef = useRef(false)
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
@@ -531,6 +533,7 @@ export default function LightningGame() {
                 ? { kind: 'multiplayer', result: onlineResult }
                 : { kind: 'lightning_solo', accuracy, avgTime: parseFloat(avgTimeS) || undefined },
               language,
+              from: sharerName,
             })}
             className="mt-2 w-full py-2.5 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80 border"
             style={{ background: 'transparent', borderColor: tc.btnInactiveBorder, color: tc.textMuted }}

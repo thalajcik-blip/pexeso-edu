@@ -152,10 +152,12 @@ export default function WinModal() {
   const rematchRequested = useGameStore(s => s.rematchRequested)
   const customDeck       = useGameStore(s => s.customDeck)
   const selectedDeckId   = useGameStore(s => s.selectedDeckId)
+  const playerNames      = useGameStore(s => s.playerNames)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
-  const { user, openAuthModal } = useAuthStore()
+  const { user, profile, openAuthModal } = useAuthStore()
+  const sharerName = profile?.username ?? playerNames[0]
   const savedRef = useRef(false)
 
   const isSolo = players.length === 1
@@ -271,6 +273,7 @@ export default function WinModal() {
               mode: 'pexequiz',
               ctx: { kind: 'pexequiz_solo', accuracy },
               language,
+              from: sharerName,
             })}
             className="mt-4 w-full py-2.5 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80 border"
             style={{ background: 'transparent', borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
@@ -412,6 +415,7 @@ export default function WinModal() {
             mode: 'pexequiz',
             ctx: { kind: 'multiplayer', result: resultKey },
             language,
+            from: sharerName,
           })}
           className="mt-1 w-full py-2 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80 border"
           style={{ background: 'transparent', borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
