@@ -136,7 +136,7 @@ const LIGHTNING_MULTI: Record<MultiResult, LightningTier> = {
 }
 
 // ── Audio player for audio-type decks ───────────────────────────────────────
-function AudioPlayer({ audioUrl, tc }: { audioUrl: string; tc: ReturnType<typeof import('../../data/themes').THEMES[keyof typeof import('../../data/themes').THEMES]> }) {
+function AudioPlayer({ audioUrl, tc }: { audioUrl: string; tc: import('../../data/themes').ThemeColors }) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playing, setPlaying] = useState(false)
 
