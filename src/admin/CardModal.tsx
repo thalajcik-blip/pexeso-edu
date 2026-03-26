@@ -1,6 +1,7 @@
 import { useState, useRef, useLayoutEffect } from 'react'
 import { supabase } from '../services/supabase'
 import CropModal from './CropModal'
+import AudioTrimModal from './AudioTrimModal'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +13,7 @@ export type CardData = {
   id?: string
   deck_id: string
   image_url: string
+  audio_url?: string
   label: string
   quiz_question: string
   quiz_options: [string, string, string, string]
@@ -50,16 +52,20 @@ type Props = {
   deckId: string
   language: 'cs' | 'sk' | 'en'
   difficulty: 'easy' | 'medium' | 'hard'
+  deckType?: 'image' | 'audio'
   card?: CardData
   sortOrder: number
   onSave: () => void
   onClose: () => void
 }
 
-export default function CardModal({ deckId, language, difficulty, card, sortOrder, onSave, onClose }: Props) {
+export default function CardModal({ deckId, language, difficulty, deckType = 'image', card, sortOrder, onSave, onClose }: Props) {
   const [imageUrl, setImageUrl]         = useState(card?.image_url ?? '')
   const [imagePreview, setImagePreview] = useState(card?.image_url ?? '')
   const [cropSrc, setCropSrc]           = useState<string | null>(null)
+  const [audioUrl, setAudioUrl]         = useState(card?.audio_url ?? '')
+  const [audioFile, setAudioFile]       = useState<File | null>(null)
+  const [audioTrimOpen, setAudioTrimOpen] = useState(false)
   const [label, setLabel]               = useState(card?.label ?? '')
   const [question, setQuestion]         = useState(card?.quiz_question ?? '')
   const [answers, setAnswers]           = useState<AnswerOption[]>(() => initAnswers(card))
@@ -71,7 +77,8 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
   const [generatingAnswers, setGeneratingAnswers] = useState(false)
   const [error, setError]               = useState('')
   const [isDragging, setIsDragging]     = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
+  const fileRef      = useRef<HTMLInputElement>(null)
+  const audioFileRef = useRef<HTMLInputElement>(null)
 
   useLayoutEffect(() => {
     const scrollY = window.scrollY
@@ -182,15 +189,41 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
     setUploading(false)
   }
 
+  async function handleAudioFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError('')
+    setAudioFile(file)
+    setAudioTrimOpen(true)
+    e.target.value = ''
+  }
+
+  async function handleAudioTrimmed(blob: Blob) {
+    setAudioTrimOpen(false)
+    setAudioFile(null)
+    setUploading(true)
+    setError('')
+    const path = `audio/${deckId}/${Date.now()}.wav`
+    const { error: uploadError } = await supabase.storage
+      .from('card-images')
+      .upload(path, blob, { upsert: true, contentType: 'audio/wav' })
+    if (uploadError) { setError('Chyba při nahrávání audia: ' + uploadError.message); setUploading(false); return }
+    const { data } = supabase.storage.from('card-images').getPublicUrl(path)
+    setAudioUrl(data.publicUrl)
+    setUploading(false)
+  }
+
   async function handleSave() {
-    if (!imageUrl) { setError('Nahrajte prosím obrázek.'); return }
+    if (deckType === 'audio' && !audioUrl) { setError('Nahrajte prosím audio soubor.'); return }
+    if (deckType === 'image' && !imageUrl) { setError('Nahrajte prosím obrázek.'); return }
     setSaving(true)
     setError('')
     const filledAnswers = answers.filter(a => a.text.trim())
     const correctAnswer = filledAnswers.find(a => a.correct)
     const payload = {
       deck_id:       deckId,
-      image_url:     imageUrl,
+      image_url:     deckType === 'audio' ? '' : imageUrl,
+      audio_url:     deckType === 'audio' ? audioUrl : null,
       label:         label || null,
       quiz_question: question || null,
       answers:       filledAnswers.length > 0 ? filledAnswers : null,
@@ -217,7 +250,8 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
             <DialogTitle>{card ? 'Upravit kartičku' : 'Nová kartička'}</DialogTitle>
           </DialogHeader>
 
-          {/* Image upload */}
+          {/* Image upload (image decks only) */}
+          {deckType === 'image' && (
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-2">Obrázek *</label>
             <div
@@ -246,6 +280,45 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
               </button>
             )}
           </div>
+          )}
+
+          {/* Audio upload (audio decks only) */}
+          {deckType === 'audio' && (
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-2">Audio soubor *</label>
+            <div
+              className="border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors"
+              style={{ minHeight: 100 }}
+              onClick={() => audioFileRef.current?.click()}
+            >
+              {audioUrl ? (
+                <div className="text-center py-4 px-4">
+                  <div className="text-3xl mb-1">🎵</div>
+                  <audio controls src={audioUrl} className="mt-1 max-w-full" onClick={e => e.stopPropagation()} />
+                </div>
+              ) : (
+                <div className="text-center py-6 px-4">
+                  <div className="text-3xl mb-2">🎵</div>
+                  <div className="text-sm text-gray-400">Klikněte pro nahrání audia</div>
+                  <div className="text-xs text-gray-300 mt-1">MP3, WAV, OGG, M4A</div>
+                </div>
+              )}
+            </div>
+            <input
+              ref={audioFileRef}
+              type="file"
+              accept="audio/*"
+              className="hidden"
+              onChange={handleAudioFileChange}
+            />
+            {uploading && <div className="text-xs text-indigo-500 mt-1">Nahrávání…</div>}
+            {audioUrl && !uploading && (
+              <button onClick={() => audioFileRef.current?.click()} className="text-xs text-indigo-500 hover:underline mt-1">
+                Změnit audio
+              </button>
+            )}
+          </div>
+          )}
 
           {/* Label */}
           <div>
@@ -407,6 +480,14 @@ export default function CardModal({ deckId, language, difficulty, card, sortOrde
           imageSrc={cropSrc}
           onCrop={handleCropped}
           onClose={() => setCropSrc(null)}
+        />
+      )}
+
+      {audioTrimOpen && audioFile && (
+        <AudioTrimModal
+          file={audioFile}
+          onConfirm={handleAudioTrimmed}
+          onClose={() => { setAudioTrimOpen(false); setAudioFile(null) }}
         />
       )}
     </>

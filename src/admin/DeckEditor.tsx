@@ -66,6 +66,7 @@ type Deck = {
   difficulty: 'easy' | 'medium' | 'hard'
   supported_modes: string[]
   thumbnail_url: string | null
+  deck_type: 'image' | 'audio'
 }
 
 type Props = {
@@ -101,6 +102,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number } | null>(null)
   const [translateError, setTranslateError] = useState('')
   const [supportedModes, setSupportedModes] = useState<string[]>(['pexequiz', 'lightning'])
+  const [deckType, setDeckType] = useState<'image' | 'audio'>('image')
   const [customizeResults, setCustomizeResults] = useState(false)
   const [resultsConfig, setResultsConfig] = useState<TierConfig[]>([])
   const [globalResultsDefaults, setGlobalResultsDefaults] = useState<Record<string, TierConfig[]> | null>(null)
@@ -140,6 +142,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           setResultsConfig(d.results_config as TierConfig[])
         }
         setThumbnailUrl(d.thumbnail_url ?? null)
+        setDeckType(d.deck_type ?? 'image')
       }
       setCards(c ?? [])
       setLoading(false)
@@ -158,9 +161,10 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       language,
       difficulty,
       status,
-      supported_modes: supportedModes.length > 0 ? supportedModes : ['pexequiz', 'lightning'],
+      deck_type: deckType,
+      supported_modes: deckType === 'audio' ? ['lightning'] : (supportedModes.length > 0 ? supportedModes : ['pexequiz', 'lightning']),
       results_config: customizeResults && resultsConfig.length === 6 ? resultsConfig : null,
-      thumbnail_url: thumbnailUrl,
+      thumbnail_url: deckType === 'audio' ? null : thumbnailUrl,
       updated_at: new Date().toISOString(),
     }
 
@@ -474,6 +478,22 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
 
           <div className="flex items-end gap-4 flex-wrap">
             <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Typ obsahu</label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-44 justify-between font-normal">
+                    {deckType === 'audio' ? '🎵 Audio' : '🖼️ Obrázky'}
+                    <ChevronDown className="size-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-44">
+                  <DropdownMenuItem onClick={() => setDeckType('image')}>🖼️ Obrázky</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDeckType('audio')}>🎵 Audio</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Jazyk sady</label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -778,6 +798,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           deckId={currentDeckId}
           language={language}
           difficulty={difficulty}
+          deckType={deckType}
           card={editCard === 'new' ? undefined : editCard}
           sortOrder={cards.length}
           onSave={() => { setEditCard(null); reloadCards() }}

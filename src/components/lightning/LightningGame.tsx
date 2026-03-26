@@ -135,6 +135,42 @@ const LIGHTNING_MULTI: Record<MultiResult, LightningTier> = {
   },
 }
 
+// ── Audio player for audio-type decks ───────────────────────────────────────
+function AudioPlayer({ audioUrl, tc }: { audioUrl: string; tc: ReturnType<typeof import('../../data/themes').THEMES[keyof typeof import('../../data/themes').THEMES]> }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [playing, setPlaying] = useState(false)
+
+  // Auto-play on mount (new question)
+  useEffect(() => {
+    const audio = new Audio(audioUrl)
+    audioRef.current = audio
+    audio.play().then(() => setPlaying(true)).catch(() => {})
+    audio.onended = () => setPlaying(false)
+    return () => { audio.pause(); audio.src = '' }
+  }, [audioUrl])
+
+  function toggle() {
+    const audio = audioRef.current
+    if (!audio) return
+    if (playing) { audio.pause(); setPlaying(false) }
+    else { audio.currentTime = 0; audio.play().then(() => setPlaying(true)).catch(() => {}) }
+  }
+
+  return (
+    <button
+      onClick={toggle}
+      className="flex flex-col items-center justify-center gap-2 rounded-2xl transition-transform hover:scale-105 active:scale-95"
+      style={{
+        width: 'clamp(80px, 22vw, 160px)',
+        height: 'clamp(80px, 22vw, 160px)',
+        background: tc.cardFront,
+      }}
+    >
+      <span style={{ fontSize: 'clamp(2rem, 10vw, 3.5rem)' }}>{playing ? '🔊' : '▶'}</span>
+    </button>
+  )
+}
+
 export default function LightningGame() {
   const phase                     = useGameStore(s => s.phase)
   const lightningQuestions        = useGameStore(s => s.lightningQuestions)
@@ -663,7 +699,9 @@ export default function LightningGame() {
 
       {/* Card visual */}
       <div className="flex justify-center mb-4">
-        {question.imageUrl ? (
+        {question.audioUrl ? (
+          <AudioPlayer key={question.audioUrl} audioUrl={question.audioUrl} tc={tc} />
+        ) : question.imageUrl ? (
           <img
             src={question.imageUrl}
             alt={question.label}

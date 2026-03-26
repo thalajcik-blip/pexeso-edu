@@ -19,6 +19,7 @@ export interface LightningQuestion {
   symbol: string       // emoji for static, pool key for custom
   label: string        // display name
   imageUrl?: string    // custom deck image
+  audioUrl?: string    // custom deck audio
   question: string
   options: string[]    // 4 shuffled options
   correct: string
@@ -32,6 +33,7 @@ export interface LightningAnswer {
 
 export interface CustomDeckCard {
   image_url: string
+  audio_url?: string   // audio deck support
   label: string
   quiz_question: string | null
   answers: AnswerOption[] | null        // flexible answer pool (new)
@@ -46,8 +48,9 @@ export interface CustomDeckData {
   id: string
   title: string
   language: string
-  thumbnail: string | null  // first card image_url
-  pool: Record<string, CustomDeckCard>  // keyed by image_url
+  deck_type: 'image' | 'audio'
+  thumbnail: string | null  // first card image_url (or null for audio decks)
+  pool: Record<string, CustomDeckCard>  // keyed by image_url or audio_url
   results_config: DeckResultsConfig | null
 }
 

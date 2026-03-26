@@ -33,6 +33,7 @@ type CustomDeckMeta = {
   title: string
   thumbnail: string | null
   supported_modes: string[]
+  deck_type: 'image' | 'audio'
 }
 
 
@@ -68,20 +69,32 @@ export default function SetupScreen() {
   useEffect(() => {
     supabase
       .from('custom_decks')
-      .select('id, title, status, supported_modes, thumbnail_url')
+      .select('id, title, status, supported_modes, thumbnail_url, deck_type')
       .eq('status', 'approved')
       .eq('language', language)
       .then(({ data }) => {
         if (!data) return
-        // Use thumbnail_url if set; fallback to first card image only when missing
+        // Use thumbnail_url if set; fallback to first card image only when missing; audio decks have no thumbnail
         Promise.all(
-          data.map(async (d: { id: string; title: string; supported_modes: string[] | null; thumbnail_url: string | null }) => {
+          data.map(async (d: { id: string; title: string; supported_modes: string[] | null; thumbnail_url: string | null; deck_type?: string }) => {
+            const deckType: 'image' | 'audio' = d.deck_type === 'audio' ? 'audio' : 'image'
+            // Audio decks: only lightning mode, no thumbnail needed
+            if (deckType === 'audio') {
+              return {
+                id: d.id,
+                title: d.title,
+                thumbnail: null,
+                supported_modes: ['lightning'],
+                deck_type: deckType,
+              }
+            }
             if (d.thumbnail_url) {
               return {
                 id: d.id,
                 title: d.title,
                 thumbnail: d.thumbnail_url,
                 supported_modes: d.supported_modes ?? ['pexequiz', 'lightning'],
+                deck_type: deckType,
               }
             }
             const { data: cards } = await supabase
@@ -95,6 +108,7 @@ export default function SetupScreen() {
               title: d.title,
               thumbnail: cards?.[0]?.image_url ?? null,
               supported_modes: d.supported_modes ?? ['pexequiz', 'lightning'],
+              deck_type: deckType,
             }
           })
         ).then(setCustomDecks)
@@ -106,10 +120,15 @@ export default function SetupScreen() {
     if (!full) return
     full.title = meta.title
     selectDeck(meta.id, full)
+    // Audio deck → force lightning mode
+    if (meta.deck_type === 'audio' && gameMode === 'pexequiz') setGameMode('lightning')
   }
 
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
+
+  const selectedCustomMeta = customDecks.find(cd => cd.id === selectedDeckId)
+  const isAudioDeck = selectedCustomMeta?.deck_type === 'audio'
 
   const { profile, openAuthModal, signOut, openSettingsModal, openDashboardModal } = useAuthStore()
   const isAdmin = profile?.roles?.some(r => r === 'teacher' || r === 'superadmin') ?? false
@@ -267,17 +286,21 @@ export default function SetupScreen() {
         <div>
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: tc.textMuted }}>{tr.gameModeLabel}</div>
           <div className="flex gap-3">
-            {([['pexequiz', '🃏', tr.modePexeQuiz], ['lightning', '🔥', tr.modeLightning]] as const).map(([mode, icon, label]) => (
-              <button
-                key={mode}
-                onClick={() => setGameMode(mode)}
-                className="flex-1 py-2.5 rounded-xl border-2 font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
-                style={gameMode === mode ? activeBtn : inactiveBtn}
-              >
-                <span>{icon}</span>
-                <span>{label}</span>
-              </button>
-            ))}
+            {([['pexequiz', '🃏', tr.modePexeQuiz], ['lightning', '🔥', tr.modeLightning]] as const).map(([mode, icon, label]) => {
+              const disabled = mode === 'pexequiz' && isAudioDeck
+              return (
+                <button
+                  key={mode}
+                  onClick={() => !disabled && setGameMode(mode)}
+                  disabled={disabled}
+                  className="flex-1 py-2.5 rounded-xl border-2 font-bold transition-all flex items-center justify-center gap-2"
+                  style={disabled ? { ...inactiveBtn, opacity: 0.35, cursor: 'not-allowed' } : gameMode === mode ? activeBtn : { ...inactiveBtn, cursor: 'pointer' }}
+                >
+                  <span>{icon}</span>
+                  <span>{label}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
 
