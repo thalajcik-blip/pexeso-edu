@@ -15,6 +15,7 @@ export interface Profile {
   created_at: string
   roles: string[]
   teacher_request_status: string | null
+  is_minor: boolean
 }
 
 export const LEVEL_XP = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000]
@@ -46,7 +47,7 @@ interface AuthStore {
 
   signInWithGoogle: () => Promise<void>
   signInWithEmail: (email: string, password: string) => Promise<string | null>
-  signUpWithEmail: (email: string, password: string) => Promise<string | null>
+  signUpWithEmail: (email: string, password: string, isMinor?: boolean) => Promise<string | null>
   signInWithMagicLink: (email: string) => Promise<string | null>
   signOut: () => Promise<void>
   deleteAccount: () => Promise<string | null>
@@ -115,7 +116,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     return error?.message ?? null
   },
 
-  signUpWithEmail: async (email, password) => {
+  signUpWithEmail: async (email, password, isMinor = false) => {
     localStorage.setItem('pexedu_oauth_player', '1')
     const { registrationType, teacherFormData } = get()
     const { error } = await supabase.auth.signUp({
@@ -126,6 +127,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           pexedu_intent: registrationType ?? 'player',
           pexedu_teacher_school: teacherFormData?.school ?? null,
           pexedu_teacher_reason: teacherFormData?.reason ?? null,
+          pexedu_is_minor: isMinor ? '1' : '0',
         },
       },
     })
@@ -260,6 +262,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       .update({ username, avatar_id: avatarId })
       .eq('id', user.id)
     if (error) return error.message
+    // GDPR-03: insert consent record for under-16 users
+    if (user.user_metadata?.pexedu_is_minor === '1') {
+      await supabase.from('child_consents').insert({
+        child_user_id: user.id,
+        consent_version: 'v1',
+      })
+    }
     set(s => ({
       profile: s.profile ? { ...s.profile, username, avatar_id: avatarId } : null,
       isOnboarding: false,
@@ -270,14 +279,15 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   registerAsPlayer: async () => {
     const { user } = get()
     if (!user) return 'Nie si prihlásený'
+    const isMinor = user.user_metadata?.pexedu_is_minor === '1'
     const { error } = await supabase
       .from('profiles')
-      .upsert({ id: user.id, roles: ['player'] }, { onConflict: 'id' })
+      .upsert({ id: user.id, roles: ['player'], is_minor: isMinor }, { onConflict: 'id' })
     if (error) return error.message
     set(s => ({
       profile: s.profile
-        ? { ...s.profile, roles: ['player'] }
-        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: true, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: null },
+        ? { ...s.profile, roles: ['player'], is_minor: isMinor }
+        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: true, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: null, is_minor: isMinor },
       showIntentScreen: false,
       registrationType: 'player',
     }))
@@ -287,9 +297,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   registerAsTeacher: async (school, reason) => {
     const { user } = get()
     if (!user) return 'Nie si prihlásený'
+    const isMinor = user.user_metadata?.pexedu_is_minor === '1'
     const { error: profileError } = await supabase
       .from('profiles')
-      .upsert({ id: user.id, roles: ['player'], teacher_request_status: 'pending' }, { onConflict: 'id' })
+      .upsert({ id: user.id, roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor }, { onConflict: 'id' })
     if (profileError) return profileError.message
     const { error: reqError } = await supabase
       .from('teacher_requests')
@@ -297,8 +308,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     if (reqError) return reqError.message
     set(s => ({
       profile: s.profile
-        ? { ...s.profile, roles: ['player'], teacher_request_status: 'pending' }
-        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: true, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: 'pending' },
+        ? { ...s.profile, roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor }
+        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: true, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor },
       showIntentScreen: false,
       registrationType: 'pending_teacher',
     }))
