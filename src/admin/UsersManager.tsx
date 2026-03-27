@@ -91,12 +91,6 @@ export default function UsersManager() {
     return 'Hráč'
   }
 
-  function roleValue(roles: string[]): string | null {
-    if (roles.includes('superadmin')) return 'superadmin'
-    if (roles.includes('teacher')) return 'teacher'
-    return null
-  }
-
   return (
     <div>
       <h1 className="text-xl font-bold text-gray-800 mb-6">Uživatelé</h1>
