@@ -28,8 +28,11 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
-    // Clean up related records first
+    // Clean up related records first (order matters: FKs without CASCADE)
     await adminClient.from('game_history').delete().eq('user_id', user.id)
+    await adminClient.from('teacher_requests').delete().eq('user_id', user.id)
+    // child_consents has FK ON DELETE CASCADE from profiles, but explicit deletion is safer
+    await adminClient.from('child_consents').delete().eq('child_user_id', user.id)
     await adminClient.from('profiles').delete().eq('id', user.id)
 
     const { error } = await adminClient.auth.admin.deleteUser(user.id)

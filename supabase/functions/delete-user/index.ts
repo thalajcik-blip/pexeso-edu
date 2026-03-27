@@ -43,6 +43,10 @@ Deno.serve(async (req) => {
     if (userId === caller.id) return new Response(JSON.stringify({ error: 'Cannot delete yourself' }), { status: 400, headers: corsHeaders })
 
     // Explicitly clean up related records first (FKs may lack ON DELETE CASCADE)
+    await adminClient.from('game_history').delete().eq('user_id', userId)
+    await adminClient.from('teacher_requests').delete().eq('user_id', userId)
+    // child_consents has FK ON DELETE CASCADE from profiles, but explicit deletion is safer
+    await adminClient.from('child_consents').delete().eq('child_user_id', userId)
     await adminClient.from('profiles').delete().eq('id', userId)
 
     const { error } = await adminClient.auth.admin.deleteUser(userId)
