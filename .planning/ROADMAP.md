@@ -202,8 +202,8 @@
 ## Open Questions (vyriešiť pred buildom príslušnej fázy)
 
 **Pred Phase 2 (do April 7):**
-- Anonymous play ako default student path? (Odporúčané: áno — hranie bez konta cez class join link, konto voliteľné. Vyžaduje product sign-off.)
-- Class code prefix format: `PX-XXXX` potvrdený? (Nesmie kolidovať s existujúcimi 6-char room codes.)
+- ✓ Anonymous play ako default student path — **ÁNO**. Žiaci hrajú cez class join link bez konta; konto je voliteľné.
+- ✓ Class code prefix format — **`PX-XXXX`** potvrdený.
 
 **Pred Phase 4 (do May 1):**
 - Daily challenge replay semantics: odporúčané — replay povolený, leaderboard počíta prvý play, personal best zobrazený zvlášť. Vyžaduje explicitné product rozhodnutie.

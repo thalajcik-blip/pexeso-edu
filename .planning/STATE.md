@@ -32,8 +32,8 @@ Phase 1: Základy a role systém (target: April 7)
 
 ## Key Decisions Pending
 
-- Anonymous play ako default student path? (vyriešiť pred Phase 2 buildom)
-- Class code prefix format: `PX-XXXX` confirmed?
+- ✓ Anonymous play = ÁNO (žiaci hrajú bez konta, konto voliteľné)
+- ✓ Class code prefix = `PX-XXXX`
 - Daily challenge replay semantics (vyriešiť pred Phase 4)
 - Pro tier cena (vyriešiť pred Phase 6)
 - `npm:stripe` Deno kompatibilita overiť (pred Phase 6 buildom)
