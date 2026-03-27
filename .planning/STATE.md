@@ -29,6 +29,7 @@ progress:
 - [x] ROADMAP.md created (6 phases)
 - [x] Phase 1 planned
 - [x] Phase 1 — Plan 01 (role migration) executed
+- [x] Phase 1 — Plan 02 (GDPR consent flows) executed
 
 ## Current Milestone
 
@@ -51,6 +52,8 @@ Phase 1: Základy a role systém (target: April 7)
 - ✓ Anonymous play = ÁNO (žiaci hrajú bez konta, konto voliteľné)
 - ✓ Class code prefix = `PX-XXXX`
 - ✓ profiles.roles[] is sole source of truth for admin roles; user_roles table dropped (Phase 01, Plan 01)
+- ✓ Storage objects in card-images are by deckId not userId — no user-specific storage cleanup needed in delete-account (Phase 01, Plan 02)
+- ✓ child_consents insert in completeOnboarding (not signUp) — profiles FK must exist first (Phase 01, Plan 02)
 - Daily challenge replay semantics (vyriešiť pred Phase 4)
 - Pro tier cena (vyriešiť pred Phase 6)
 - `npm:stripe` Deno kompatibilita overiť (pred Phase 6 buildom)
