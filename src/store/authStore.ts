@@ -282,12 +282,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     const isMinor = user.user_metadata?.pexedu_is_minor === '1'
     const { error } = await supabase
       .from('profiles')
-      .upsert({ id: user.id, roles: ['player'], is_minor: isMinor }, { onConflict: 'id' })
+      .upsert({ id: user.id, roles: ['player'], is_minor: isMinor, show_stats: !isMinor }, { onConflict: 'id' })
     if (error) return error.message
     set(s => ({
       profile: s.profile
-        ? { ...s.profile, roles: ['player'], is_minor: isMinor }
-        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: true, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: null, is_minor: isMinor },
+        ? { ...s.profile, roles: ['player'], is_minor: isMinor, show_stats: !isMinor }
+        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: !isMinor, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: null, is_minor: isMinor },
       showIntentScreen: false,
       registrationType: 'player',
     }))
@@ -300,7 +300,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     const isMinor = user.user_metadata?.pexedu_is_minor === '1'
     const { error: profileError } = await supabase
       .from('profiles')
-      .upsert({ id: user.id, roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor }, { onConflict: 'id' })
+      .upsert({ id: user.id, roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor, show_stats: !isMinor }, { onConflict: 'id' })
     if (profileError) return profileError.message
     const { error: reqError } = await supabase
       .from('teacher_requests')
@@ -308,8 +308,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     if (reqError) return reqError.message
     set(s => ({
       profile: s.profile
-        ? { ...s.profile, roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor }
-        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: true, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor },
+        ? { ...s.profile, roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor, show_stats: !isMinor }
+        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: !isMinor, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor },
       showIntentScreen: false,
       registrationType: 'pending_teacher',
     }))
