@@ -8,7 +8,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Základy a role systém** — Migrácia rolí, GDPR, technické opravy; bez toho nič iné nepobeží
+- [x] **Phase 1: Základy a role systém** — Migrácia rolí, GDPR, technické opravy; bez toho nič iné nepobeží (completed 2026-03-27)
 - [ ] **Phase 2: Triedy a učiteľský flow** — Classroom management, teacher dashboard pre pilota, settings
 - [ ] **Phase 3: Homepage a discovery** — Nová homepage živá do 30. apríla, browsing, search, featured sady
 - [ ] **Phase 4: Share, deep links a virálny rast** — OG images, share výsledku, deep linky, daily challenge, leaderboardy

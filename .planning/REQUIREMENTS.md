@@ -16,12 +16,12 @@
 
 ### GDPR & Compliance
 
-- [ ] **GDPR-01**: Age declaration checkbox pri registrácii ("Mám menej ako 16 rokov")
-- [ ] **GDPR-02**: Parental consent screen pre under-16 registrácie (zjednodušená privacy notice + consent checkbox)
-- [ ] **GDPR-03**: Consent record uložený do DB (`child_user_id`, `timestamp`, `consent_version`)
+- [x] **GDPR-01**: Age declaration checkbox pri registrácii ("Mám menej ako 16 rokov")
+- [x] **GDPR-02**: Parental consent screen pre under-16 registrácie (zjednodušená privacy notice + consent checkbox)
+- [x] **GDPR-03**: Consent record uložený do DB (`child_user_id`, `timestamp`, `consent_version`)
 - [ ] **GDPR-04**: Teacher declaration checkbox pri vytváraní triedy ("Škola má súhlas rodičov")
-- [ ] **GDPR-05**: Privacy-by-default pre under-16 účty (profil nie je verejný, žiadny leaderboard)
-- [ ] **GDPR-06**: `delete-account` Edge Function maže všetky PII (game results, XP, avatary zo Storage)
+- [x] **GDPR-05**: Privacy-by-default pre under-16 účty (profil nie je verejný, žiadny leaderboard)
+- [x] **GDPR-06**: `delete-account` Edge Function maže všetky PII (game results, XP, avatary zo Storage)
 
 ### Classroom Management
 
@@ -110,10 +110,10 @@
 
 ### Technical Fixes (required)
 
-- [ ] **TECH-01**: `game_start` broadcast — poslať iba card IDs, nie full card objects (fix pre 32KB Realtime limit)
-- [ ] **TECH-02**: `addXP` atomický RPC (viď GAME-05)
-- [ ] **TECH-03**: `rooms` RLS — restrict SELECT na host a participantov
-- [ ] **TECH-04**: Invite kód generovaný cez `crypto.getRandomValues()` (nie `Math.random()`)
+- [x] **TECH-01**: `game_start` broadcast — poslať iba card IDs, nie full card objects (fix pre 32KB Realtime limit)
+- [x] **TECH-02**: `addXP` atomický RPC (viď GAME-05)
+- [x] **TECH-03**: `rooms` RLS — restrict SELECT na host a participantov
+- [x] **TECH-04**: Invite kód generovaný cez `crypto.getRandomValues()` (nie `Math.random()`)
 
 ---
 
