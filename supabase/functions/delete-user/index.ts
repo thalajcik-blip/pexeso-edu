@@ -43,6 +43,10 @@ Deno.serve(async (req) => {
 
     // Explicitly clean up related records first (FKs may lack ON DELETE CASCADE)
     await adminClient.from('user_roles').delete().eq('user_id', userId)
+    await adminClient.from('game_history').delete().eq('user_id', userId)
+    await adminClient.from('teacher_requests').delete().eq('user_id', userId)
+    // child_consents has FK ON DELETE CASCADE from profiles, but explicit deletion is safer
+    await adminClient.from('child_consents').delete().eq('child_user_id', userId)
     await adminClient.from('profiles').delete().eq('id', userId)
 
     const { error } = await adminClient.auth.admin.deleteUser(userId)
