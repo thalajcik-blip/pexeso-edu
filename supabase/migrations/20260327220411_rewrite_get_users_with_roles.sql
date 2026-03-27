@@ -1,3 +1,5 @@
+DROP FUNCTION IF EXISTS get_users_with_roles();
+
 CREATE OR REPLACE FUNCTION get_users_with_roles()
 RETURNS TABLE (
   id           uuid,
