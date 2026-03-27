@@ -7,9 +7,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ChevronDown, Trash2 } from 'lucide-react'
 
 type UserRow = {
-  user_id: string
+  id: string
   email: string
-  role: string | null
+  roles: string[]
   created_at: string
   username: string | null
 }
@@ -23,7 +23,7 @@ export default function UsersManager() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting]       = useState(false)
 
-  const confirmDeleteUser = users.find(u => u.user_id === confirmDeleteId) ?? null
+  const confirmDeleteUser = users.find(u => u.id === confirmDeleteId) ?? null
 
   async function fetchUsers() {
     setLoading(true)
@@ -71,22 +71,30 @@ export default function UsersManager() {
 
   async function setRole(userId: string, newRole: string | null) {
     setSaving(userId)
-    setError('')
-    const hasRole = users.find(u => u.user_id === userId)?.role != null
-    let err
-    if (newRole === null) {
-      const res = await supabase.from('user_roles').delete().eq('user_id', userId)
-      err = res.error
-    } else if (hasRole) {
-      const res = await supabase.from('user_roles').update({ role: newRole }).eq('user_id', userId)
-      err = res.error
-    } else {
-      const res = await supabase.from('user_roles').insert({ user_id: userId, role: newRole })
-      err = res.error
-    }
-    if (err) setError(err.message)
+    const newRoles = newRole === null
+      ? ['player']
+      : newRole === 'superadmin'
+        ? ['superadmin', 'teacher', 'player']
+        : ['teacher', 'player']
+    const { error } = await supabase
+      .from('profiles')
+      .update({ roles: newRoles })
+      .eq('id', userId)
+    if (error) setError(error.message)
     await fetchUsers()
     setSaving(null)
+  }
+
+  function displayRole(roles: string[]): string {
+    if (roles.includes('superadmin')) return 'Superadmin'
+    if (roles.includes('teacher')) return 'Učitel'
+    return 'Hráč'
+  }
+
+  function roleValue(roles: string[]): string | null {
+    if (roles.includes('superadmin')) return 'superadmin'
+    if (roles.includes('teacher')) return 'teacher'
+    return null
   }
 
   return (
@@ -111,7 +119,7 @@ export default function UsersManager() {
             </thead>
             <tbody>
               {users.map(u => (
-                <tr key={u.user_id} className="border-b border-gray-50 last:border-0">
+                <tr key={u.id} className="border-b border-gray-50 last:border-0">
                   <td className="px-4 py-3 text-gray-700">{u.email}</td>
                   <td className="px-4 py-3 text-gray-500 text-sm">
                     {u.username ?? <span className="text-gray-300 italic">—</span>}
@@ -122,15 +130,15 @@ export default function UsersManager() {
                   <td className="px-4 py-3">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="w-36 justify-between font-normal text-xs" disabled={saving === u.user_id}>
-                          {u.role === 'teacher' ? 'Učitel' : u.role === 'superadmin' ? 'Superadmin' : 'Hráč'}
+                        <Button variant="outline" size="sm" className="w-36 justify-between font-normal text-xs" disabled={saving === u.id}>
+                          {displayRole(u.roles)}
                           <ChevronDown className="size-4 opacity-50" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-36">
-                        <DropdownMenuItem onClick={() => setRole(u.user_id, null)}>Hráč</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setRole(u.user_id, 'teacher')}>Učitel</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setRole(u.user_id, 'superadmin')}>Superadmin</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setRole(u.id, null)}>Hráč</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setRole(u.id, 'teacher')}>Učitel</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setRole(u.id, 'superadmin')}>Superadmin</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
@@ -138,7 +146,7 @@ export default function UsersManager() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setConfirmDeleteId(u.user_id)}
+                      onClick={() => setConfirmDeleteId(u.id)}
                       className="text-gray-300 hover:text-red-400 hover:bg-red-50 px-2"
                     >
                       <Trash2 className="size-4" />
