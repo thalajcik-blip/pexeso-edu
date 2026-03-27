@@ -9,10 +9,10 @@
 
 ### Role System
 
-- [ ] **ROLE-01**: User role system migrovaný z `user_roles` tabuľky na `profiles.roles[]`
-- [ ] **ROLE-02**: Intent screen — nový používateľ si vyberie rolu (player / teacher) pri registrácii
-- [ ] **ROLE-03**: Teacher request flow funguje cez `profiles.roles[]` (nie legacy `user_roles`)
-- [ ] **ROLE-04**: Admin app (`useAuth.ts`) číta roly z `profiles.roles[]`
+- [x] **ROLE-01**: User role system migrovaný z `user_roles` tabuľky na `profiles.roles[]`
+- [x] **ROLE-02**: Intent screen — nový používateľ si vyberie rolu (player / teacher) pri registrácii
+- [x] **ROLE-03**: Teacher request flow funguje cez `profiles.roles[]` (nie legacy `user_roles`)
+- [x] **ROLE-04**: Admin app (`useAuth.ts`) číta roly z `profiles.roles[]`
 
 ### GDPR & Compliance
 
