@@ -41,8 +41,6 @@ export default function TeacherRequestsManager() {
       teacher_request_status: 'approved',
     }).eq('id', req.user_id)
 
-    await supabase.from('user_roles').upsert({ user_id: req.user_id, role: 'teacher' }, { onConflict: 'user_id' })
-
     await supabase.from('teacher_requests').update({
       status: 'approved',
       reviewed_by: session?.user?.id,
