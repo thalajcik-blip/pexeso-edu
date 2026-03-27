@@ -78,9 +78,7 @@ export default function UsersManager() {
         ? ['superadmin', 'teacher', 'player']
         : ['teacher', 'player']
     const { error: err } = await supabase
-      .from('profiles')
-      .update({ roles: newRoles })
-      .eq('id', userId)
+      .rpc('set_user_roles', { target_id: userId, new_roles: newRoles })
     if (err) setError(err.message)
     await fetchUsers()
     setSaving(null)
