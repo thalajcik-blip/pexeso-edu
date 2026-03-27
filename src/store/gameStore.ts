@@ -684,9 +684,12 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       case 'lightning_answer':
         get()._applyLightningAnswer(action.playerId, action.answer, action.timeMs)
         break
-      case 'game_start':
-        get()._applyGameStart(action.cards, action.playerIds, action.playerNames, action.deckId, action.size, action.turnTime, action.quizTime, action.startingPlayer)
+      case 'game_start': {
+        // Reconstruct cards from received symbol strings — no quiz data in the broadcast payload
+        const receivedCards: CardData[] = action.cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' as const }))
+        get()._applyGameStart(receivedCards, action.playerIds, action.playerNames, action.deckId, action.size, action.turnTime, action.quizTime, action.startingPlayer)
         break
+      }
       case 'state_snapshot': {
         const myIndex = action.playerIds.indexOf(myPlayerId)
         set({
@@ -772,7 +775,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     if (isOnline) {
       const playerNames = players.map(p => p.name)
       const startingPlayer = Math.floor(Math.random() * playerIds.length)
-      broadcastGameAction({ type: 'game_start', cards, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize, turnTime, quizTime, startingPlayer })
+      broadcastGameAction({ type: 'game_start', cardSymbols, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize, turnTime, quizTime, startingPlayer })
       get()._applyGameStart(cards, playerIds, playerNames, selectedDeckId, selectedSize, turnTime, quizTime, startingPlayer)
     } else {
       const resetPlayers = players.map(p => ({ ...p, score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0 }))
@@ -945,7 +948,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const cardSymbols = shuffle([...symbols, ...symbols])
     const cards: CardData[] = cardSymbols.map((symbol, id) => ({ id, symbol, state: 'hidden' }))
     const startingPlayer = Math.floor(Math.random() * playerIds.length)
-    broadcastGameAction({ type: 'game_start', cards, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize, turnTime, quizTime, startingPlayer })
+    broadcastGameAction({ type: 'game_start', cardSymbols, playerIds, playerNames, deckId: selectedDeckId, size: selectedSize, turnTime, quizTime, startingPlayer })
     const myIndex = playerIds.indexOf(myPlayerId)
     get()._applyGameStart(cards, playerIds, playerNames, selectedDeckId, selectedSize, turnTime, quizTime, startingPlayer)
     if (myIndex >= 0) set({ myPlayerIndex: myIndex })

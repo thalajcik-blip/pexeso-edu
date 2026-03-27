@@ -43,7 +43,7 @@ export type GameAction =
   | { type: 'quiz_vote'; playerId: string; answer: string }
   | { type: 'answer_quiz'; correct: boolean }
   | { type: 'emoji_react'; playerId: string; emoji: string }
-  | { type: 'game_start'; cards: CardData[]; playerIds: string[]; playerNames: string[]; deckId: string; size: string; turnTime: number; quizTime: number; startingPlayer: number }
+  | { type: 'game_start'; cardSymbols: string[]; playerIds: string[]; playerNames: string[]; deckId: string; size: string; turnTime: number; quizTime: number; startingPlayer: number }
   | { type: 'state_snapshot'; phase: GamePhase; cards: CardData[]; players: Player[]; currentPlayer: number; quizSymbol: string | null; playerIds: string[] }
   | { type: 'rematch_request' }
   | { type: 'lightning_start'; questions: LightningQuestion[]; playerIds: string[]; playerNames: string[]; questionEndTime: number }
@@ -57,19 +57,26 @@ let myCurrentPresence: LobbyPlayer | null = null
 
 export function generateRoomCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+  const bytes = new Uint8Array(6)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, b => chars[b % chars.length]).join('')
 }
 
 export function getPlayerId(): string {
   let id = sessionStorage.getItem('qm_player_id')
   if (!id) {
-    id = Math.random().toString(36).slice(2) + Date.now().toString(36)
+    const bytes = new Uint8Array(8)
+    crypto.getRandomValues(bytes)
+    id = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
     sessionStorage.setItem('qm_player_id', id)
   }
   return id
 }
 
-export async function createRoomInDb(code: string, hostId: string, settings: RoomSettings): Promise<void> {
+export async function createRoomInDb(code: string, _legacyHostId: string, settings: RoomSettings): Promise<void> {
+  // Use authenticated user's UUID as host_id so RLS policies can match auth.uid()
+  const { data: { user } } = await supabase.auth.getUser()
+  const hostId = user?.id ?? _legacyHostId  // fallback to random string if unauthenticated (should not happen)
   const { error } = await supabase.from('rooms').insert({ id: code, host_id: hostId, settings })
   if (error) throw error
 }

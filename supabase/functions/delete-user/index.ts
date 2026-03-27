@@ -29,20 +29,24 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
-    const { data: roleRow } = await adminClient
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', caller.id)
-      .maybeSingle()
+    const { data: profileData } = await adminClient
+      .from('profiles')
+      .select('roles')
+      .eq('id', caller.id)
+      .single()
+    const targetIsSuperadmin = (profileData?.roles ?? []).includes('superadmin')
 
-    if (roleRow?.role !== 'superadmin') {
+    if (!targetIsSuperadmin) {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
     }
 
     if (userId === caller.id) return new Response(JSON.stringify({ error: 'Cannot delete yourself' }), { status: 400, headers: corsHeaders })
 
     // Explicitly clean up related records first (FKs may lack ON DELETE CASCADE)
-    await adminClient.from('user_roles').delete().eq('user_id', userId)
+    await adminClient.from('game_history').delete().eq('user_id', userId)
+    await adminClient.from('teacher_requests').delete().eq('user_id', userId)
+    // child_consents has FK ON DELETE CASCADE from profiles, but explicit deletion is safer
+    await adminClient.from('child_consents').delete().eq('child_user_id', userId)
     await adminClient.from('profiles').delete().eq('id', userId)
 
     const { error } = await adminClient.auth.admin.deleteUser(userId)

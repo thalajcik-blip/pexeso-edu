@@ -12,11 +12,14 @@ export function useAuth() {
 
   async function fetchRole(userId: string) {
     const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
+      .from('profiles')
+      .select('roles')
+      .eq('id', userId)
       .single()
-    setRole((data?.role as AdminRole) ?? null)
+    const roles: string[] = data?.roles ?? []
+    const role: AdminRole = roles.includes('superadmin') ? 'superadmin'
+      : roles.includes('teacher') ? 'teacher' : null
+    setRole(role)
   }
 
   useEffect(() => {
@@ -50,15 +53,13 @@ export function useAuth() {
   }
 
   async function signUp(email: string, password: string) {
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: `${window.location.origin}/admin` },
     })
     if (error) return error
-    if (data.user) {
-      await supabase.from('user_roles').insert({ user_id: data.user.id, role: 'teacher' })
-    }
+    // profiles row is created by DB trigger with roles: ['player'] — no manual insert needed
     return null
   }
 

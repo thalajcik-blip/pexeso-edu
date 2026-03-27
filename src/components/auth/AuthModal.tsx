@@ -5,7 +5,7 @@ import { THEMES } from '../../data/themes'
 
 type Tab = 'login' | 'register'
 type Method = 'email' | 'magic'
-type SignUpStep = 'intent' | 'teacher-form' | 'credentials'
+type SignUpStep = 'intent' | 'teacher-form' | 'age-check' | 'credentials'
 
 const TEXTS = {
   cs: {
@@ -33,6 +33,13 @@ const TEXTS = {
     reasonPlaceholder: 'Např. výuka angličtiny, přírodověda…',
     continueBtn: 'Pokračovat →',
     back: '← Zpět',
+    // Age check
+    ageCheckTitle: 'Věk a souhlas',
+    ageCheckUnder16: 'Je mi méně než 16 let',
+    // Parental consent
+    parentalConsentTitle: 'Souhlas rodiče',
+    parentalConsentNotice: 'Tato aplikace ukládá tvé přezdívku a výsledky her. Tvůj rodič nebo zákonný zástupce musí souhlasit se zpracováním. Data se používají pouze pro vzdělávací účely a nesdílí se s třetími stranami.',
+    parentalConsentCheckbox: 'Mám souhlas rodiče nebo zákonného zástupce',
   },
   sk: {
     login: 'Prihlásiť sa', register: 'Registrovať',
@@ -57,6 +64,13 @@ const TEXTS = {
     reasonPlaceholder: 'Napr. výučba angličtiny, prírodoveda…',
     continueBtn: 'Pokračovať →',
     back: '← Späť',
+    // Age check
+    ageCheckTitle: 'Vek a súhlas',
+    ageCheckUnder16: 'Mám menej ako 16 rokov',
+    // Parental consent
+    parentalConsentTitle: 'Súhlas rodiča',
+    parentalConsentNotice: 'Táto aplikácia ukladá tvoju prezývku a výsledky hier. Tvoj rodič alebo zákonný zástupca musí súhlasiť so spracovaním. Dáta sa používajú iba pre vzdelávacie účely a nezdieľajú sa s tretími stranami.',
+    parentalConsentCheckbox: 'Mám súhlas rodiča alebo zákonného zástupcu',
   },
   en: {
     login: 'Sign in', register: 'Sign up',
@@ -81,6 +95,13 @@ const TEXTS = {
     reasonPlaceholder: 'e.g. English vocabulary, science…',
     continueBtn: 'Continue →',
     back: '← Back',
+    // Age check
+    ageCheckTitle: 'Age & Consent',
+    ageCheckUnder16: 'I am under 16 years old',
+    // Parental consent
+    parentalConsentTitle: 'Parental Consent',
+    parentalConsentNotice: 'This app stores your nickname and game results. Your parent or legal guardian must consent to this processing. Data is used for educational purposes only and is not shared with third parties.',
+    parentalConsentCheckbox: 'I have parental or guardian consent',
   },
 }
 
@@ -99,6 +120,9 @@ export default function AuthModal() {
   const [password, setPassword] = useState('')
   const [school, setSchool]     = useState('')
   const [reason, setReason]     = useState('')
+  const [isUnder16, setIsUnder16] = useState(false)
+  const [parentalConsentChecked, setParentalConsentChecked] = useState(false)
+  const [showParentalConsent, setShowParentalConsent] = useState(false)
   const [error, setError]       = useState('')
   const [success, setSuccess]   = useState('')
   const [loading, setLoading]   = useState(false)
@@ -114,7 +138,7 @@ export default function AuthModal() {
   function handlePlayerIntent() {
     localStorage.setItem('pexedu_intent', 'player')
     useAuthStore.setState({ registrationType: 'player' })
-    setSignUpStep('credentials')
+    setSignUpStep('age-check')
     reset()
   }
 
@@ -125,7 +149,7 @@ export default function AuthModal() {
     localStorage.setItem('pexedu_intent', 'pending_teacher')
     localStorage.setItem('pexedu_teacher_form', JSON.stringify(formData))
     useAuthStore.setState({ registrationType: 'pending_teacher', teacherFormData: formData })
-    setSignUpStep('credentials')
+    setSignUpStep('age-check')
     reset()
   }
 
@@ -153,7 +177,7 @@ export default function AuthModal() {
       if (err) setError(err)
       else closeAuthModal()
     } else {
-      const err = await signUpWithEmail(email, password)
+      const err = await signUpWithEmail(email, password, isUnder16)
       setLoading(false)
       if (err) setError(err)
       else setSuccess(t.checkEmail)
@@ -275,10 +299,70 @@ export default function AuthModal() {
           </>
         )}
 
+        {/* ── SIGN UP — AGE CHECK ── */}
+        {tab === 'register' && signUpStep === 'age-check' && !showParentalConsent && (
+          <>
+            <button onClick={() => setSignUpStep('intent')} className="text-sm mb-4 opacity-50 hover:opacity-80 transition-opacity" style={{ color: tc.text }}>{t.back}</button>
+            <p className="text-base font-bold mb-4" style={{ color: tc.text }}>{t.ageCheckTitle}</p>
+            <div className="flex flex-col gap-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isUnder16}
+                  onChange={e => setIsUnder16(e.target.checked)}
+                  className="mt-1"
+                />
+                <span className="text-sm" style={{ color: tc.text }}>{t.ageCheckUnder16}</span>
+              </label>
+              <button
+                onClick={() => {
+                  if (isUnder16) {
+                    setShowParentalConsent(true)
+                  } else {
+                    setSignUpStep('credentials')
+                  }
+                }}
+                className="w-full py-2.5 rounded-xl font-bold text-sm transition-opacity hover:opacity-90 mt-1"
+                style={{ background: tc.accentGradient, color: tc.accentText }}
+              >
+                {t.continueBtn}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── SIGN UP — PARENTAL CONSENT ── */}
+        {tab === 'register' && signUpStep === 'age-check' && showParentalConsent && (
+          <>
+            <button onClick={() => setShowParentalConsent(false)} className="text-sm mb-4 opacity-50 hover:opacity-80 transition-opacity" style={{ color: tc.text }}>{t.back}</button>
+            <p className="text-base font-bold mb-4" style={{ color: tc.text }}>{t.parentalConsentTitle}</p>
+            <div className="flex flex-col gap-4">
+              <p className="text-sm" style={{ color: tc.textMuted }}>{t.parentalConsentNotice}</p>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={parentalConsentChecked}
+                  onChange={e => setParentalConsentChecked(e.target.checked)}
+                  className="mt-1"
+                />
+                <span className="text-sm" style={{ color: tc.text }}>{t.parentalConsentCheckbox}</span>
+              </label>
+              <button
+                disabled={!parentalConsentChecked}
+                onClick={() => setSignUpStep('credentials')}
+                className="w-full py-2.5 rounded-xl font-bold text-sm transition-opacity hover:opacity-90 disabled:opacity-50 mt-1"
+                style={{ background: tc.accentGradient, color: tc.accentText }}
+              >
+                {t.continueBtn}
+              </button>
+            </div>
+          </>
+        )}
+
         {/* ── SIGN UP — CREDENTIALS ── */}
         {tab === 'register' && signUpStep === 'credentials' && (
           <>
-            <button onClick={() => setSignUpStep('intent')} className="text-sm mb-4 opacity-50 hover:opacity-80 transition-opacity" style={{ color: tc.text }}>{t.back}</button>
+            <button onClick={() => setSignUpStep('age-check')} className="text-sm mb-4 opacity-50 hover:opacity-80 transition-opacity" style={{ color: tc.text }}>{t.back}</button>
 
             <button onClick={handleGoogleSignUp} className="w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mb-4 border transition-opacity hover:opacity-80" style={{ background: tc.btnInactiveBg, borderColor: tc.btnInactiveBorder, color: tc.text }}>
               <GoogleIcon />

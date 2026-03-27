@@ -88,23 +88,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ sent: 'admin_new_user' }), { status: 200 })
     }
 
-    // Trigger: user approved (insert into user_roles with a role assigned)
-    if (type === 'INSERT' && record?.user_id && record?.role) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-      const { data: userData } = await supabase.auth.admin.getUserById(record.user_id)
-      const userEmail = userData?.user?.email
-      if (!userEmail) return new Response(JSON.stringify({ skipped: 'no_email' }), { status: 200 })
-      await sendEmail(
-        userEmail,
-        '✅ Váš účet na Pexedu byl schválen',
-        `<p>Dobrý den,</p>
-         <p>váš účet na <strong>Pexedu</strong> byl schválen. Nyní se můžete přihlásit a začít vytvářet vlastní sady karet.</p>
-         <p><a href="https://pexedu.com/admin">Přejít do administrace →</a></p>
-         <p>Tým Pexedu</p>`
-      )
-      return new Response(JSON.stringify({ sent: 'user_approved' }), { status: 200 })
-    }
-
     return new Response(JSON.stringify({ skipped: true }), { status: 200 })
   } catch (err) {
     console.error(err)
