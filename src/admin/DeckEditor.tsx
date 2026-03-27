@@ -76,7 +76,10 @@ type Props = {
 }
 
 function generateCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase()
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  const bytes = new Uint8Array(4)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, b => chars[b % chars.length]).join('')
 }
 
 export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
