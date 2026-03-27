@@ -317,13 +317,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   addXP: async (amount) => {
-    const { user, profile } = get()
-    if (!user || !profile) return
-    const newXp = profile.xp + amount
-    const newLevel = getLevel(newXp)
-    await supabase.from('profiles').update({ xp: newXp, level: newLevel }).eq('id', user.id)
-    set(s => ({
-      profile: s.profile ? { ...s.profile, xp: newXp, level: newLevel } : null,
-    }))
+    const { user } = get()
+    if (!user) return
+    const { data, error } = await supabase.rpc('add_xp', {
+      p_user_id: user.id,
+      p_xp_delta: amount,
+    })
+    if (!error && data) {
+      set(s => ({
+        profile: s.profile
+          ? { ...s.profile, xp: data.xp, level: data.level }
+          : null,
+      }))
+    }
   },
 }))
