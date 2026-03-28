@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Copy, Check } from 'lucide-react'
 import { toast } from 'sonner'
+import QRCode from 'react-qr-code'
 import { Button } from '../ui/button'
 import { useGameStore } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
@@ -78,6 +79,9 @@ export default function InviteCodeDisplay({ inviteCode }: InviteCodeDisplayProps
       >
         {inviteCode}
       </p>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+        <QRCode value={joinLink} size={140} bgColor={tc.surface} fgColor={tc.text} />
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <span style={{ color: tc.textMuted, fontSize: 13 }}>{t.joinLink}:</span>
         <code style={{ color: tc.textDim, fontSize: 13, background: tc.inputBg, padding: '2px 8px', borderRadius: 6 }}>
