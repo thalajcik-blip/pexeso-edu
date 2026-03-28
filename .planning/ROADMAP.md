@@ -77,9 +77,10 @@ Plans:
 **Requirements:** HOME-01, HOME-02, HOME-03, HOME-04, HOME-05, HOME-06, HOME-07, HOME-08
 
 ### Plans
-1. **Homepage layout a navigation** — Discovery portál nahrádzajúci aktuálny setup screen; deck card komponenta (thumbnail, title, počet kariet, Play button); CSS fallback thumbnail pre audio decks (category color + title)
+1. **Homepage layout a navigation** — Discovery portál nahrádzajúci aktuálny setup screen; deck card komponenta (thumbnail, title, počet kariet, Play button); CSS fallback thumbnail pre audio decks (category color + title); shadcn komponenty, custom paleta (gold `#F5C400` + navy `#0F1726`), Tailwind dark/light mode
 2. **Browse a search** — Category chips (horizontálny scroll: Geography, Nature, Languages, Traffic Signs, Music, Animals); debounced 300ms search bar s `ilike` filter; featured sady spravované superadminom (`is_featured`, `featured_order`)
 3. **Contextual banners** — Daily challenge card (deck name, player count, "Play now" CTA); assigned decks banner pre prihlásených žiakov
+4. **Presun /teacher do /admin** — Classroom management presunúť pod `/admin/classes` a `/admin/classes/:id`; zjednotiť auth (vyhodiť `useAuthStore` z teacher komponentov, použiť `useAuth.ts`); migrovať teacher UI z THEMES inline styles na Tailwind/shadcn; pridať "Triedy" do admin sidebaru (viditeľné pre `teacher` + `superadmin`)
 
 ### Success Criteria
 - [ ] Neprihlásený návštevník vidí browse sekciu so sadami, category chips a search boxom
@@ -87,10 +88,19 @@ Plans:
 - [ ] Superadmin môže označiť sadu ako featured a nastaviť poradie; featured sady sa zobrazujú navrchu
 - [ ] Prihlásený žiak vidí banner s priradeniami od učiteľa
 - [ ] Audio sady zobrazujú farebnú fallback thumbnailovú kartu namiesto broken image
+- [ ] `/teacher` route neexistuje; učiteľ spravuje triedy na `/admin/classes`; `/join/PX-XXXX` stále funguje
+- [ ] Admin sidebar zobrazuje "Triedy" pre roly `teacher` aj `superadmin`
+
+### Design notes
+- Dizajn z Google Stitch (brief v `~/Downloads/pexedu_stitch_brief.md`) — implementovať až po schválení dizajnu
+- shadcn komponenty, Tailwind dark/light mode (`@custom-variant dark` už nakonfigurovaný)
+- Custom CSS vars: `--color-accent: #F5C400`, `--color-bg: #0F1726` pre homepage (oddelené od game THEMES)
+- Accessibility: semantic HTML, aria labels, keyboard navigácia
 
 ### Dependencies
 - Phase 1 musí byť kompletná
 - Phase 2 môže bežať paralelne (triedy nie sú prerekvizit pre homepage)
+- Dizajn z Google Stitch musí byť schválený pred implementáciou Plánu 1
 
 **UI hint**: yes
 
