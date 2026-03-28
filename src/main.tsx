@@ -32,7 +32,7 @@ createRoot(document.getElementById('root')!).render(
     {isAdmin
       ? <BrowserRouter><AdminApp /></BrowserRouter>
       : isTeacher
-        ? <BrowserRouter><TeacherDashboard /></BrowserRouter>
+        ? <BrowserRouter basename="/teacher"><TeacherDashboard /></BrowserRouter>
         : isProfile
           ? <ProfilePage />
           : isJoin
