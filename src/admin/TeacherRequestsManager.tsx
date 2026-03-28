@@ -78,6 +78,19 @@ export default function TeacherRequestsManager() {
       reviewed_at: new Date().toISOString(),
     }).eq('id', req.id)
 
+    // Email notification — rejection
+    try {
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ type: 'teacher_rejected', userId: req.user_id }),
+      })
+    } catch { /* email failure is non-critical */ }
+
     await fetchRequests()
     setSaving(null)
   }
