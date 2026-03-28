@@ -46,10 +46,10 @@
 **Goal:** Pilotný učiteľ vie vytvoriť triedu, zdieľať kód, žiaci sa pripoja a on vidí ich výsledky — všetko live do 15. apríla
 **Target:** April 15 (tvrdý milestone: prvý pilotný učiteľ)
 **Requirements:** CLASS-01, CLASS-02, CLASS-03, CLASS-04, CLASS-05, CLASS-06, CLASS-07, CLASS-08, GDPR-04, TADMIN-01, TADMIN-02, TADMIN-03, TADMIN-04, SET-01, SET-02, SET-03, SET-04, DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-07
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
-- [ ] 02-01-PLAN.md — Classroom schema + RLS (tables, SECURITY DEFINER helpers, policies, TypeScript types)
+- [x] 02-01-PLAN.md — Classroom schema + RLS (tables, SECURITY DEFINER helpers, policies, TypeScript types)
 - [ ] 02-02-PLAN.md — Classroom UI teacher side (classroomStore, /teacher route, create class, invite code, assign deck, roster)
 - [ ] 02-03-PLAN.md — Classroom UI student side (/join/PX-XXXX route, assigned decks banner)
 - [ ] 02-04-PLAN.md — Teacher dashboard analytics (class results with color coding, CSV export, onboarding checklist)

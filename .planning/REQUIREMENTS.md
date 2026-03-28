@@ -19,20 +19,20 @@
 - [x] **GDPR-01**: Age declaration checkbox pri registrácii ("Mám menej ako 16 rokov")
 - [x] **GDPR-02**: Parental consent screen pre under-16 registrácie (zjednodušená privacy notice + consent checkbox)
 - [x] **GDPR-03**: Consent record uložený do DB (`child_user_id`, `timestamp`, `consent_version`)
-- [ ] **GDPR-04**: Teacher declaration checkbox pri vytváraní triedy ("Škola má súhlas rodičov")
+- [x] **GDPR-04**: Teacher declaration checkbox pri vytváraní triedy ("Škola má súhlas rodičov")
 - [x] **GDPR-05**: Privacy-by-default pre under-16 účty (profil nie je verejný, žiadny leaderboard)
 - [x] **GDPR-06**: `delete-account` Edge Function maže všetky PII (game results, XP, avatary zo Storage)
 
 ### Classroom Management
 
-- [ ] **CLASS-01**: Teacher vytvára triedu s názvom a vygenerovaným invite kódom (`PX-XXXX`)
+- [x] **CLASS-01**: Teacher vytvára triedu s názvom a vygenerovaným invite kódom (`PX-XXXX`)
 - [ ] **CLASS-02**: Žiak sa pripojí do triedy cez invite kód alebo invite link
 - [ ] **CLASS-03**: Teacher vidí zoznam žiakov v triede (username, avatar, last active)
 - [ ] **CLASS-04**: Teacher priradzuje sadu (built-in alebo custom deck) triede
 - [ ] **CLASS-05**: Žiak vidí priradené sady v svojom dashboarde
 - [ ] **CLASS-06**: Join by invite link — `pexedu.cz/join/PX-XXXX` automaticky pridá žiaka do triedy po prihlásení
-- [ ] **CLASS-07**: RLS politiky pre triedy — teacher vidí len svoje triedy, žiak len svoje členstvá
-- [ ] **CLASS-08**: Invite kód je permanentný (bez expiry pre MVP)
+- [x] **CLASS-07**: RLS politiky pre triedy — teacher vidí len svoje triedy, žiak len svoje členstvá
+- [x] **CLASS-08**: Invite kód je permanentný (bez expiry pre MVP)
 
 ### Teacher Request Admin
 
