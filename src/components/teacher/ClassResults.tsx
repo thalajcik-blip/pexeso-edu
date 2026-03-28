@@ -265,7 +265,7 @@ export default function ClassResults({ classId, assignment, className }: Props) 
           variant="outline"
           size="sm"
           onClick={downloadCSV}
-          style={{ borderColor: tc.surfaceBorder, color: tc.textMuted, fontSize: 12 }}
+          style={{ borderColor: tc.surfaceBorder, color: tc.textMuted, fontSize: 12, background: 'transparent' }}
         >
           {t.exportCsv}
         </Button>
