@@ -41,9 +41,9 @@ function buildLightningQuestions(
   const isEn = language === 'en'
 
   if (isCustom) {
-    const symbols = shuffle(Object.keys(customDeck.pool))
-    const selected = count === 0 ? symbols : symbols.slice(0, count)
-    return selected.flatMap((symbol): LightningQuestion[] => {
+    // Build all valid questions first, then slice — so skipped cards (no quiz) don't reduce the count
+    const allSymbols = shuffle(Object.keys(customDeck.pool))
+    const allQuestions = allSymbols.flatMap((symbol): LightningQuestion[] => {
       const item = customDeck.pool[symbol]
       // New: use flexible answer pool
       if (item.answers && item.answers.length > 0) {
@@ -77,6 +77,7 @@ function buildLightningQuestions(
       }
       return []
     })
+    return count === 0 ? allQuestions : allQuestions.slice(0, count)
   }
 
   const deck = DECKS.find(d => d.id === deckId) ?? DECKS[0]
