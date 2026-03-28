@@ -67,6 +67,11 @@ export default function BulkAudioUploadModal({ deckId, language, difficulty, sta
     })
   }
 
+  function removeCard(index: number) {
+    setCards(prev => prev.filter((_, i) => i !== index))
+    setTrimIndex(null)
+  }
+
   function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
     addFiles(Array.from(e.target.files ?? []))
     e.target.value = ''
@@ -222,7 +227,14 @@ export default function BulkAudioUploadModal({ deckId, language, difficulty, sta
           {cards.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {cards.map((card, i) => (
-                <div key={i} className={`bg-white rounded-xl border shadow-sm overflow-hidden ${card.saved ? 'border-green-200' : 'border-gray-100'}`}>
+                <div key={i} className={`bg-white rounded-xl border shadow-sm overflow-hidden relative ${card.saved ? 'border-green-200' : 'border-gray-100'}`}>
+                  {!card.saved && (
+                    <button
+                      onClick={() => removeCard(i)}
+                      className="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-gray-200 hover:bg-red-100 hover:text-red-500 text-gray-400 text-xs flex items-center justify-center leading-none"
+                      title="Odstranit"
+                    >×</button>
+                  )}
                   {/* Audio preview */}
                   <div className="bg-gray-50 relative flex flex-col items-center justify-center py-4 px-3 gap-2" style={{ minHeight: 100 }}>
                     {card.trimmedBlob ? (
