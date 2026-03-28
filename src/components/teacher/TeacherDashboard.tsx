@@ -20,6 +20,10 @@ const TEXTS = {
     myClasses: 'Moje třídy',
     createClass: '+ Vytvořit třídu',
     noClasses: 'Zatím nemáte žádné třídy.',
+    deleteClass: 'Smazat třídu',
+    deleteConfirm: 'Opravdu smazat?',
+    deleteYes: 'Smazat',
+    deleteNo: 'Zrušit',
     students: 'žáků',
     lastActivity: 'Poslední aktivita',
     never: 'nikdy',
@@ -45,6 +49,10 @@ const TEXTS = {
     myClasses: 'Moje triedy',
     createClass: '+ Vytvoriť triedu',
     noClasses: 'Zatiaľ nemáte žiadne triedy.',
+    deleteClass: 'Zmazať triedu',
+    deleteConfirm: 'Naozaj zmazať?',
+    deleteYes: 'Zmazať',
+    deleteNo: 'Zrušiť',
     students: 'žiakov',
     lastActivity: 'Posledná aktivita',
     never: 'nikdy',
@@ -70,6 +78,10 @@ const TEXTS = {
     myClasses: 'My classes',
     createClass: '+ Create class',
     noClasses: 'No classes yet.',
+    deleteClass: 'Delete class',
+    deleteConfirm: 'Really delete?',
+    deleteYes: 'Delete',
+    deleteNo: 'Cancel',
     students: 'students',
     lastActivity: 'Last activity',
     never: 'never',
@@ -113,11 +125,13 @@ function ClassListView() {
   const language = useGameStore(s => s.language)
   const tc = THEMES[theme]
   const t = TEXTS[language]
-  const { classes, loading, fetchClasses } = useClassroomStore()
+  const { classes, loading, fetchClasses, deleteClass } = useClassroomStore()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(
     () => localStorage.getItem('pexedu_onboarding_dismissed') !== 'true'
   )
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchClasses()
@@ -167,22 +181,59 @@ function ClassListView() {
           <div
             key={cls.id}
             style={cardStyle}
-            onClick={() => navigate(`/class/${cls.id}`)}
+            onClick={() => confirmDeleteId !== cls.id && navigate(`/class/${cls.id}`)}
             onMouseEnter={e => (e.currentTarget.style.borderColor = tc.accentBorderActive)}
             onMouseLeave={e => (e.currentTarget.style.borderColor = tc.surfaceBorder)}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontWeight: 700, fontSize: 16, color: tc.text }}>{cls.name}</span>
-              <Badge
-                style={{
-                  background: tc.accentBgActive,
-                  color: tc.accent,
-                  border: `1px solid ${tc.accentBorderActive}`,
-                  fontWeight: 600,
-                }}
-              >
-                {cls.student_count} {t.students}
-              </Badge>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Badge
+                  style={{
+                    background: tc.accentBgActive,
+                    color: tc.accent,
+                    border: `1px solid ${tc.accentBorderActive}`,
+                    fontWeight: 600,
+                  }}
+                >
+                  {cls.student_count} {t.students}
+                </Badge>
+                {confirmDeleteId === cls.id ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={e => e.stopPropagation()}>
+                    <span style={{ color: tc.errorColor, fontSize: 13 }}>{t.deleteConfirm}</span>
+                    <Button
+                      size="sm"
+                      disabled={deleting}
+                      onClick={async () => {
+                        setDeleting(true)
+                        await deleteClass(cls.id)
+                        setDeleting(false)
+                        setConfirmDeleteId(null)
+                      }}
+                      style={{ background: tc.errorColor, color: '#fff', border: 'none', fontSize: 12 }}
+                    >
+                      {t.deleteYes}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setConfirmDeleteId(null)}
+                      style={{ borderColor: tc.surfaceBorder, color: tc.textMuted, background: 'transparent', fontSize: 12 }}
+                    >
+                      {t.deleteNo}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={e => { e.stopPropagation(); setConfirmDeleteId(cls.id) }}
+                    style={{ borderColor: tc.errorColor, color: tc.errorColor, background: 'transparent', fontSize: 12 }}
+                  >
+                    {t.deleteClass}
+                  </Button>
+                )}
+              </div>
             </div>
             <span style={{ color: tc.textMuted, fontSize: 12 }}>
               {t.lastActivity}: {formatRelativeTime(cls.last_activity, t.never)}

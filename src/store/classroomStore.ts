@@ -26,6 +26,7 @@ interface ClassroomStore {
 
   fetchClasses: () => Promise<void>
   createClass: (name: string) => Promise<{ error: string } | { inviteCode: string }>
+  deleteClass: (classId: string) => Promise<string | null>
   fetchClassDetail: (classId: string) => Promise<void>
   assignDeck: (classId: string, setSlug: string | null, customDeckId: string | null) => Promise<string | null>
   removeAssignment: (assignmentId: string) => Promise<string | null>
@@ -118,6 +119,13 @@ export const useClassroomStore = create<ClassroomStore>((set, get) => ({
     }
 
     return { error: lastError ?? 'Failed to create class after multiple attempts' }
+  },
+
+  deleteClass: async (classId: string) => {
+    const { error } = await supabase.from('classes').delete().eq('id', classId)
+    if (error) return error.message
+    await get().fetchClasses()
+    return null
   },
 
   fetchClassDetail: async (classId: string) => {
