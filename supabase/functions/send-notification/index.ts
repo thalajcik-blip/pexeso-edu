@@ -71,6 +71,41 @@ serve(async (req) => {
       return new Response(JSON.stringify({ sent: 'teacher_approved' }), { status: 200 })
     }
 
+    // ── Manual call: teacher rejected via admin panel ──────────────────────
+    if (type === 'teacher_rejected' && userId) {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+      const { data: userData } = await supabase.auth.admin.getUserById(userId)
+      const userEmail = userData?.user?.email
+      if (!userEmail) return new Response(JSON.stringify({ skipped: 'no_email' }), { status: 200 })
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', userId)
+        .maybeSingle()
+      const name = profile?.username ?? userEmail
+
+      await sendEmail(
+        userEmail,
+        'Informace o vaší žádosti na Pexedu',
+        `<!DOCTYPE html>
+        <html>
+        <body style="font-family:sans-serif;background:#f5f5f5;padding:32px;">
+          <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;padding:32px;">
+            <h2 style="margin:0 0 8px;color:#1a1a2e;">Vaše žádost nebyla schválena</h2>
+            <p style="color:#555;margin:0 0 16px;">Ahoj ${name},</p>
+            <p style="color:#555;margin:0 0 16px;">
+              Bohužel, vaše žádost o učitelský účet na <strong>Pexedu</strong> nebyla tentokrát schválena.
+              Pokud si myslíte, že jde o omyl, kontaktujte nás na hello@pexedu.com.
+            </p>
+            <p style="color:#aaa;font-size:12px;margin:0;">Tým Pexedu &middot; pexedu.com</p>
+          </div>
+        </body>
+        </html>`
+      )
+      return new Response(JSON.stringify({ sent: 'teacher_rejected' }), { status: 200 })
+    }
+
     // ── DB trigger: new user registered (INSERT into auth.users) ────────────
     // Trigger: new user registered (insert into auth.users via DB webhook)
     if (type === 'INSERT' && record?.email) {
