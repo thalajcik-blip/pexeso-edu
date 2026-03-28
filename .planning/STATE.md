@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 2
 status: Ready to plan
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-27T21:14:10.223Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-28T09:26:11.820Z"
 progress:
   total_phases: 6
   completed_phases: 1
@@ -30,6 +30,8 @@ progress:
 - [x] Phase 1 planned
 - [x] Phase 1 — Plan 01 (role migration) executed
 - [x] Phase 1 — Plan 02 (GDPR consent flows) executed
+- [x] Phase 2 — Plan 01 (classroom schema + TypeScript types) executed
+- [x] Phase 2 — Plan 02 (teacher UI: classroomStore + dashboard + modals + /teacher route) executed
 
 ## Current Milestone
 
@@ -66,11 +68,12 @@ Phase 1: Základy a role systém (target: April 7)
 | 01 | 01 | 125s | 3/3 | 7 |
 | Phase 01 P03 | 196 | 3 tasks | 6 files |
 | Phase 01 P02 | 3 | 3 tasks | 5 files |
+| Phase 02 P02 | 15 | 2 tasks | 6 files |
 
 ## Session
 
-**Last session:** 2026-03-27T21:06:59.926Z
-**Stopped at:** Completed 01-02-PLAN.md
+**Last session:** 2026-03-28T09:26:11.815Z
+**Stopped at:** Completed 02-02-PLAN.md
 
 ---
 *Last updated: 2026-03-27*
