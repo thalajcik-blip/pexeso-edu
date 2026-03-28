@@ -63,8 +63,35 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Realtime profile subscription — refresh when teacher_request_status changes
+  // Pending class join — if user logged in from auth modal while on /, complete join
   const { user } = useAuthStore()
+  useEffect(() => {
+    const pendingCode = sessionStorage.getItem('pexedu_pending_join')
+    if (!pendingCode || !user) return
+    ;(async () => {
+      const { data: cls } = await supabase
+        .from('classes')
+        .select('id, name')
+        .eq('invite_code', pendingCode)
+        .maybeSingle()
+      if (!cls) { sessionStorage.removeItem('pexedu_pending_join'); return }
+      await supabase
+        .from('class_members')
+        .upsert({ class_id: cls.id, user_id: user.id }, { onConflict: 'class_id,user_id' })
+      sessionStorage.removeItem('pexedu_pending_join')
+      const { toast: sonnerToast } = await import('sonner')
+      const lang = useGameStore.getState().language
+      const msg = lang === 'sk'
+        ? `Pripojenie k triede ${cls.name}!`
+        : lang === 'en'
+          ? `Joined class ${cls.name}!`
+          : `Připojení k třídě ${cls.name}!`
+      sonnerToast.success(msg)
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
+
+  // Realtime profile subscription — refresh when teacher_request_status changes
   useEffect(() => {
     if (!user) return
     const channel = supabase

@@ -6,6 +6,7 @@ import './index.css'
 import App from './App.tsx'
 import AdminApp from './admin/AdminApp.tsx'
 import ProfilePage from './components/profile/ProfilePage.tsx'
+import JoinClassRoute from './components/student/JoinClassRoute.tsx'
 
 inject()
 
@@ -22,6 +23,7 @@ if (isPlayerOAuth && hash.includes('access_token')) {
 
 const isAdmin   = window.location.pathname.startsWith('/admin')
 const isProfile = window.location.pathname.startsWith('/profile/')
+const isJoin    = window.location.pathname.startsWith('/join/')
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -29,6 +31,8 @@ createRoot(document.getElementById('root')!).render(
       ? <BrowserRouter><AdminApp /></BrowserRouter>
       : isProfile
         ? <ProfilePage />
-        : <App />}
+        : isJoin
+          ? <JoinClassRoute />
+          : <App />}
   </StrictMode>,
 )
