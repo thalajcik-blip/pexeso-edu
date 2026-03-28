@@ -320,7 +320,7 @@ function ClassDetailView() {
           variant="outline"
           size="sm"
           onClick={() => navigate('/')}
-          style={{ borderColor: tc.surfaceBorder, color: tc.textMuted }}
+          style={{ borderColor: tc.surfaceBorder, color: tc.textMuted, background: 'transparent' }}
         >
           {t.backToList}
         </Button>
