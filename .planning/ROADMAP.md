@@ -46,13 +46,14 @@
 **Goal:** Pilotný učiteľ vie vytvoriť triedu, zdieľať kód, žiaci sa pripoja a on vidí ich výsledky — všetko live do 15. apríla
 **Target:** April 15 (tvrdý milestone: prvý pilotný učiteľ)
 **Requirements:** CLASS-01, CLASS-02, CLASS-03, CLASS-04, CLASS-05, CLASS-06, CLASS-07, CLASS-08, GDPR-04, TADMIN-01, TADMIN-02, TADMIN-03, TADMIN-04, SET-01, SET-02, SET-03, SET-04, DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-07
+**Plans:** 5 plans
 
-### Plans
-1. **Classroom schema + RLS** — Tabuľky `classes`, `class_members`, `class_assignments` so všetkými FK indexmi; `SECURITY DEFINER` helper funkcie `is_class_teacher` a `is_class_member`; RLS politiky pre teacher a žiaka
-2. **Classroom UI — teacher side** — Create class flow s GDPR teacher declaration checkbox (`GDPR-04`); zobrazenie invite kódu `PX-XXXX` a invite linku; assign deck triede; zoznam žiakov s last active
-3. **Classroom UI — student side** — Join by invite code alebo `/join/PX-XXXX` link (automatické pridanie po prihlásení); priradené sady viditeľné v student dashboarde
-4. **Teacher dashboard (pilot scope)** — Zoznam tried, class detail s rosterom, deck results (class avg, per-student score/duration/played_at, color coding ≥70%/40–69%/<40%); CSV export; 3-krokový onboarding checklist
-5. **Teacher request admin + settings** — Superadmin schvaľuje/zamieta teacher requesty s `profiles.roles[]` aktualizáciou a notifikáciou; settings modal (prezývka, avatar, jazyk, privacy toggles)
+Plans:
+- [ ] 02-01-PLAN.md — Classroom schema + RLS (tables, SECURITY DEFINER helpers, policies, TypeScript types)
+- [ ] 02-02-PLAN.md — Classroom UI teacher side (classroomStore, /teacher route, create class, invite code, assign deck, roster)
+- [ ] 02-03-PLAN.md — Classroom UI student side (/join/PX-XXXX route, assigned decks banner)
+- [ ] 02-04-PLAN.md — Teacher dashboard analytics (class results with color coding, CSV export, onboarding checklist)
+- [ ] 02-05-PLAN.md — Teacher request admin gaps + settings (rejection email, language selector)
 
 ### Success Criteria
 - [ ] Učiteľ vytvára triedu — vidí confirmation s invite kódom `PX-XXXX` a kopírovateľným linkom
@@ -204,6 +205,7 @@
 **Pred Phase 2 (do April 7):**
 - ✓ Anonymous play ako default student path — **ÁNO**. Žiaci hrajú cez class join link bez konta; konto je voliteľné.
 - ✓ Class code prefix format — **`PX-XXXX`** potvrdený.
+- ✓ Anonymous class join — **NIE pre MVP**. Prihlásenie vyžadované pre join triedy (class_members FK vyžaduje profiles.id). Anonymné hranie v triedach je kandidát na Phase 3+.
 
 **Pred Phase 4 (do May 1):**
 - Daily challenge replay semantics: odporúčané — replay povolený, leaderboard počíta prvý play, personal best zobrazený zvlášť. Vyžaduje explicitné product rozhodnutie.
@@ -234,4 +236,4 @@
 ---
 
 *Roadmap created: 2026-03-27*
-*Next: `/gsd:plan-phase 1` — Phase 1: Základy a role systém*
+*Next: `/gsd:execute-phase 2` — Phase 2: Triedy a učiteľský flow*
