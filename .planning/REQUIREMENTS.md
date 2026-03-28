@@ -27,8 +27,8 @@
 
 - [x] **CLASS-01**: Teacher vytvára triedu s názvom a vygenerovaným invite kódom (`PX-XXXX`)
 - [ ] **CLASS-02**: Žiak sa pripojí do triedy cez invite kód alebo invite link
-- [ ] **CLASS-03**: Teacher vidí zoznam žiakov v triede (username, avatar, last active)
-- [ ] **CLASS-04**: Teacher priradzuje sadu (built-in alebo custom deck) triede
+- [x] **CLASS-03**: Teacher vidí zoznam žiakov v triede (username, avatar, last active)
+- [x] **CLASS-04**: Teacher priradzuje sadu (built-in alebo custom deck) triede
 - [ ] **CLASS-05**: Žiak vidí priradené sady v svojom dashboarde
 - [ ] **CLASS-06**: Join by invite link — `pexedu.cz/join/PX-XXXX` automaticky pridá žiaka do triedy po prihlásení
 - [x] **CLASS-07**: RLS politiky pre triedy — teacher vidí len svoje triedy, žiak len svoje členstvá
