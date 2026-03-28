@@ -61,28 +61,20 @@ export default function JoinClassRoute() {
   // Extract invite code from path /join/PX-XXXX
   const code = window.location.pathname.split('/join/')[1]?.toUpperCase().trim()
 
-  // Step 1: verify the code exists
+  // Step 1: verify the code exists (only if already logged in; anon users go straight to needs_login)
   useEffect(() => {
     if (!code) { setStatus('not_found'); return }
+    if (isLoading) return // wait for auth
 
-    supabase
-      .from('classes')
-      .select('id, name')
-      .eq('invite_code', code)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!data) { setStatus('not_found'); return }
-        setClassName(data.name)
-        if (!user && !isLoading) {
-          sessionStorage.setItem('pexedu_pending_join', code)
-          setStatus('needs_login')
-        } else if (user) {
-          setStatus('joining')
-        }
-        // If isLoading, wait for auth to resolve (handled by next effect)
-      })
+    if (!user) {
+      sessionStorage.setItem('pexedu_pending_join', code)
+      setStatus('needs_login')
+      return
+    }
+
+    setStatus('joining')
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code])
+  }, [code, isLoading])
 
   // Step 2: open auth modal when we know we need login
   useEffect(() => {
@@ -108,23 +100,6 @@ export default function JoinClassRoute() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
-  // Handle auth loading resolution when not logged in
-  useEffect(() => {
-    if (!isLoading && !user && status === 'loading' && code) {
-      supabase
-        .from('classes')
-        .select('id, name')
-        .eq('invite_code', code)
-        .maybeSingle()
-        .then(({ data }) => {
-          if (!data) { setStatus('not_found'); return }
-          setClassName(data.name)
-          sessionStorage.setItem('pexedu_pending_join', code)
-          setStatus('needs_login')
-        })
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading])
 
   return (
     <div
