@@ -6,6 +6,7 @@ import './index.css'
 import App from './App.tsx'
 import AdminApp from './admin/AdminApp.tsx'
 import ProfilePage from './components/profile/ProfilePage.tsx'
+import TeacherDashboard from './components/teacher/TeacherDashboard.tsx'
 
 inject()
 
@@ -22,13 +23,16 @@ if (isPlayerOAuth && hash.includes('access_token')) {
 
 const isAdmin   = window.location.pathname.startsWith('/admin')
 const isProfile = window.location.pathname.startsWith('/profile/')
+const isTeacher = window.location.pathname.startsWith('/teacher')
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {isAdmin
       ? <BrowserRouter><AdminApp /></BrowserRouter>
-      : isProfile
-        ? <ProfilePage />
-        : <App />}
+      : isTeacher
+        ? <BrowserRouter><TeacherDashboard /></BrowserRouter>
+        : isProfile
+          ? <ProfilePage />
+          : <App />}
   </StrictMode>,
 )
