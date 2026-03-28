@@ -17,7 +17,7 @@ export async function decodeAudioFile(file: File): Promise<AudioBuffer> {
 export async function trimAndCompressAudio(
   audioBuffer: AudioBuffer,
   opts: TrimOptions,
-): Promise<Blob> {
+): Promise<{ blob: Blob; mimeType: string }> {
   const { startSec, endSec, targetSampleRate = 22050 } = opts
   const duration = endSec - startSec
 
@@ -34,7 +34,39 @@ export async function trimAndCompressAudio(
   source.start(0, startSec, duration)
 
   const rendered = await offlineCtx.startRendering()
-  return audioBufferToWav(rendered)
+  return audioBufferToOgg(rendered)
+}
+
+async function audioBufferToOgg(buffer: AudioBuffer): Promise<{ blob: Blob; mimeType: string }> {
+  const mimeType = 'audio/ogg; codecs=opus'
+  if (!MediaRecorder.isTypeSupported(mimeType)) {
+    return { blob: audioBufferToWav(buffer), mimeType: 'audio/wav' }
+  }
+
+  const ctx = new AudioContext({ sampleRate: buffer.sampleRate })
+  const dest = ctx.createMediaStreamDestination()
+  const source = ctx.createBufferSource()
+  source.buffer = buffer
+  source.connect(dest)
+
+  const recorder = new MediaRecorder(dest.stream, {
+    mimeType,
+    audioBitsPerSecond: 48000,
+  })
+
+  const chunks: Blob[] = []
+  recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data) }
+
+  return new Promise((resolve, reject) => {
+    recorder.onstop = () => {
+      ctx.close()
+      resolve({ blob: new Blob(chunks, { type: 'audio/ogg' }), mimeType: 'audio/ogg' })
+    }
+    recorder.onerror = reject
+    recorder.start()
+    source.start()
+    source.onended = () => recorder.stop()
+  })
 }
 
 /** Returns per-bucket peak amplitude values (one per canvas pixel / bucket) */

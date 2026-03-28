@@ -4,6 +4,7 @@ import CardModal, { type CardData } from './CardModal'
 import CropModal from './CropModal'
 import { validateAnswers } from '../utils/quizValidation'
 import BulkUploadModal from './BulkUploadModal'
+import BulkAudioUploadModal from './BulkAudioUploadModal'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -786,8 +787,18 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
           onClose={() => setThumbCropSrc(null)}
         />
       )}
-      {bulkOpen && currentDeckId && (
+      {bulkOpen && currentDeckId && deckType === 'image' && (
         <BulkUploadModal
+          deckId={currentDeckId}
+          language={language}
+          difficulty={difficulty}
+          startIndex={cards.length}
+          onDone={() => { setBulkOpen(false); reloadCards() }}
+          onClose={() => setBulkOpen(false)}
+        />
+      )}
+      {bulkOpen && currentDeckId && deckType === 'audio' && (
+        <BulkAudioUploadModal
           deckId={currentDeckId}
           language={language}
           difficulty={difficulty}

@@ -198,15 +198,16 @@ export default function CardModal({ deckId, language, difficulty, deckType = 'im
     e.target.value = ''
   }
 
-  async function handleAudioTrimmed(blob: Blob) {
+  async function handleAudioTrimmed(blob: Blob, _durationSec: number, mimeType: string) {
     setAudioTrimOpen(false)
     setAudioFile(null)
     setUploading(true)
     setError('')
-    const path = `audio/${deckId}/${Date.now()}.wav`
+    const ext = mimeType === 'audio/ogg' ? 'ogg' : 'wav'
+    const path = `audio/${deckId}/${Date.now()}.${ext}`
     const { error: uploadError } = await supabase.storage
       .from('card-images')
-      .upload(path, blob, { upsert: true, contentType: 'audio/wav' })
+      .upload(path, blob, { upsert: true, contentType: mimeType })
     if (uploadError) { setError('Chyba při nahrávání audia: ' + uploadError.message); setUploading(false); return }
     const { data } = supabase.storage.from('card-images').getPublicUrl(path)
     setAudioUrl(data.publicUrl)

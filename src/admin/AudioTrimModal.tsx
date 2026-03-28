@@ -5,7 +5,7 @@ import { decodeAudioFile, trimAndCompressAudio, getPeaks } from '../utils/audioE
 
 type Props = {
   file: File
-  onConfirm: (blob: Blob, durationSec: number) => void
+  onConfirm: (blob: Blob, durationSec: number, mimeType: string) => void
   onClose: () => void
 }
 
@@ -125,8 +125,8 @@ export default function AudioTrimModal({ file, onConfirm, onClose }: Props) {
     stopPreview()
     setProcessing(true)
     try {
-      const blob = await trimAndCompressAudio(audioBuffer, { startSec, endSec })
-      onConfirm(blob, endSec - startSec)
+      const { blob, mimeType } = await trimAndCompressAudio(audioBuffer, { startSec, endSec })
+      onConfirm(blob, endSec - startSec, mimeType)
     } catch {
       setError('Chyba při zpracování audia.')
       setProcessing(false)
@@ -134,8 +134,11 @@ export default function AudioTrimModal({ file, onConfirm, onClose }: Props) {
   }
 
   const trimDuration = endSec - startSec
-  // mono, 16-bit, 22050 Hz
-  const sizeMB = ((trimDuration * 22050 * 2) / 1024 / 1024).toFixed(2)
+  // OGG Opus ~48kbps, WAV fallback mono 16-bit 22050 Hz
+  const oggSupported = typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported('audio/ogg; codecs=opus')
+  const sizeKB = oggSupported
+    ? Math.round(trimDuration * 48000 / 8 / 1024)
+    : Math.round(trimDuration * 22050 * 2 / 1024)
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -203,7 +206,7 @@ export default function AudioTrimModal({ file, onConfirm, onClose }: Props) {
             </div>
 
             <p className="text-xs text-slate-400">
-              Výsledný soubor: ~{sizeMB} MB (mono WAV 22 kHz)
+              Výsledný soubor: ~{sizeKB} KB ({oggSupported ? 'OGG Opus 48 kbps' : 'WAV mono 22 kHz'})
             </p>
 
             <div className="flex gap-3">
