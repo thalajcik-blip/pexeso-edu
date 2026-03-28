@@ -91,7 +91,7 @@ export default function InviteCodeDisplay({ inviteCode }: InviteCodeDisplayProps
           variant="outline"
           size="sm"
           onClick={handleCopy}
-          style={{ gap: 6, borderColor: tc.surfaceBorder, color: tc.textMuted }}
+          style={{ gap: 6, borderColor: tc.surfaceBorder, color: tc.textMuted, background: 'transparent' }}
         >
           {copied ? <Check size={14} /> : <Copy size={14} />}
           {t.copy}
