@@ -28,6 +28,7 @@ const TEXTS = {
     sectionAvatar: 'Avatar',
     saveAvatar: 'Uložit avatar',
     avatarSaved: 'Uloženo ✓',
+    sectionLanguage: 'Jazyk',
     sectionDanger: 'Nebezpečná zóna',
     deleteAccount: 'Smazat účet',
     deleteConfirmTitle: 'Opravdu smazat účet?',
@@ -59,6 +60,7 @@ const TEXTS = {
     sectionAvatar: 'Avatar',
     saveAvatar: 'Uložiť avatar',
     avatarSaved: 'Uložené ✓',
+    sectionLanguage: 'Jazyk',
     sectionDanger: 'Nebezpečná zóna',
     deleteAccount: 'Zmazať účet',
     deleteConfirmTitle: 'Naozaj zmazať účet?',
@@ -90,6 +92,7 @@ const TEXTS = {
     sectionAvatar: 'Avatar',
     saveAvatar: 'Save avatar',
     avatarSaved: 'Saved ✓',
+    sectionLanguage: 'Language',
     sectionDanger: 'Danger zone',
     deleteAccount: 'Delete account',
     deleteConfirmTitle: 'Really delete account?',
@@ -105,6 +108,7 @@ const TEXTS = {
 export default function SettingsModal() {
   const theme    = useGameStore(s => s.theme)
   const language = useGameStore(s => s.language)
+  const setLanguage = useGameStore(s => s.setLanguage)
   const tc = THEMES[theme]
   const t  = TEXTS[language]
 
@@ -323,6 +327,35 @@ export default function SettingsModal() {
                 </div>
                 <span className="text-sm" style={{ color: tc.text }}>{label}</span>
               </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Language */}
+        <div>
+          <div style={sectionLabel}>{t.sectionLanguage}</div>
+          <div className="flex gap-2">
+            {([
+              { code: 'cs' as const, flag: '\u{1F1E8}\u{1F1FF}', label: 'Čeština' },
+              { code: 'sk' as const, flag: '\u{1F1F8}\u{1F1F0}', label: 'Slovenčina' },
+              { code: 'en' as const, flag: '\u{1F1EC}\u{1F1E7}', label: 'English' },
+            ]).map(lang => (
+              <button
+                key={lang.code}
+                onClick={async () => {
+                  setLanguage(lang.code)
+                  await updateProfile({ locale: lang.code } as never)
+                }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm border transition-colors"
+                style={{
+                  borderColor: language === lang.code ? tc.accent : tc.btnInactiveBorder,
+                  background: language === lang.code ? `${tc.accent}15` : tc.btnInactiveBg,
+                  color: tc.text,
+                }}
+              >
+                <span>{lang.flag}</span>
+                <span>{lang.label}</span>
+              </button>
             ))}
           </div>
         </div>
