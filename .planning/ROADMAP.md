@@ -94,8 +94,30 @@ Plans:
 ### Design notes
 - Dizajn z Google Stitch (brief v `~/Downloads/pexedu_stitch_brief.md`) — implementovať až po schválení dizajnu
 - shadcn komponenty, Tailwind dark/light mode (`@custom-variant dark` už nakonfigurovaný)
-- Custom CSS vars: `--color-accent: #F5C400`, `--color-bg: #0F1726` pre homepage (oddelené od game THEMES)
 - Accessibility: semantic HTML, aria labels, keyboard navigácia
+
+### Architektonické rozhodnutia (z impl. briefu v `~/Downloads/pexedu_homepage_impl.md`)
+
+**Routing:**
+- `/` → `HomePage` (nová)
+- `/play` → `GamePage` (súčasný `App.tsx` obsah presunutý 1:1)
+- Deep links `?room=` / `?set=` / `?challenge=` na `/` → redirect na `/play`
+- Použiť `createBrowserRouter` (React Router) — `RouterProvider` v `main.tsx`
+
+**Theme store:**
+- Nový `src/stores/themeStore.ts` s `isDark`, `toggleTheme()`, `initTheme()`
+- `initTheme()` volať raz pri monte v `main.tsx` (zabraňuje flash of wrong theme)
+- Toggle prepína `document.documentElement.classList` + ukladá do `localStorage('pexedu-theme')`
+- Default: dark mode
+
+**Custom paleta — dark mode (potvrdené):**
+- `--background: #0F1726` / `--foreground: #FFFFFF`
+- `--card: #1A2035` / `--primary: #F5C400` (gold, nahrádza indigo-600)
+- `--accent: #F5C400` / `--ring: #F5C400` / `--muted-foreground: #A0AEC0`
+- `--border: rgba(255,255,255,0.08)`
+- Light mode CSS vars: TBD po schválení Figma/Stitch dizajnu (pred commitom nahradiť TBD!)
+
+**Čo sa NEMENÍ:** game logika, Supabase auth, existujúce Zustand stores, shadcn source files
 
 ### Dependencies
 - Phase 1 musí byť kompletná
