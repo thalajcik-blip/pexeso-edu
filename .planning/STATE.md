@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 2
-status: Ready to plan
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-27T21:14:10.223Z"
+status: Executing Phase 2
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-03-28T09:22:02Z"
 progress:
   total_phases: 6
   completed_phases: 1
@@ -30,6 +30,7 @@ progress:
 - [x] Phase 1 planned
 - [x] Phase 1 — Plan 01 (role migration) executed
 - [x] Phase 1 — Plan 02 (GDPR consent flows) executed
+- [x] Phase 2 — Plan 05 (rejection email + language selector in settings) executed
 
 ## Current Milestone
 
@@ -54,6 +55,8 @@ Phase 1: Základy a role systém (target: April 7)
 - ✓ profiles.roles[] is sole source of truth for admin roles; user_roles table dropped (Phase 01, Plan 01)
 - ✓ Storage objects in card-images are by deckId not userId — no user-specific storage cleanup needed in delete-account (Phase 01, Plan 02)
 - ✓ child_consents insert in completeOnboarding (not signUp) — profiles FK must exist first (Phase 01, Plan 02)
+- ✓ Rejection email is non-critical: try/catch wraps fetch to send-notification (Phase 02, Plan 05)
+- ✓ Language change writes to Zustand persist + profiles.locale for cross-device sync (Phase 02, Plan 05)
 - Daily challenge replay semantics (vyriešiť pred Phase 4)
 - Pro tier cena (vyriešiť pred Phase 6)
 - `npm:stripe` Deno kompatibilita overiť (pred Phase 6 buildom)
@@ -66,11 +69,12 @@ Phase 1: Základy a role systém (target: April 7)
 | 01 | 01 | 125s | 3/3 | 7 |
 | Phase 01 P03 | 196 | 3 tasks | 6 files |
 | Phase 01 P02 | 3 | 3 tasks | 5 files |
+| 02 | 05 | 3min | 2/2 | 3 |
 
 ## Session
 
-**Last session:** 2026-03-27T21:06:59.926Z
-**Stopped at:** Completed 01-02-PLAN.md
+**Last session:** 2026-03-28T09:22:02Z
+**Stopped at:** Completed 02-05-PLAN.md
 
 ---
 *Last updated: 2026-03-27*
