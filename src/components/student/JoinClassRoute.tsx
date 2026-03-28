@@ -4,6 +4,7 @@ import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
+import { Toaster } from 'sonner'
 
 const MESSAGES = {
   cs: {
@@ -54,8 +55,22 @@ export default function JoinClassRoute() {
   const tc = THEMES[theme]
   const msg = MESSAGES[language] ?? MESSAGES.cs
 
-  const { user, isLoading, openAuthModalForLogin } = useAuthStore()
+  const { user, isLoading, openAuthModalForLogin, _setUser, loadProfile } = useAuthStore()
   const [status, setStatus] = useState<'loading' | 'not_found' | 'needs_login' | 'joining' | 'joined' | 'error'>('loading')
+
+  // Bootstrap auth (JoinClassRoute renders outside App)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      _setUser(session?.user ?? null)
+      if (session?.user) loadProfile()
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      _setUser(session?.user ?? null)
+      if (session?.user) loadProfile()
+    })
+    return () => subscription.unsubscribe()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const [className, setClassName] = useState<string>('')
 
   // Extract invite code from path /join/PX-XXXX
@@ -106,6 +121,7 @@ export default function JoinClassRoute() {
       className="min-h-screen flex flex-col items-center justify-center p-6 gap-6"
       style={{ background: tc.bg, color: tc.text, fontFamily: "'Readex Pro', sans-serif" }}
     >
+      <Toaster />
       <div
         className="w-full max-w-sm rounded-2xl p-8 flex flex-col items-center gap-5 text-center"
         style={{ background: tc.surface, border: `1px solid ${tc.surfaceBorder}` }}
