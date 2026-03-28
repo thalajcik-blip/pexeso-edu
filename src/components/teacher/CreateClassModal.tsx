@@ -58,7 +58,6 @@ export default function CreateClassModal({ open, onClose }: CreateClassModalProp
   const t = TEXTS[language]
 
   const createClass = useClassroomStore(s => s.createClass)
-  const classes = useClassroomStore(s => s.classes)
 
   const [name, setName] = useState('')
   const [gdprChecked, setGdprChecked] = useState(false)
@@ -88,19 +87,15 @@ export default function CreateClassModal({ open, onClose }: CreateClassModalProp
     }
 
     setLoading(true)
-    const err = await createClass(name.trim())
+    const result = await createClass(name.trim())
     setLoading(false)
 
-    if (err) {
-      setError(err)
+    if ('error' in result) {
+      setError(result.error)
       return
     }
 
-    // Find newly created class (most recent)
-    const newClass = classes[0]
-    if (newClass) {
-      setCreatedCode(newClass.invite_code)
-    }
+    setCreatedCode(result.inviteCode)
   }
 
   return (

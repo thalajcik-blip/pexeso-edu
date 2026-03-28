@@ -25,7 +25,7 @@ interface ClassroomStore {
   loading: boolean
 
   fetchClasses: () => Promise<void>
-  createClass: (name: string) => Promise<string | null>
+  createClass: (name: string) => Promise<{ error: string } | { inviteCode: string }>
   fetchClassDetail: (classId: string) => Promise<void>
   assignDeck: (classId: string, setSlug: string | null, customDeckId: string | null) => Promise<string | null>
   removeAssignment: (assignmentId: string) => Promise<string | null>
@@ -89,7 +89,7 @@ export const useClassroomStore = create<ClassroomStore>((set, get) => ({
 
   createClass: async (name: string) => {
     const user = useAuthStore.getState().user
-    if (!user) return 'Nie si prihlásený'
+    if (!user) return { error: 'Nie si prihlásený' }
 
     const MAX_RETRIES = 3
     let lastError: string | null = null
@@ -105,7 +105,7 @@ export const useClassroomStore = create<ClassroomStore>((set, get) => ({
 
       if (!error) {
         await get().fetchClasses()
-        return null
+        return { inviteCode: invite_code }
       }
 
       // 23505 = unique_violation — retry with a new code
@@ -114,10 +114,10 @@ export const useClassroomStore = create<ClassroomStore>((set, get) => ({
         continue
       }
 
-      return error.message
+      return { error: error.message }
     }
 
-    return lastError ?? 'Failed to create class after multiple attempts'
+    return { error: lastError ?? 'Failed to create class after multiple attempts' }
   },
 
   fetchClassDetail: async (classId: string) => {
