@@ -132,7 +132,8 @@ export default function SetupScreen() {
   const isAudioDeck = selectedCustomMeta?.deck_type === 'audio'
 
   const { profile, openAuthModal, signOut, openSettingsModal, openDashboardModal } = useAuthStore()
-  const isAdmin = profile?.roles?.some(r => r === 'teacher' || r === 'superadmin') ?? false
+  const isTeacher    = profile?.roles?.some(r => r === 'teacher' || r === 'superadmin') ?? false
+  const isSuperadmin = profile?.roles?.includes('superadmin') ?? false
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [termsOpen, setTermsOpen]   = useState(false)
   const [privacyOpen, setPrivacyOpen] = useState(false)
@@ -235,7 +236,16 @@ export default function SetupScreen() {
                     >
                       👤 {tr.settings}
                     </button>
-                    {isAdmin && (
+                    {isTeacher && (
+                      <button
+                        onClick={() => { setProfileDropdownOpen(false); window.location.href = '/teacher' }}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left whitespace-nowrap hover:opacity-80"
+                        style={{ color: tc.text }}
+                      >
+                        🏫 {language === 'SK' ? 'Učiteľský dashboard' : language === 'EN' ? 'Teacher dashboard' : 'Učitelský dashboard'}
+                      </button>
+                    )}
+                    {isSuperadmin && (
                       <button
                         onClick={() => { setProfileDropdownOpen(false); localStorage.setItem('pexedu_last_context', 'admin'); window.location.href = '/admin' }}
                         className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left whitespace-nowrap hover:opacity-80"
