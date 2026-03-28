@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { Toaster } from 'sonner'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
-import { Toaster } from 'sonner'
+import AuthModal from '../auth/AuthModal'
 
 const MESSAGES = {
   cs: {
@@ -122,6 +123,7 @@ export default function JoinClassRoute() {
       style={{ background: tc.bg, color: tc.text, fontFamily: "'Readex Pro', sans-serif" }}
     >
       <Toaster />
+      <AuthModal />
       <div
         className="w-full max-w-sm rounded-2xl p-8 flex flex-col items-center gap-5 text-center"
         style={{ background: tc.surface, border: `1px solid ${tc.surfaceBorder}` }}
