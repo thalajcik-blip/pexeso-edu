@@ -209,6 +209,24 @@ export default function AudioTrimModal({ file, onConfirm, onClose }: Props) {
               Výsledný soubor: ~{sizeKB} KB ({opusMimeType ? 'Opus 48 kbps' : 'WAV mono 22 kHz'})
             </p>
 
+            {processing && (
+              <div className="space-y-1">
+                <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-indigo-500 origin-left"
+                    style={{
+                      width: '0%',
+                      animationName: 'timer-fill',
+                      animationDuration: `${trimDuration}s`,
+                      animationTimingFunction: 'linear',
+                      animationFillMode: 'forwards',
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-slate-400 text-center">Kódování… (~{trimDuration.toFixed(0)} s)</p>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <Button
                 variant="outline"
