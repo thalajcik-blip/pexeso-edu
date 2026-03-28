@@ -672,7 +672,10 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
                 return (
                   <div key={card.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden group">
                     <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden relative">
-                      <img src={card.image_url} alt={card.label ?? ''} className="w-full h-full object-contain p-2" />
+                      {deckType === 'audio'
+                        ? <span className="text-5xl select-none">🎵</span>
+                        : <img src={card.image_url} alt={card.label ?? ''} className="w-full h-full object-contain p-2" />
+                      }
                       <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ${dotColor}`} title={validation?.message ?? 'Bez kvízu'} />
                     </div>
                     <div className="p-2">
