@@ -12,6 +12,7 @@ import { useAuthStore } from '../../store/authStore'
 import TermsModal from '../modals/TermsModal'
 import PrivacyModal from '../modals/PrivacyModal'
 import { buildChallengeBanner } from '../../services/shareService'
+import { AssignedDecksBanner } from '../student/AssignedDecksBanner'
 
 const SIZES: { id: BoardSize; labelKey: 'sizeLarge' | 'sizeMedium' | 'sizeSmall'; grid: string }[] = [
   { id: 'small',  labelKey: 'sizeSmall',  grid: '4×4' },
@@ -303,6 +304,8 @@ export default function SetupScreen() {
             })}
           </div>
         </div>
+
+        {profile && <AssignedDecksBanner />}
 
         {/* 2. Deck */}
         <div>
