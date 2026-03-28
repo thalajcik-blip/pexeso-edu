@@ -47,7 +47,7 @@ export const useClassroomStore = create<ClassroomStore>((set, get) => ({
       // Fetch classes with student count and last activity
       const { data: classRows, error } = await supabase
         .from('classes')
-        .select('*, class_members(count, last_active_at)')
+        .select('*, class_members(last_active_at)')
         .eq('teacher_id', user.id)
         .order('created_at', { ascending: false })
 
@@ -57,8 +57,8 @@ export const useClassroomStore = create<ClassroomStore>((set, get) => ({
       }
 
       const classes: ClassWithStudentCount[] = (classRows ?? []).map((row: Record<string, unknown>) => {
-        const membersData = row.class_members as Array<{ count?: number; last_active_at?: string | null }> | null
-        const studentCount = membersData ? (membersData[0]?.count ?? 0) : 0
+        const membersData = row.class_members as Array<{ last_active_at?: string | null }> | null
+        const studentCount = Array.isArray(membersData) ? membersData.length : 0
         // Find the max last_active_at across all members
         let lastActivity: string | null = null
         if (Array.isArray(membersData)) {
