@@ -81,9 +81,13 @@ export function AssignedDecksBanner() {
       {assigned.map((a, i) => (
         <button
           key={i}
-          onClick={() => {
-            if (a.set_slug) selectDeck(a.set_slug)
-            // custom deck selection requires full deck data — handled via fetchCustomDeckFull on click
+          onClick={async () => {
+            if (a.set_slug) {
+              selectDeck(a.set_slug)
+            } else if (a.custom_deck_id) {
+              const customDeck = await fetchCustomDeckFull(a.custom_deck_id)
+              if (customDeck) selectDeck(a.custom_deck_id, customDeck)
+            }
           }}
           className="font-semibold underline underline-offset-2 cursor-pointer"
           style={{ color: tc.accent }}

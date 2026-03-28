@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Routes, Route, useNavigate, useParams } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
+import { supabase } from '../../services/supabase'
 import { useClassroomStore } from '../../store/classroomStore'
 import { useGameStore } from '../../store/gameStore'
 import { THEMES } from '../../data/themes'
@@ -213,6 +214,20 @@ function ClassDetailView() {
 
   useEffect(() => {
     if (classId) fetchClassDetail(classId)
+  }, [classId, fetchClassDetail])
+
+  useEffect(() => {
+    if (!classId) return
+    const channel = supabase
+      .channel(`class-members-${classId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'class_members',
+        filter: `class_id=eq.${classId}`,
+      }, () => { fetchClassDetail(classId) })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
   }, [classId, fetchClassDetail])
 
   const currentClass = classes.find(c => c.id === classId)
