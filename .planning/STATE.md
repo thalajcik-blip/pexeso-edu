@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 2
 status: Executing Phase 2
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-03-28T09:30:00.000Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-03-28T10:25:45.065Z"
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 8
 ---
 
 # Project State
@@ -33,6 +33,7 @@ progress:
 - [x] Phase 2 — Plan 01 (classroom schema + TypeScript types) executed
 - [x] Phase 2 — Plan 02 (teacher UI: classroomStore + dashboard + modals + /teacher route) executed
 - [x] Phase 2 — Plan 03 (student join flow: /join/:code route + AssignedDecksBanner) executed
+- [x] Phase 2 — Plan 04 (teacher dashboard analytics: ClassResults + OnboardingChecklist) executed
 - [x] Phase 2 — Plan 05 (rejection email + language selector in settings) executed
 
 ## Current Milestone
@@ -60,6 +61,8 @@ Phase 2 Wave 3: Teacher dashboard analytics (Plan 04)
 - ✓ Rejection email is non-critical: try/catch wraps fetch to send-notification (Phase 02, Plan 05)
 - ✓ Language change writes to Zustand persist + profiles.locale for cross-device sync (Phase 02, Plan 05)
 - ✓ Anonymous class join NOT supported in MVP — login required (class_members FK requires profiles.id)
+- ✓ ClassResults picks best game attempt per student (highest quiz_correct/quiz_total ratio), not most recent (Phase 02, Plan 04)
+- ✓ Assignment results are expandable on click — avoids loading all game_history results on page mount (Phase 02, Plan 04)
 - Daily challenge replay semantics (vyriešiť pred Phase 4)
 - Pro tier cena (vyriešiť pred Phase 6)
 - `npm:stripe` Deno kompatibilita overiť (pred Phase 6 buildom)
@@ -76,11 +79,12 @@ Phase 2 Wave 3: Teacher dashboard analytics (Plan 04)
 | 02 | 02 | 15min | 2/2 | 6 |
 | 02 | 03 | ~5min | 2/2 | 3 |
 | 02 | 05 | 3min | 2/2 | 3 |
+| Phase 02 P04 | 15 | 2 tasks | 4 files |
 
 ## Session
 
-**Last session:** 2026-03-28T09:30:00.000Z
-**Stopped at:** Wave 2 complete, Wave 3 pending
+**Last session:** 2026-03-28T10:25:45.062Z
+**Stopped at:** Completed 02-04-PLAN.md
 
 ---
 *Last updated: 2026-03-28*

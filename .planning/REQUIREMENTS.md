@@ -89,13 +89,13 @@
 
 ### Teacher Dashboard
 
-- [ ] **DASH-01**: Teacher vidí zoznam svojich tried s počtom žiakov a last activity
-- [ ] **DASH-02**: Class detail — roster žiakov s prirádenými sadami (zelená check / šedá dash)
-- [ ] **DASH-03**: Deck results — class average score, per-student riadok (score, duration, played_at)
-- [ ] **DASH-04**: Color coding — zelená ≥70%, žltá 40–69%, červená <40%
-- [ ] **DASH-05**: Export do CSV — generovaný client-side z query rezultu
+- [x] **DASH-01**: Teacher vidí zoznam svojich tried s počtom žiakov a last activity
+- [x] **DASH-02**: Class detail — roster žiakov s prirádenými sadami (zelená check / šedá dash)
+- [x] **DASH-03**: Deck results — class average score, per-student riadok (score, duration, played_at)
+- [x] **DASH-04**: Color coding — zelená ≥70%, žltá 40–69%, červená <40%
+- [x] **DASH-05**: Export do CSV — generovaný client-side z query rezultu
 - [ ] **DASH-06**: Zdieľanie sady — teacher zdieľa custom sadu s kolegami (link s read-only access)
-- [ ] **DASH-07**: Onboarding checklist pre nových učiteľov — 3 kroky: vytvoriť triedu, priradiť sadu, zdieľať link
+- [x] **DASH-07**: Onboarding checklist pre nových učiteľov — 3 kroky: vytvoriť triedu, priradiť sadu, zdieľať link
 
 ### Monetization
 
