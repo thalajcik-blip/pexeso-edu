@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { decodeAudioFile, trimAndCompressAudio, getPeaks } from '../utils/audioEncoder'
+import { decodeAudioFile, trimAndCompressAudio, getPeaks, getSupportedOpusMimeType } from '../utils/audioEncoder'
 
 type Props = {
   file: File
@@ -134,9 +134,9 @@ export default function AudioTrimModal({ file, onConfirm, onClose }: Props) {
   }
 
   const trimDuration = endSec - startSec
-  // OGG Opus ~48kbps, WAV fallback mono 16-bit 22050 Hz
-  const oggSupported = typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported('audio/ogg; codecs=opus')
-  const sizeKB = oggSupported
+  // Opus ~48kbps (OGG or WebM container), WAV fallback mono 16-bit 22050 Hz
+  const opusMimeType = getSupportedOpusMimeType()
+  const sizeKB = opusMimeType
     ? Math.round(trimDuration * 48000 / 8 / 1024)
     : Math.round(trimDuration * 22050 * 2 / 1024)
 
@@ -206,7 +206,7 @@ export default function AudioTrimModal({ file, onConfirm, onClose }: Props) {
             </div>
 
             <p className="text-xs text-slate-400">
-              Výsledný soubor: ~{sizeKB} KB ({oggSupported ? 'OGG Opus 48 kbps' : 'WAV mono 22 kHz'})
+              Výsledný soubor: ~{sizeKB} KB ({opusMimeType ? 'Opus 48 kbps' : 'WAV mono 22 kHz'})
             </p>
 
             <div className="flex gap-3">

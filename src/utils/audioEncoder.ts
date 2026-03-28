@@ -37,11 +37,21 @@ export async function trimAndCompressAudio(
   return audioBufferToOgg(rendered)
 }
 
+export function getSupportedOpusMimeType(): string | null {
+  for (const mt of ['audio/ogg; codecs=opus', 'audio/webm; codecs=opus']) {
+    if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(mt)) return mt
+  }
+  return null
+}
+
 async function audioBufferToOgg(buffer: AudioBuffer): Promise<{ blob: Blob; mimeType: string }> {
-  const mimeType = 'audio/ogg; codecs=opus'
-  if (!MediaRecorder.isTypeSupported(mimeType)) {
+  const recorderMimeType = getSupportedOpusMimeType()
+  if (!recorderMimeType) {
     return { blob: audioBufferToWav(buffer), mimeType: 'audio/wav' }
   }
+
+  // Determine output blob type (ogg or webm container)
+  const outputMimeType = recorderMimeType.startsWith('audio/ogg') ? 'audio/ogg' : 'audio/webm'
 
   const ctx = new AudioContext({ sampleRate: buffer.sampleRate })
   const dest = ctx.createMediaStreamDestination()
@@ -50,7 +60,7 @@ async function audioBufferToOgg(buffer: AudioBuffer): Promise<{ blob: Blob; mime
   source.connect(dest)
 
   const recorder = new MediaRecorder(dest.stream, {
-    mimeType,
+    mimeType: recorderMimeType,
     audioBitsPerSecond: 48000,
   })
 
@@ -60,7 +70,7 @@ async function audioBufferToOgg(buffer: AudioBuffer): Promise<{ blob: Blob; mime
   return new Promise((resolve, reject) => {
     recorder.onstop = () => {
       ctx.close()
-      resolve({ blob: new Blob(chunks, { type: 'audio/ogg' }), mimeType: 'audio/ogg' })
+      resolve({ blob: new Blob(chunks, { type: outputMimeType }), mimeType: outputMimeType })
     }
     recorder.onerror = reject
     recorder.start()
