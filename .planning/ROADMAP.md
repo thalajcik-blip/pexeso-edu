@@ -10,7 +10,8 @@
 
 - [x] **Phase 1: Základy a role systém** — Migrácia rolí, GDPR, technické opravy; bez toho nič iné nepobeží (completed 2026-03-27)
 - [x] **Phase 2: Triedy a učiteľský flow** — Classroom management, teacher dashboard pre pilota, settings (completed 2026-03-28)
-- [ ] **Phase 3: Homepage a discovery** — Nová homepage živá do 30. apríla, browsing, search, featured sady
+- [ ] **Phase 3: Homepage a discovery** — Nová homepage živá do 30. apríla, browsing, search, featured sady; presun /teacher→/admin
+- [ ] **Phase 3.5: Web stránky a i18n routing** — Lokalizované URL (CS/SK/EN), /kvizy, kategórie, detail sady, leaderboard, pre-skoly
 - [ ] **Phase 4: Share, deep links a virálny rast** — OG images, share výsledku, deep linky, daily challenge, leaderboardy
 - [ ] **Phase 5: Obsah — 32 sád live** — ZŠ, autoškola, audio sady; content pipeline a admin review queue
 - [ ] **Phase 6: Monetizácia a školské licencie** — Freemium limity, Stripe Pro tier, manuálna školská licencia
@@ -125,6 +126,36 @@ Plans:
 - Dizajn z Google Stitch musí byť schválený pred implementáciou Plánu 1
 
 **UI hint**: yes
+
+---
+
+### Phase 3.5: Web stránky a i18n routing
+**Goal:** Lokalizované URL pre všetky verejné stránky + nové discovery stránky (/kvizy, kategórie, detail sady, leaderboard, pre-skoly)
+**Target:** Po Phase 3 — scheduling TBD
+**Brief:** `~/Downloads/pexedu_web_pages.md`
+
+### Plans
+1. **i18n routing + DB** — `slug_cs/sk/en`, `available_locales[]` na `card_sets`; `createBrowserRouter` s CS/SK/EN routes; `getSetUrl()` + `getSetSlug()` helpers; `TranslationNotFound` komponent; `HreflangTags` komponent
+2. **Discovery stránky** — `/kvizy` (grid kategórií), `/kvizy/:category` (SLP), `/kvizy/:category/:slug` (detail sady s play panelom)
+3. **Leaderboard + Pre školy** — `/leaderboard` (top 50, filter týždeň/mesiac/celkovo, per-sada), `/pro-skoly` (hero, benefity, kontaktný formulár, cenník)
+
+### Key decisions (z briefu)
+- **Varianta A2** — CS default bez prefixu, SK `/sk/...`, EN `/en/...`
+- Slugy sú lokalizované (napr. `vlajky-evropy` / `vlajky-europy` / `flags-europe`)
+- Chýbajúci preklad → elegantná 404 s linkom na CS verziu
+- `pexedu.com` → redirect na `pexedu.cz/en` (rozhodnúť neskôr)
+- `react-helmet-async` alebo `@unhead/react` pre meta/hreflang tagy
+
+### Success Criteria
+- [ ] `pexedu.cz/en/quizzes/flags-europe` vracia detail sady; chýbajúci EN preklad → 404 s CTA
+- [ ] Všetky verejné stránky majú hreflang tagy pre dostupné jazyky
+- [ ] `/kvizy/:category` je SEO indexovateľná stránka s h1, meta description, grid sád
+- [ ] `/leaderboard` zobrazuje top 50 s filtrom; aktualizuje sa každých 60s
+- [ ] `/pro-skoly` má funkčný kontaktný formulár → `iam@teamplayer.cz`
+
+### Dependencies
+- Phase 3 (homepage) musí byť kompletná — router refactor je prerekvizit
+- Phase 5 (obsah) môže bežať paralelne — slug_cs musí byť vyplnený pre existujúce sady
 
 ---
 
