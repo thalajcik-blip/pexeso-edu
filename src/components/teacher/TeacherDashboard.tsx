@@ -404,7 +404,7 @@ function TeacherGuard({ children }: { children: React.ReactNode }) {
   const t = TEXTS[language]
   const user = useAuthStore(s => s.user)
   const profile = useAuthStore(s => s.profile)
-  const isLoading = useAuthStore(s => s.isLoading || (!!user && !s.profile))
+  const isLoading = useAuthStore(s => s.isLoading || (!!s.user && !s.profile))
   const openAuthModal = useAuthStore(s => s.openAuthModal)
 
   if (isLoading) {
