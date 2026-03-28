@@ -166,9 +166,29 @@ export default function DashboardModal() {
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4 flex-shrink-0">
           <div className="font-bold text-lg" style={{ color: tc.text }}>{t.title}</div>
-          <button onClick={closeDashboardModal} className="w-8 h-8 flex items-center justify-center rounded-lg text-sm opacity-50 hover:opacity-100" style={{ color: tc.text }}>
-            {t.close}
-          </button>
+          <div className="flex items-center gap-2">
+            {profile?.roles?.includes('superadmin') && (
+              <button
+                onClick={() => { window.location.href = '/admin' }}
+                className="px-3 h-7 rounded-md text-xs font-medium opacity-70 hover:opacity-100 transition-opacity border"
+                style={{ color: tc.textMuted, borderColor: tc.btnInactiveBorder, background: 'transparent' }}
+              >
+                ⚙️ Admin
+              </button>
+            )}
+            {profile?.roles?.includes('teacher') && (
+              <button
+                onClick={() => { window.location.href = '/teacher' }}
+                className="px-3 h-7 rounded-md text-xs font-medium opacity-70 hover:opacity-100 transition-opacity border"
+                style={{ color: tc.textMuted, borderColor: tc.btnInactiveBorder, background: 'transparent' }}
+              >
+                👨‍🏫 Dashboard
+              </button>
+            )}
+            <button onClick={closeDashboardModal} className="w-8 h-8 flex items-center justify-center rounded-lg text-sm opacity-50 hover:opacity-100" style={{ color: tc.text }}>
+              {t.close}
+            </button>
+          </div>
         </div>
 
         <div className="overflow-y-auto px-6 pb-6 space-y-5">

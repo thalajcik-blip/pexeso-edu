@@ -502,6 +502,46 @@ function TeacherGuard({ children }: { children: React.ReactNode }) {
 // ========================
 // Root component
 // ========================
+function TeacherHeader() {
+  const theme = useGameStore(s => s.theme)
+  const tc = THEMES[theme]
+  const profile = useAuthStore(s => s.profile)
+  const isSuperadmin = profile?.roles?.includes('superadmin') ?? false
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 24,
+      paddingBottom: 16,
+      borderBottom: `1px solid ${tc.surfaceBorder}`,
+    }}>
+      <span style={{ fontWeight: 700, fontSize: 16, color: tc.text }}>👨‍🏫 Dashboard učitele</span>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {isSuperadmin && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => { window.location.href = '/admin' }}
+            style={{ borderColor: tc.surfaceBorder, color: tc.textMuted, background: 'transparent', fontSize: 13 }}
+          >
+            ⚙️ Admin
+          </Button>
+        )}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => { localStorage.setItem('pexedu_last_context', 'game'); window.location.href = '/' }}
+          style={{ borderColor: tc.surfaceBorder, color: tc.textMuted, background: 'transparent', fontSize: 13 }}
+        >
+          🎮 Hra
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export default function TeacherDashboard() {
   const theme = useGameStore(s => s.theme)
   const tc = THEMES[theme]
@@ -530,6 +570,7 @@ export default function TeacherDashboard() {
       }}
     >
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
+        <TeacherHeader />
         <TeacherGuard>
           <Routes>
             <Route path="/" element={<ClassListView />} />

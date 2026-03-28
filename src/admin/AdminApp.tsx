@@ -127,6 +127,12 @@ function AdminSidebarContents({ isSuperadmin, email, signOut, visibleItems, navi
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => { window.location.href = '/teacher' }} tooltip="Dashboard učitele">
+              <span>👨‍🏫</span>
+              <span>Dashboard učitele</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton size="lg" onClick={signOut} tooltip="Odhlásit se">
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 text-xs font-semibold shrink-0">
                 {email[0]?.toUpperCase()}
