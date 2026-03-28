@@ -10,6 +10,8 @@ import { Badge } from '../ui/badge'
 import CreateClassModal from './CreateClassModal'
 import AssignDeckModal from './AssignDeckModal'
 import InviteCodeDisplay from './InviteCodeDisplay'
+import OnboardingChecklist from './OnboardingChecklist'
+import ClassResults from './ClassResults'
 
 const TEXTS = {
   cs: {
@@ -112,6 +114,9 @@ function ClassListView() {
   const t = TEXTS[language]
   const { classes, loading, fetchClasses } = useClassroomStore()
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => localStorage.getItem('pexedu_onboarding_dismissed') !== 'true'
+  )
 
   useEffect(() => {
     fetchClasses()
@@ -131,6 +136,10 @@ function ClassListView() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {showOnboarding && (
+        <OnboardingChecklist onDismiss={() => setShowOnboarding(false)} />
+      )}
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <h2 style={{ margin: 0, color: tc.text, fontSize: 18, fontWeight: 700 }}>{t.myClasses}</h2>
         <Button
@@ -200,6 +209,7 @@ function ClassDetailView() {
   const { classes, members, assignments, loading, fetchClassDetail, removeAssignment } = useClassroomStore()
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [removing, setRemoving] = useState<string | null>(null)
+  const [expandedAssignment, setExpandedAssignment] = useState<string | null>(null)
 
   useEffect(() => {
     if (classId) fetchClassDetail(classId)
@@ -315,27 +325,43 @@ function ClassDetailView() {
               <div
                 key={a.id}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 14px',
                   background: tc.surface,
                   border: `1px solid ${tc.surfaceBorder}`,
                   borderRadius: 8,
+                  overflow: 'hidden',
                 }}
               >
-                <span style={{ color: tc.text, fontSize: 14, fontWeight: 600 }}>
-                  {a.deck_title ?? a.set_slug ?? a.custom_deck_id}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={removing === a.id}
-                  onClick={() => handleRemove(a.id)}
-                  style={{ borderColor: tc.errorColor, color: tc.errorColor, fontSize: 12 }}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => setExpandedAssignment(expandedAssignment === a.id ? null : a.id)}
                 >
-                  {t.removeAssignment}
-                </Button>
+                  <span style={{ color: tc.text, fontSize: 14, fontWeight: 600 }}>
+                    {a.deck_title ?? a.set_slug ?? a.custom_deck_id}
+                    <span style={{ color: tc.textMuted, fontSize: 12, fontWeight: 400, marginLeft: 8 }}>
+                      {expandedAssignment === a.id ? '▲' : '▼'}
+                    </span>
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={removing === a.id}
+                    onClick={e => { e.stopPropagation(); handleRemove(a.id) }}
+                    style={{ borderColor: tc.errorColor, color: tc.errorColor, fontSize: 12 }}
+                  >
+                    {t.removeAssignment}
+                  </Button>
+                </div>
+                {expandedAssignment === a.id && classId && (
+                  <div style={{ padding: '0 14px 14px' }}>
+                    <ClassResults classId={classId} assignment={a} className={className} />
+                  </div>
+                )}
               </div>
             ))}
           </div>

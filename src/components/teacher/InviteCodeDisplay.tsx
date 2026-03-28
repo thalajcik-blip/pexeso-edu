@@ -43,6 +43,7 @@ export default function InviteCodeDisplay({ inviteCode }: InviteCodeDisplayProps
     try {
       await navigator.clipboard.writeText(joinLink)
       setCopied(true)
+      localStorage.setItem('pexedu_onboarding_shared', 'true')
       toast.success(t.copied)
       setTimeout(() => setCopied(false), 2000)
     } catch {
