@@ -50,7 +50,7 @@ export function AssignedDecksBanner() {
         const className = (a.classes as unknown as { name: string } | null)?.name ?? ''
         if (a.set_slug) {
           const deck = DECKS.find(d => d.id === a.set_slug)
-          if (deck) resolved.push({ set_slug: a.set_slug, custom_deck_id: null, deck_title: deck.name, class_name: className })
+          if (deck) resolved.push({ set_slug: a.set_slug, custom_deck_id: null, deck_title: deck.label, class_name: className })
         } else if (a.custom_deck_id) {
           try {
             const customDeck = await fetchCustomDeckFull(a.custom_deck_id)
