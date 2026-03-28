@@ -9,7 +9,6 @@ interface AssignedDeck {
   set_slug: string | null
   custom_deck_id: string | null
   deck_title: string
-  class_name: string
 }
 
 const BANNER_TEXT: Record<string, string> = {
@@ -38,25 +37,26 @@ export function AssignedDecksBanner() {
 
       const classIds = memberships.map((m: { class_id: string }) => m.class_id)
 
-      const { data: assignments } = await supabase
+      const { data: assignments, error: assignmentsError } = await supabase
         .from('class_assignments')
-        .select('set_slug, custom_deck_id, classes(name)')
+        .select('set_slug, custom_deck_id')
         .in('class_id', classIds)
 
+      if (assignmentsError) console.error('AssignedDecksBanner assignments error:', assignmentsError)
       if (!assignments?.length || cancelled) return
 
       const resolved: AssignedDeck[] = []
       for (const a of assignments) {
-        const className = (a.classes as unknown as { name: string } | null)?.name ?? ''
         if (a.set_slug) {
           const deck = DECKS.find(d => d.id === a.set_slug)
-          if (deck) resolved.push({ set_slug: a.set_slug, custom_deck_id: null, deck_title: deck.label, class_name: className })
+          if (deck) resolved.push({ set_slug: a.set_slug, custom_deck_id: null, deck_title: deck.label })
+          else resolved.push({ set_slug: a.set_slug, custom_deck_id: null, deck_title: a.set_slug })
         } else if (a.custom_deck_id) {
           try {
             const customDeck = await fetchCustomDeckFull(a.custom_deck_id)
-            if (customDeck) resolved.push({ set_slug: null, custom_deck_id: a.custom_deck_id, deck_title: customDeck.title, class_name: className })
-          } catch {
-            // skip unresolvable custom decks
+            if (customDeck) resolved.push({ set_slug: null, custom_deck_id: a.custom_deck_id, deck_title: customDeck.title })
+          } catch (e) {
+            console.error('AssignedDecksBanner fetchCustomDeck error:', e)
           }
         }
       }
