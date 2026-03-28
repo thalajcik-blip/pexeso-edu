@@ -455,12 +455,20 @@ export default function TeacherDashboard() {
   const theme = useGameStore(s => s.theme)
   const tc = THEMES[theme]
 
-  // Bootstrap auth on mount
-  const user = useAuthStore(s => s.user)
+  // Bootstrap auth on mount (TeacherDashboard renders outside App so needs own auth init)
+  const _setUser = useAuthStore(s => s._setUser)
   const loadProfile = useAuthStore(s => s.loadProfile)
   useEffect(() => {
-    if (user) loadProfile()
-  }, [user, loadProfile])
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      _setUser(session?.user ?? null)
+      if (session?.user) loadProfile()
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      _setUser(session?.user ?? null)
+      if (session?.user) loadProfile()
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   return (
     <div
