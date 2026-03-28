@@ -27,6 +27,7 @@ const TEXTS = {
     cards: 'karet',
     assign: 'Přiřadit',
     assigning: 'Přiřazuje se...',
+    assigned: 'Přiřazeno',
     noCustom: 'Žádné schválené vlastní sady.',
     loadingCustom: 'Načítání...',
     close: 'Zavřít',
@@ -38,6 +39,7 @@ const TEXTS = {
     cards: 'kariet',
     assign: 'Priradiť',
     assigning: 'Priraďuje sa...',
+    assigned: 'Priradené',
     noCustom: 'Žiadne schválené vlastné sady.',
     loadingCustom: 'Načítavanie...',
     close: 'Zavrieť',
@@ -49,6 +51,7 @@ const TEXTS = {
     cards: 'cards',
     assign: 'Assign',
     assigning: 'Assigning...',
+    assigned: 'Assigned',
     noCustom: 'No approved custom decks.',
     loadingCustom: 'Loading...',
     close: 'Close',
@@ -62,6 +65,10 @@ export default function AssignDeckModal({ classId, open, onClose }: AssignDeckMo
   const t = TEXTS[language]
 
   const assignDeck = useClassroomStore(s => s.assignDeck)
+  const assignments = useClassroomStore(s => s.assignments)
+
+  const assignedSlugs = new Set(assignments.map(a => a.set_slug).filter(Boolean))
+  const assignedCustomIds = new Set(assignments.map(a => a.custom_deck_id).filter(Boolean))
 
   const [customDecks, setCustomDecks] = useState<CustomDeckRow[]>([])
   const [loadingCustom, setLoadingCustom] = useState(false)
@@ -145,6 +152,7 @@ export default function AssignDeckModal({ classId, open, onClose }: AssignDeckMo
             {DECKS.map(deck => {
               const key = `builtin-${deck.id}`
               const isAssigning = assigning === key
+              const isAlreadyAssigned = assignedSlugs.has(deck.id)
               const cardCount = Object.keys(deck.pool).length
               return (
                 <div key={deck.id} style={deckRowStyle(!!assigning)}>
@@ -157,17 +165,17 @@ export default function AssignDeckModal({ classId, open, onClose }: AssignDeckMo
                   </div>
                   <Button
                     size="sm"
-                    disabled={!!assigning}
+                    disabled={!!assigning || isAlreadyAssigned}
                     onClick={() => handleAssignBuiltIn(deck.id)}
                     style={{
-                      background: tc.accentGradient,
-                      color: tc.accentText,
-                      border: 'none',
+                      background: isAlreadyAssigned ? 'transparent' : tc.accentGradient,
+                      color: isAlreadyAssigned ? tc.textMuted : tc.accentText,
+                      border: isAlreadyAssigned ? `1px solid ${tc.surfaceBorder}` : 'none',
                       fontWeight: 600,
                       flexShrink: 0,
                     }}
                   >
-                    {isAssigning ? t.assigning : t.assign}
+                    {isAssigning ? t.assigning : isAlreadyAssigned ? t.assigned : t.assign}
                   </Button>
                 </div>
               )
@@ -185,6 +193,7 @@ export default function AssignDeckModal({ classId, open, onClose }: AssignDeckMo
               customDecks.map(deck => {
                 const key = `custom-${deck.id}`
                 const isAssigning = assigning === key
+                const isAlreadyAssigned = assignedCustomIds.has(deck.id)
                 return (
                   <div key={deck.id} style={deckRowStyle(!!assigning)}>
                     <div>
@@ -195,17 +204,17 @@ export default function AssignDeckModal({ classId, open, onClose }: AssignDeckMo
                     </div>
                     <Button
                       size="sm"
-                      disabled={!!assigning}
+                      disabled={!!assigning || isAlreadyAssigned}
                       onClick={() => handleAssignCustom(deck.id)}
                       style={{
-                        background: tc.accentGradient,
-                        color: tc.accentText,
-                        border: 'none',
+                        background: isAlreadyAssigned ? 'transparent' : tc.accentGradient,
+                        color: isAlreadyAssigned ? tc.textMuted : tc.accentText,
+                        border: isAlreadyAssigned ? `1px solid ${tc.surfaceBorder}` : 'none',
                         fontWeight: 600,
                         flexShrink: 0,
                       }}
                     >
-                      {isAssigning ? t.assigning : t.assign}
+                      {isAssigning ? t.assigning : isAlreadyAssigned ? t.assigned : t.assign}
                     </Button>
                   </div>
                 )
