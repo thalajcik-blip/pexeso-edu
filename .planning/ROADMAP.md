@@ -159,6 +159,17 @@ Plans:
 
 ---
 
+### Phase 03.5.1: Leaderboard — game history & data table (INSERTED)
+
+**Goal:** Hráč vidí globálny leaderboard aj vlastnú históriu hier — filtrovateľnú, zoraditeľnú tabuľku výsledkov (shadcn Data Table, TanStack Table) s presnosťou kvízu, avatarmi a stránkovaním; hra ukladá výsledky do `game_history` Supabase tabuľky po každom konci hry.
+**Requirements**: LB-01, LB-02, LB-03, LB-04, LB-05, LB-06, LB-07, LB-08, LB-09
+**Depends on:** Phase 3 (homepage + routing), Phase 1 (GDPR under-16 exclusion)
+**Brief:** `~/Downloads/pexedu_leaderboard_table.md`
+**Plans:** 1/2 plans executed
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 03.5.1 to break down)
+
 ### Phase 4: Share, deep links a virálny rast
 **Goal:** Každý výsledok a každá sada je zdieľateľná s OG preview — share + daily challenge live do 31. mája
 **Target:** May 31 (tvrdý milestone: share funkcionalita live)
