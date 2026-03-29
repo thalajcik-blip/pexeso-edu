@@ -68,6 +68,11 @@ Phase 2 Wave 3: Teacher dashboard analytics (Plan 04)
 - `npm:stripe` Deno kompatibilita overiť (pred Phase 6 buildom)
 - DPA template — právnik SK/CZ (iniciovať v apríli)
 
+## Accumulated Context
+
+### Roadmap Evolution
+- Phase 3.5.1 inserted after Phase 3.5: Leaderboard — game history & data table (URGENT)
+
 ## Performance Metrics
 
 | Phase | Plan | Duration | Tasks | Files |
