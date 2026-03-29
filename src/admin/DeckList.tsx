@@ -22,6 +22,7 @@ type Deck = {
   language: 'cs' | 'sk' | 'en'
   difficulty: 'easy' | 'medium' | 'hard'
   created_at: string
+  deck_type: 'image' | 'audio' | null
   results_config: Array<{ icon: string; title: string; messages: string[] }> | null
 }
 
