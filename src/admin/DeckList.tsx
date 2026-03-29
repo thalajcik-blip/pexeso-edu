@@ -23,6 +23,7 @@ type Deck = {
   difficulty: 'easy' | 'medium' | 'hard'
   created_at: string
   deck_type: 'image' | 'audio' | null
+  play_count: number
   results_config: Array<{ icon: string; title: string; messages: string[] }> | null
 }
 
@@ -413,6 +414,9 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
                         <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">
                           ⚠️ {invalidCount} neúplných
                         </Badge>
+                      )}
+                      {deck.play_count > 0 && (
+                        <span className="text-xs text-gray-400">▶ {deck.play_count}×</span>
                       )}
                     </div>
                     {deck.description && (

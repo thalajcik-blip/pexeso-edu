@@ -25,7 +25,7 @@ import {
   getPlayerId,
   updateMyPresence,
 } from '../services/multiplayerService'
-import { fetchCustomDeckFull } from '../services/supabase'
+import { fetchCustomDeckFull, incrementDeckPlayCount } from '../services/supabase'
 import { useAuthStore } from './authStore'
 import type { LobbyPlayer, GameAction } from '../services/multiplayerService'
 
@@ -352,6 +352,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
 
   startLightningGame: () => {
     const { selectedDeckId, customDeck, lightningQuestionCount, language, lightningTimeLimit } = get()
+    if (customDeck && customDeck.id === selectedDeckId) incrementDeckPlayCount(selectedDeckId)
     const questions = buildLightningQuestions(selectedDeckId, customDeck, language, lightningQuestionCount)
     const now = Date.now()
     set({
@@ -403,6 +404,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
 
   startOnlineLightningGame: () => {
     const { lobbyPlayers, selectedDeckId, customDeck, lightningQuestionCount, language, lightningTimeLimit } = get()
+    if (customDeck && customDeck.id === selectedDeckId) incrementDeckPlayCount(selectedDeckId)
     const sorted = [...lobbyPlayers].sort((a, b) => {
       if (a.isHost && !b.isHost) return -1
       if (!a.isHost && b.isHost) return 1
@@ -515,6 +517,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
 
   startGame: () => {
     const { selectedDeckId, selectedSize, numPlayers, playerNames, customDeck } = get()
+    if (customDeck && customDeck.id === selectedDeckId) incrementDeckPlayCount(selectedDeckId)
     const size = SIZE_CONFIG[selectedSize]
     const poolKeys = customDeck && customDeck.id === selectedDeckId
       ? Object.keys(customDeck.pool)
@@ -933,6 +936,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
 
   startOnlineGame: () => {
     const { lobbyPlayers, selectedDeckId, selectedSize, myPlayerId, turnTime, quizTime, customDeck } = get()
+    if (customDeck && customDeck.id === selectedDeckId) incrementDeckPlayCount(selectedDeckId)
     // Sort: host first, then by joinedAt
     const sorted = [...lobbyPlayers].sort((a, b) => {
       if (a.isHost && !b.isHost) return -1

@@ -6,6 +6,10 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+export function incrementDeckPlayCount(deckId: string) {
+  supabase.rpc('increment_deck_play_count', { p_deck_id: deckId }).then()
+}
+
 export async function fetchCustomDeckFull(id: string): Promise<CustomDeckData | null> {
   const [{ data: deckRow }, { data: cards }] = await Promise.all([
     supabase.from('custom_decks').select('title, language, deck_type, results_config').eq('id', id).single(),
