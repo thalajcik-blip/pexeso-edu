@@ -75,16 +75,15 @@ export default function SetupScreen() {
       .eq('language', language)
       .then(({ data }) => {
         if (!data) return
-        // Use thumbnail_url if set; fallback to first card image only when missing; audio decks have no thumbnail
+        // Use thumbnail_url if set; fallback to first card image only for image decks without thumbnail
         Promise.all(
           data.map(async (d: { id: string; title: string; supported_modes: string[] | null; thumbnail_url: string | null; deck_type?: string }) => {
             const deckType: 'image' | 'audio' = d.deck_type === 'audio' ? 'audio' : 'image'
-            // Audio decks: only lightning mode, no thumbnail needed
             if (deckType === 'audio') {
               return {
                 id: d.id,
                 title: d.title,
-                thumbnail: null,
+                thumbnail: d.thumbnail_url ?? null,
                 supported_modes: ['lightning'],
                 deck_type: deckType,
               }
