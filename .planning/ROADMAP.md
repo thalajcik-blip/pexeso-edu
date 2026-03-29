@@ -165,10 +165,10 @@ Plans:
 **Requirements**: LB-01, LB-02, LB-03, LB-04, LB-05, LB-06, LB-07, LB-08, LB-09
 **Depends on:** Phase 3 (homepage + routing), Phase 1 (GDPR under-16 exclusion)
 **Brief:** `~/Downloads/pexedu_leaderboard_table.md`
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 03.5.1 to break down)
+- [x] TBD (run /gsd:plan-phase 03.5.1 to break down) (completed 2026-03-29)
 
 ### Phase 4: Share, deep links a virálny rast
 **Goal:** Každý výsledok a každá sada je zdieľateľná s OG preview — share + daily challenge live do 31. mája
