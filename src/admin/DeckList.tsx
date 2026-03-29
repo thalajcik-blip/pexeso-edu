@@ -150,6 +150,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
         difficulty: deck.difficulty,
         is_private: deck.is_private,
         private_code: deck.private_code,
+        deck_type: deck.deck_type ?? 'image',
         status: 'draft',
         updated_at: new Date().toISOString(),
       })
@@ -182,6 +183,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
       let translatedCard: Record<string, unknown> = {
         deck_id: newDeck.id,
         image_url: card.image_url,
+        audio_url: card.audio_url ?? null,
         label: card.label,
         quiz_question: card.quiz_question,
         answers: card.answers,
@@ -226,7 +228,11 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
       translatedCards.push(translatedCard)
     }
 
-    await supabase.from('custom_cards').insert(translatedCards)
+    const { error: cardsErr } = await supabase.from('custom_cards').insert(translatedCards)
+    if (cardsErr) {
+      setTranslate(t => t ? { ...t, error: `Chyba při ukládání kartiček: ${cardsErr.message}` } : null)
+      return
+    }
 
     // Translate results_config if present
     if (deck.results_config) {
