@@ -40,6 +40,7 @@ export async function saveGameResult(result: GameResult): Promise<void> {
 
   const { error } = await supabase.from('game_history').insert({
     user_id:        user.id,
+    played_at:      new Date().toISOString(),
     set_slug:       result.setSlug,
     set_title:      result.setTitle,
     custom_deck_id: result.customDeckId,

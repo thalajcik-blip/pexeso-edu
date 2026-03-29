@@ -138,10 +138,12 @@ export const columns: ColumnDef<GameResultRow>[] = [
       </Button>
     ),
     cell: ({ row }) => {
-      const val = row.getValue('played_at') as string
+      const val = row.getValue('played_at') as string | null | undefined
+      if (!val) return <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem' }}>—</span>
+      const d = new Date(val)
       return (
         <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>
-          {new Date(val).toLocaleDateString('cs-CZ', {
+          {isNaN(d.getTime()) ? '—' : d.toLocaleDateString('cs-CZ', {
             day: 'numeric',
             month: 'short',
             year: 'numeric',
