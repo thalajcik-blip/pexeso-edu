@@ -168,7 +168,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
       deck_type: deckType,
       supported_modes: deckType === 'audio' ? ['lightning'] : (supportedModes.length > 0 ? supportedModes : ['pexequiz', 'lightning']),
       results_config: customizeResults && resultsConfig.length === 6 ? resultsConfig : null,
-      thumbnail_url: deckType === 'audio' ? null : thumbnailUrl,
+      thumbnail_url: thumbnailUrl,
       updated_at: new Date().toISOString(),
     }
 
