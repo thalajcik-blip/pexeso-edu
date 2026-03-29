@@ -76,6 +76,7 @@ Phase 2 Wave 3: Teacher dashboard analytics (Plan 04)
 ### Roadmap Evolution
 
 - Phase 3.5.1 inserted after Phase 3.5: Leaderboard — game history & data table (URGENT)
+- Phase 03.5.2 inserted after Phase 03.5.1: Global Leaderboard (URGENT) — prioritized before Phase 3
 
 ## Performance Metrics
 

@@ -150,7 +150,7 @@ Plans:
 - [ ] `pexedu.cz/en/quizzes/flags-europe` vracia detail sady; chýbajúci EN preklad → 404 s CTA
 - [ ] Všetky verejné stránky majú hreflang tagy pre dostupné jazyky
 - [ ] `/kvizy/:category` je SEO indexovateľná stránka s h1, meta description, grid sád
-- [ ] `/leaderboard` zobrazuje top 50 s filtrom; aktualizuje sa každých 60s
+- [ ] `/leaderboard` zobrazuje top 50 s filtrom; aktualizuje sa každú hodinu
 - [ ] `/pro-skoly` má funkčný kontaktný formulár → `iam@teamplayer.cz`
 
 ### Dependencies
@@ -170,6 +170,16 @@ Plans:
 Plans:
 - [x] TBD (run /gsd:plan-phase 03.5.1 to break down) (completed 2026-03-29)
 
+### Phase 03.5.2: Global Leaderboard (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 03.5.1
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 03.5.2 to break down)
+
 ### Phase 4: Share, deep links a virálny rast
 **Goal:** Každý výsledok a každá sada je zdieľateľná s OG preview — share + daily challenge live do 31. mája
 **Target:** May 31 (tvrdý milestone: share funkcionalita live)
@@ -179,13 +189,13 @@ Plans:
 1. **Share výsledku** — Web Share API s povinným clipboard fallback chain (try `navigator.share()` → `navigator.clipboard.writeText()` → manual "Copy link" button); share events tabuľka pre `ref` param tracking bez GA
 2. **Deep links a URL params** — Rozšíriť `shareService.ts` o `daily=1`, `class=PX-XXXX`, `ref=<source>` params; whitelist + validácia všetkých URL params (opraviť `as any` casty)
 3. **OG image a share shim** — Vercel Function `api/og.tsx` generujúca 1200x630 PNG cez `@vercel/og`; `/api/share/:deckId` vracia HTML s `og:image` meta tagmi pre crawlery; `/join/PX-XXXX` s OG preview
-4. **Daily challenge a leaderboardy** — `daily_challenges` a `daily_challenge_entries` tabuľky; superadmin scheduling + fallback cron; top-10 leaderboard (poll 60s, nie Realtime); XP bonus za prvý play; atomic `add_xp` RPC (GAME-05 = TECH-02, hotové v Phase 1)
+4. **Daily challenge a leaderboardy** — `daily_challenges` a `daily_challenge_entries` tabuľky; superadmin scheduling + fallback cron; top-10 leaderboard (poll každú hodinu, nie Realtime); XP bonus za prvý play; atomic `add_xp` RPC (GAME-05 = TECH-02, hotové v Phase 1)
 
 ### Success Criteria
 - [ ] Hráč zdieľa výsledok na Android 8 zariadení — clipboard fallback sa aktivuje a link je v schránke
 - [ ] `/api/share/vlajky` vracia HTML s `og:image`, `og:title`, `og:description` meta tagmi čitateľnými pre WhatsApp crawler
 - [ ] `pexedu.cz/?set=vlajky&mode=bleskovy_kviz` načíta správnu sadu a spustí bleskový kvíz; nevalidný mode param je ignorovaný
-- [ ] Daily challenge je aktívna každý deň; leaderboard top-10 sa aktualizuje každých 60s; replay je povolený ale leaderboard počíta prvý play
+- [ ] Daily challenge je aktívna každý deň; leaderboard top-10 sa aktualizuje každú hodinu; replay je povolený ale leaderboard počíta prvý play
 - [ ] `/join/PX-XXXX` link zobrazí OG preview kartu s názvom triedy pri zdieľaní cez messaging
 - [ ] Share events sú logované do Supabase bez GA alebo third-party trackerov
 
