@@ -41,7 +41,7 @@ export async function getGameResults(opts: {
     return []
   }
 
-  return (data as Array<{
+  type RawRow = {
     id: string
     played_at: string
     user_id: string
@@ -56,7 +56,9 @@ export async function getGameResults(opts: {
     duration_sec: number
     is_multiplayer: boolean
     profiles: { username: string | null; avatar_id: number | null }
-  }>).map((row) => ({
+  }
+
+  return (data as unknown as RawRow[]).map((row) => ({
     id: row.id,
     played_at: row.played_at,
     username: row.profiles.username ?? 'Anonym',
