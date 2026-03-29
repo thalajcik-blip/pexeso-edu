@@ -2,22 +2,22 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2
-status: Executing Phase 2
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-03-28T10:25:45.065Z"
+current_phase: 03.5.1
+status: Executing Phase 03.5.1
+stopped_at: Completed 03.5.1-01-PLAN.md
+last_updated: "2026-03-29T19:18:06.656Z"
 progress:
-  total_phases: 6
+  total_phases: 8
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
 ---
 
 # Project State
 
 **Project:** pexedu Q2 2026
 **Initialized:** 2026-03-27
-**Current phase:** 2
+**Current phase:** 03.5.1
 
 ## Status
 
@@ -35,6 +35,7 @@ progress:
 - [x] Phase 2 — Plan 03 (student join flow: /join/:code route + AssignedDecksBanner) executed
 - [x] Phase 2 — Plan 04 (teacher dashboard analytics: ClassResults + OnboardingChecklist) executed
 - [x] Phase 2 — Plan 05 (rejection email + language selector in settings) executed
+- [x] Phase 3.5.1 — Plan 01 (leaderboard data layer: GameResultRow type + resultsService + TanStack Table + shadcn table/tabs) executed
 
 ## Current Milestone
 
@@ -63,6 +64,8 @@ Phase 2 Wave 3: Teacher dashboard analytics (Plan 04)
 - ✓ Anonymous class join NOT supported in MVP — login required (class_members FK requires profiles.id)
 - ✓ ClassResults picks best game attempt per student (highest quiz_correct/quiz_total ratio), not most recent (Phase 02, Plan 04)
 - ✓ Assignment results are expandable on click — avoids loading all game_history results on page mount (Phase 02, Plan 04)
+- ✓ GameResultRow named distinctly from GameResult (insert type) to prevent import collisions (Phase 03.5.1, Plan 01)
+- ✓ profiles!inner join excludes deleted profiles — sufficient GDPR coverage for MVP leaderboard (Phase 03.5.1, Plan 01)
 - Daily challenge replay semantics (vyriešiť pred Phase 4)
 - Pro tier cena (vyriešiť pred Phase 6)
 - `npm:stripe` Deno kompatibilita overiť (pred Phase 6 buildom)
@@ -71,6 +74,7 @@ Phase 2 Wave 3: Teacher dashboard analytics (Plan 04)
 ## Accumulated Context
 
 ### Roadmap Evolution
+
 - Phase 3.5.1 inserted after Phase 3.5: Leaderboard — game history & data table (URGENT)
 
 ## Performance Metrics
@@ -85,11 +89,12 @@ Phase 2 Wave 3: Teacher dashboard analytics (Plan 04)
 | 02 | 03 | ~5min | 2/2 | 3 |
 | 02 | 05 | 3min | 2/2 | 3 |
 | Phase 02 P04 | 15 | 2 tasks | 4 files |
+| Phase 03.5.1 P01 | 7 | 2 tasks | 6 files |
 
 ## Session
 
-**Last session:** 2026-03-28T10:25:45.062Z
-**Stopped at:** Completed 02-04-PLAN.md
+**Last session:** 2026-03-29T19:18:06.653Z
+**Stopped at:** Completed 03.5.1-01-PLAN.md
 
 ---
 *Last updated: 2026-03-28*
