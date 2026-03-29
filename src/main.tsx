@@ -8,6 +8,7 @@ import AdminApp from './admin/AdminApp.tsx'
 import ProfilePage from './components/profile/ProfilePage.tsx'
 import JoinClassRoute from './components/student/JoinClassRoute.tsx'
 import TeacherDashboard from './components/teacher/TeacherDashboard.tsx'
+import LeaderboardPage from './components/leaderboard/LeaderboardPage.tsx'
 
 inject()
 
@@ -26,6 +27,7 @@ const isAdmin   = window.location.pathname.startsWith('/admin')
 const isProfile = window.location.pathname.startsWith('/profile/')
 const isJoin    = window.location.pathname.startsWith('/join/')
 const isTeacher = window.location.pathname.startsWith('/teacher')
+const isLeaderboard = window.location.pathname.startsWith('/leaderboard')
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -37,6 +39,8 @@ createRoot(document.getElementById('root')!).render(
           ? <ProfilePage />
           : isJoin
             ? <JoinClassRoute />
-            : <App />}
+            : isLeaderboard
+              ? <LeaderboardPage />
+              : <App />}
   </StrictMode>,
 )

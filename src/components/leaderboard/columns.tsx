@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
 import type { GameResultRow } from '../../types/gameResult'
 import { Avatar } from '../auth/Avatar'
