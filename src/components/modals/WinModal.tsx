@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ScoreGauge } from '../ScoreGauge'
 import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
 import { useAuthStore } from '../../store/authStore'
@@ -162,6 +163,18 @@ export default function WinModal() {
 
   const isSolo = players.length === 1
 
+  // Stagger animation
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 200)
+    return () => clearTimeout(t)
+  }, [])
+  const fadeIn = (delay: number) => ({
+    opacity: visible ? 1 : 0,
+    transform: visible ? 'none' : 'translateY(6px)',
+    transition: `opacity 0.45s ${delay}ms, transform 0.45s ${delay}ms`,
+  })
+
   // Compute result messages once — avoid re-randomising on re-renders
   const stableMessages = useMemo(() => {
     const p0 = players[0]
@@ -252,19 +265,46 @@ export default function WinModal() {
     const totalQuizzes = p.quizzes + p.wrongQuizzes
     const accuracy = totalQuizzes > 0 ? Math.round(p.quizzes / totalQuizzes * 100) : 100
     const movesPerPair = p.pairs > 0 ? (soloMoves / p.pairs).toFixed(1) : '—'
-    const { icon, title } = getPexeTierDisplay(accuracy)
+    const { title } = getPexeTierDisplay(accuracy)
     const message = stableMessages.soloMessage
+    const deckTitle = customDeck?.title ?? DECKS.find(d => d.id === selectedDeckId)?.label ?? ''
+    const isPerfect = p.quizzes === totalQuizzes && totalQuizzes > 0
+    const correctLabel = ({ cs: 'Správně', sk: 'Správne', en: 'Correct' } as Record<string, string>)[language] ?? 'Správně'
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.winOverlayBg }}>
-        <div className="pop-in rounded-2xl p-10 text-center"
+        <div className="pop-in rounded-2xl p-8 text-center"
           style={{ background: tc.modalSurface, border: `2px solid ${tc.accent}`, boxShadow: `0 0 60px ${tc.accentGlow}`, color: tc.text }}>
 
-          <div className="text-4xl mb-1">{icon}</div>
-          <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{title}</div>
-          <div className="text-sm mb-8" style={{ color: tc.textMuted }}>{message}</div>
+          {/* Deck title */}
+          {deckTitle && (
+            <div className="text-xs font-medium mb-3 tracking-wide uppercase" style={{ color: tc.textMuted, ...fadeIn(100) }}>
+              {deckTitle}
+            </div>
+          )}
 
-          <div className="flex flex-col gap-4 text-left mb-2">
+          {/* Radial score */}
+          <div style={fadeIn(200)}>
+            <ScoreGauge
+              score={p.quizzes}
+              total={totalQuizzes}
+              label={correctLabel}
+              accent={tc.accent}
+              textMuted={tc.textMuted}
+              isPerfectScore={isPerfect}
+              animDelay={500}
+            />
+          </div>
+
+          {/* Headline + subtitle */}
+          <div className="text-2xl font-bold mt-1 mb-0.5" style={{ color: tc.accent, ...fadeIn(1450) }}>{title}</div>
+          <div className="text-sm mb-6" style={{ color: tc.textMuted, ...fadeIn(1600) }}>{message}</div>
+
+          {/* Stats */}
+          <div
+            className="flex flex-col gap-4 text-left mb-2"
+            style={fadeIn(1750)}
+          >
             <div className="flex items-center justify-between gap-8">
               <span style={{ color: tc.textMuted }}>{tr.soloMovesLabel}</span>
               <span>
@@ -272,61 +312,57 @@ export default function WinModal() {
                 <span className="text-sm ml-2" style={{ color: tc.textDim }}>({movesPerPair} {tr.perPair})</span>
               </span>
             </div>
-            <div className="flex items-center justify-between gap-8">
-              <span style={{ color: tc.textMuted }}>{tr.soloQuizLabel}</span>
-              <span className="text-xl font-bold" style={{ color: tc.accent }}>
-                {p.quizzes}/{totalQuizzes} <span className="text-base font-normal" style={{ color: tc.textDim }}>({accuracy}%)</span>
-              </span>
-            </div>
           </div>
 
           {/* Save result CTA — only if not logged in */}
-          {!user && (
-            <div
-              className="mt-6 flex items-center justify-between gap-3 rounded-xl px-4 py-3"
-              style={{ background: tc.btnInactiveBg, border: `1px solid ${tc.btnInactiveBorder}` }}
-            >
-              <span className="text-xs" style={{ color: tc.textMuted }}>
-                {{ cs: 'Ulož výsledek a sleduj pokrok', sk: 'Ulož výsledok a sleduj pokrok', en: 'Save your result & track progress' }[language]}
-              </span>
-              <button
-                onClick={openAuthModal}
-                className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
-                style={{ background: tc.accentGradient, color: tc.accentText }}
+          <div style={fadeIn(1950)}>
+            {!user && (
+              <div
+                className="mt-4 flex items-center justify-between gap-3 rounded-xl px-4 py-3"
+                style={{ background: tc.btnInactiveBg, border: `1px solid ${tc.btnInactiveBorder}` }}
               >
-                {{ cs: 'Přihlásit se', sk: 'Prihlásiť sa', en: 'Sign in' }[language]}
-              </button>
-            </div>
-          )}
+                <span className="text-xs" style={{ color: tc.textMuted }}>
+                  {{ cs: 'Ulož výsledek a sleduj pokrok', sk: 'Ulož výsledok a sleduj pokrok', en: 'Save your result & track progress' }[language]}
+                </span>
+                <button
+                  onClick={openAuthModal}
+                  className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
+                  style={{ background: tc.accentGradient, color: tc.accentText }}
+                >
+                  {{ cs: 'Přihlásit se', sk: 'Prihlásiť sa', en: 'Sign in' }[language]}
+                </button>
+              </div>
+            )}
 
-          <button
-            onClick={() => shareResult({
-              deckId: selectedDeckId,
-              mode: 'pexequiz',
-              ctx: { kind: 'pexequiz_solo', accuracy },
-              language,
-              from: sharerName,
-            })}
-            className="mt-4 w-full py-2.5 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80 border"
-            style={{ background: 'transparent', borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
-          >
-            📤 {tr.shareBtn}
-          </button>
+            <button
+              onClick={() => shareResult({
+                deckId: selectedDeckId,
+                mode: 'pexequiz',
+                ctx: { kind: 'pexequiz_solo', accuracy },
+                language,
+                from: sharerName,
+              })}
+              className="mt-4 w-full py-2.5 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80 border"
+              style={{ background: 'transparent', borderColor: tc.btnInactiveBorder, color: tc.textMuted }}
+            >
+              📤 {tr.shareBtn}
+            </button>
 
-          <button
-            onClick={playAgain}
-            className="mt-2 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105 w-full"
-            style={{ background: tc.accentGradient, color: tc.accentText }}
-          >
-            {tr.playAgain}
-          </button>
+            <button
+              onClick={playAgain}
+              className="mt-2 px-10 py-2.5 rounded-xl font-bold transition-transform hover:scale-105 w-full"
+              style={{ background: tc.accentGradient, color: tc.accentText }}
+            >
+              {tr.playAgain}
+            </button>
 
-          <button
-            onClick={resetToSetup}
-            className="block mx-auto mt-3 text-sm transition-opacity opacity-50 hover:opacity-70"
-          >
-            {tr.chooseDeck}
-          </button>
+            <button
+              onClick={resetToSetup}
+              className="block mx-auto mt-3 text-sm transition-opacity opacity-50 hover:opacity-70"
+            >
+              {tr.chooseDeck}
+            </button>
+          </div>
         </div>
       </div>
     )
