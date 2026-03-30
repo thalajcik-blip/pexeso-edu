@@ -5,7 +5,7 @@ import type { Translations } from '../../data/translations'
 import { Avatar } from '../auth/Avatar'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
-import { MODE_LABELS, SET_ICONS } from '../../services/resultsService'
+import { MODE_LABELS } from '../../services/resultsService'
 
 export function createColumns(tr: Translations): ColumnDef<GameResultRow>[] {
   return [
@@ -33,9 +33,9 @@ export function createColumns(tr: Translations): ColumnDef<GameResultRow>[] {
       accessorKey: 'set_name',
       header: tr.lbSet,
       cell: ({ row }) => {
-        const slug = row.original.set_slug
-        const icon = slug ? SET_ICONS[slug] : undefined
-        return <span>{icon ? `${icon} ` : ''}{row.getValue('set_name')}</span>
+        const lang = row.original.deck_language
+        const flag = lang === 'cs' ? '🇨🇿' : lang === 'sk' ? '🇸🇰' : lang === 'en' ? '🇬🇧' : null
+        return <span>{flag ? `${flag} ` : ''}{row.getValue('set_name')}</span>
       },
       filterFn: 'includesString',
     },

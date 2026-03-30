@@ -18,6 +18,7 @@ export type GameResultRow = {
   total_pairs: number
   duration_sec: number
   is_multiplayer: boolean
+  deck_language: string | null  // from custom_decks.language join; null for built-in decks
   // Computed on frontend:
   accuracy: number | null   // quiz_total > 0 ? Math.round(quiz_correct / quiz_total * 100) : null
   set_name: string          // Display name from SET_NAMES lookup or set_title
