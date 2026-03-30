@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Avatar } from '../auth/Avatar'
 import { useAuthStore } from '../../store/authStore'
+import { useGameStore } from '../../store/gameStore'
+import { TRANSLATIONS } from '../../data/translations'
 import { getGlobalLeaderboard, getPlayerRank, getAvailableSets } from '../../services/leaderboardService'
 import type { LeaderboardEntry, TimeFilter } from '../../types/leaderboard'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Skeleton } from '../ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 
-function LeaderboardRow({ entry, isCurrentUser }: { entry: LeaderboardEntry; isCurrentUser: boolean }) {
+function LeaderboardRow({ entry, isCurrentUser, scoreLocale }: { entry: LeaderboardEntry; isCurrentUser: boolean; scoreLocale: string }) {
   const rankColor =
     entry.rank === 1 ? '#F5C400' :
     entry.rank === 2 ? '#C0C0C0' :
@@ -28,7 +30,7 @@ function LeaderboardRow({ entry, isCurrentUser }: { entry: LeaderboardEntry; isC
         </div>
       </TableCell>
       <TableCell style={{ textAlign: 'right', fontWeight: 700, color: '#F5C400' }}>
-        {entry.total_score.toLocaleString('cs-CZ')}
+        {entry.total_score.toLocaleString(scoreLocale)}
       </TableCell>
       <TableCell style={{ textAlign: 'right' }} className="text-muted-foreground">
         {entry.games_played}
@@ -46,6 +48,9 @@ export function GlobalLeaderboard() {
   const [availableSets, setAvailableSets] = useState<{ slug: string; name: string }[]>([])
 
   const { user } = useAuthStore()
+  const language = useGameStore(s => s.language)
+  const tr = TRANSLATIONS[language]
+  const scoreLocale = language === 'cs' ? 'cs-CZ' : language === 'sk' ? 'sk-SK' : 'en-US'
 
   const fetchLeaderboard = useCallback(async () => {
     setLoading(true)
@@ -76,47 +81,43 @@ export function GlobalLeaderboard() {
 
   return (
     <div>
-      {/* Filter bar */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {/* Per-sada dropdown */}
         <Select value={selectedSet} onValueChange={setSelectedSet}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Všetky sady" />
+            <SelectValue placeholder={tr.lbAllSets} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Všetky sady</SelectItem>
+            <SelectItem value="all">{tr.lbAllSets}</SelectItem>
             {availableSets.map(s => (
               <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        {/* Time filter — only enabled when a set is selected */}
         <Select
           value={timeFilter}
           onValueChange={(v) => setTimeFilter(v as TimeFilter)}
           disabled={selectedSet === 'all'}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Celkovo" />
+            <SelectValue placeholder={tr.lbAllTime} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Celkovo</SelectItem>
-            <SelectItem value="week">Tento týždeň</SelectItem>
-            <SelectItem value="month">Tento mesiac</SelectItem>
+            <SelectItem value="all">{tr.lbAllTime}</SelectItem>
+            <SelectItem value="week">{tr.lbThisWeek}</SelectItem>
+            <SelectItem value="month">{tr.lbThisMonth}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Table */}
       <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, overflow: 'hidden' }}>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead style={{ width: 60 }}>#</TableHead>
-              <TableHead>Hráč</TableHead>
-              <TableHead style={{ textAlign: 'right' }}>Skóre</TableHead>
-              <TableHead style={{ textAlign: 'right' }}>Hier</TableHead>
+              <TableHead>{tr.lbPlayer}</TableHead>
+              <TableHead style={{ textAlign: 'right' }}>{tr.lbScore}</TableHead>
+              <TableHead style={{ textAlign: 'right' }}>{tr.lbGames}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -137,7 +138,7 @@ export function GlobalLeaderboard() {
             ) : entries.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} style={{ textAlign: 'center', padding: '2rem 0', color: 'rgba(255,255,255,0.5)' }}>
-                  Zatiaľ žiadne výsledky
+                  {tr.lbNoResults}
                 </TableCell>
               </TableRow>
             ) : (
@@ -146,11 +147,11 @@ export function GlobalLeaderboard() {
                   key={entry.user_id}
                   entry={entry}
                   isCurrentUser={entry.user_id === user?.id}
+                  scoreLocale={scoreLocale}
                 />
               ))
             )}
 
-            {/* Current user row if outside top 50 */}
             {showOutOfTop50 && (
               <>
                 <TableRow>
@@ -158,7 +159,7 @@ export function GlobalLeaderboard() {
                     <hr style={{ border: 'none', borderTop: '1px dashed rgba(255,255,255,0.15)' }} />
                   </TableCell>
                 </TableRow>
-                <LeaderboardRow entry={playerEntry!} isCurrentUser={true} />
+                <LeaderboardRow entry={playerEntry!} isCurrentUser={true} scoreLocale={scoreLocale} />
               </>
             )}
           </TableBody>

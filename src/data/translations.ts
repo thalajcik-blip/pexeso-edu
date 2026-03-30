@@ -114,6 +114,30 @@ export interface Translations {
   // Footer legal
   termsLink: string
   privacyLink: string
+  // Leaderboard
+  lbTitle: string
+  lbTabRanking: string
+  lbTabResults: string
+  lbPlayer: string
+  lbScore: string
+  lbGames: string
+  lbNoResults: string
+  lbAllSets: string
+  lbAllTime: string
+  lbThisWeek: string
+  lbThisMonth: string
+  lbSearchSet: string
+  lbAllModes: string
+  lbAllTypes: string
+  lbReset: string
+  lbSet: string
+  lbMode: string
+  lbAccuracy: string
+  lbType: string
+  lbDate: string
+  lbSolo: string
+  lbOnline: string
+  lbNoGames: string
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -246,6 +270,29 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     shareBtn: 'Sdílet výsledek',
     termsLink: 'Podmínky používání',
     privacyLink: 'Ochrana údajů',
+    lbTitle: 'Žebříček',
+    lbTabRanking: 'Žebříček',
+    lbTabResults: 'Výsledky her',
+    lbPlayer: 'Hráč',
+    lbScore: 'Skóre',
+    lbGames: 'Her',
+    lbNoResults: 'Zatím žádné výsledky',
+    lbAllSets: 'Všechny sady',
+    lbAllTime: 'Celkově',
+    lbThisWeek: 'Tento týden',
+    lbThisMonth: 'Tento měsíc',
+    lbSearchSet: 'Hledat sadu...',
+    lbAllModes: 'Všechny módy',
+    lbAllTypes: 'Všechny typy',
+    lbReset: 'Resetovat',
+    lbSet: 'Sada',
+    lbMode: 'Mód',
+    lbAccuracy: 'Přesnost',
+    lbType: 'Typ',
+    lbDate: 'Datum',
+    lbSolo: 'Solo',
+    lbOnline: 'Online',
+    lbNoGames: 'Žádné výsledky',
   },
 
   sk: {
@@ -377,6 +424,29 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     shareBtn: 'Zdieľať výsledok',
     termsLink: 'Podmienky používania',
     privacyLink: 'Ochrana údajov',
+    lbTitle: 'Rebríček',
+    lbTabRanking: 'Rebríček',
+    lbTabResults: 'Výsledky hier',
+    lbPlayer: 'Hráč',
+    lbScore: 'Skóre',
+    lbGames: 'Hier',
+    lbNoResults: 'Zatiaľ žiadne výsledky',
+    lbAllSets: 'Všetky sady',
+    lbAllTime: 'Celkovo',
+    lbThisWeek: 'Tento týždeň',
+    lbThisMonth: 'Tento mesiac',
+    lbSearchSet: 'Hľadaj sadu...',
+    lbAllModes: 'Všetky módy',
+    lbAllTypes: 'Všetky typy',
+    lbReset: 'Resetovať',
+    lbSet: 'Sada',
+    lbMode: 'Mód',
+    lbAccuracy: 'Presnosť',
+    lbType: 'Typ',
+    lbDate: 'Dátum',
+    lbSolo: 'Solo',
+    lbOnline: 'Online',
+    lbNoGames: 'Žiadne výsledky',
   },
 
   en: {
@@ -508,6 +578,29 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     shareBtn: 'Share result',
     termsLink: 'Terms of use',
     privacyLink: 'Privacy policy',
+    lbTitle: 'Leaderboard',
+    lbTabRanking: 'Ranking',
+    lbTabResults: 'Game results',
+    lbPlayer: 'Player',
+    lbScore: 'Score',
+    lbGames: 'Games',
+    lbNoResults: 'No results yet',
+    lbAllSets: 'All sets',
+    lbAllTime: 'All time',
+    lbThisWeek: 'This week',
+    lbThisMonth: 'This month',
+    lbSearchSet: 'Search set...',
+    lbAllModes: 'All modes',
+    lbAllTypes: 'All types',
+    lbReset: 'Reset',
+    lbSet: 'Set',
+    lbMode: 'Mode',
+    lbAccuracy: 'Accuracy',
+    lbType: 'Type',
+    lbDate: 'Date',
+    lbSolo: 'Solo',
+    lbOnline: 'Online',
+    lbNoGames: 'No results',
   },
 }
 

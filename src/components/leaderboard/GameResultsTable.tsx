@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,9 +9,11 @@ import {
   type SortingState,
   type ColumnFiltersState,
 } from '@tanstack/react-table'
-import { columns } from './columns'
+import { createColumns } from './columns'
 import type { GameResultRow } from '../../types/gameResult'
 import { getGameResults } from '../../services/resultsService'
+import { useGameStore } from '../../store/gameStore'
+import { TRANSLATIONS } from '../../data/translations'
 import {
   Table,
   TableBody,
@@ -36,6 +38,10 @@ export function GameResultsTable() {
   const [loading, setLoading] = useState(true)
   const [sorting, setSorting] = useState<SortingState>([{ id: 'played_at', desc: true }])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+  const language = useGameStore(s => s.language)
+  const tr = TRANSLATIONS[language]
+  const columns = useMemo(() => createColumns(tr), [language])
 
   useEffect(() => {
     const load = async () => {
@@ -69,7 +75,7 @@ export function GameResultsTable() {
       {/* Filter toolbar */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         <Input
-          placeholder="Hledej sadu..."
+          placeholder={tr.lbSearchSet}
           value={(table.getColumn('set_name')?.getFilterValue() as string) ?? ''}
           onChange={(e) =>
             table.getColumn('set_name')?.setFilterValue(e.target.value)
@@ -83,12 +89,12 @@ export function GameResultsTable() {
           defaultValue="all"
         >
           <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Vsechny mody" />
+            <SelectValue placeholder={tr.lbAllModes} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Vsechny mody</SelectItem>
+            <SelectItem value="all">{tr.lbAllModes}</SelectItem>
             <SelectItem value="pexequiz">PexeQuiz</SelectItem>
-            <SelectItem value="lightning">Bleskovy kviz</SelectItem>
+            <SelectItem value="lightning">{language === 'en' ? 'Lightning Quiz' : 'Bleskový kvíz'}</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -98,17 +104,17 @@ export function GameResultsTable() {
           defaultValue="all"
         >
           <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Vsechny typy" />
+            <SelectValue placeholder={tr.lbAllTypes} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Vsechny typy</SelectItem>
-            <SelectItem value="false">Solo</SelectItem>
-            <SelectItem value="true">Online</SelectItem>
+            <SelectItem value="all">{tr.lbAllTypes}</SelectItem>
+            <SelectItem value="false">{tr.lbSolo}</SelectItem>
+            <SelectItem value="true">{tr.lbOnline}</SelectItem>
           </SelectContent>
         </Select>
         {columnFilters.length > 0 && (
           <Button variant="ghost" onClick={() => table.resetColumnFilters()}>
-            Resetovat
+            {tr.lbReset}
           </Button>
         )}
       </div>
@@ -152,7 +158,7 @@ export function GameResultsTable() {
                   colSpan={columns.length}
                   className="text-center text-muted-foreground py-8"
                 >
-                  Zadne vysledky
+                  {tr.lbNoGames}
                 </TableCell>
               </TableRow>
             ) : (
@@ -180,7 +186,7 @@ export function GameResultsTable() {
         }}
       >
         <span className="text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} vysledku
+          {table.getFilteredRowModel().rows.length}
         </span>
         <span className="text-sm">
           {table.getState().pagination.pageIndex + 1} / {table.getPageCount() || 1}
@@ -192,7 +198,7 @@ export function GameResultsTable() {
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            Predchazejici
+            ←
           </Button>
           <Button
             variant="outline"
@@ -200,7 +206,7 @@ export function GameResultsTable() {
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            Dalsi
+            →
           </Button>
         </div>
       </div>
