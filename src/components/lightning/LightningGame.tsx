@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { ScoreGauge } from '../ScoreGauge'
 import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
 import { useAuthStore } from '../../store/authStore'
@@ -259,6 +260,17 @@ export default function LightningGame() {
   const isResults = phase === 'lightning_results' && lightningAnswers.length > 0
   const total     = lightningQuestions.length
 
+  // Stagger animation state for results screen
+  const [resultsAnim, setResultsAnim] = useState(false)
+  useEffect(() => {
+    if (phase === 'lightning_results') {
+      const t = setTimeout(() => setResultsAnim(true), 200)
+      return () => clearTimeout(t)
+    } else {
+      setResultsAnim(false)
+    }
+  }, [phase])
+
   // Compute result messages once per results screen (avoid re-randomising on re-renders)
   const { tierMessage, onlineMessage: onlineMessageMemo } = useMemo(() => {
     if (phase !== 'lightning_results' || lightningAnswers.length === 0) return { tierMessage: '', onlineMessage: '' }
@@ -517,13 +529,38 @@ export default function LightningGame() {
               <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{onlineResultData.title[language]}</div>
               <div className="text-sm mb-6" style={{ color: tc.textMuted }}>{onlineMessage}</div>
             </>
-          ) : (
-            <>
-              <div className="text-4xl mb-1">{tierIcon}</div>
-              <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{tierTitle}</div>
-              <div className="text-sm mb-6" style={{ color: tc.textMuted }}>{tierMessage}</div>
-            </>
-          )}
+          ) : (() => {
+            const deckTitle = customDeck?.title ?? DECKS.find(d => d.id === selectedDeckId)?.label ?? ''
+            const correctLabel = ({ cs: 'Správně', sk: 'Správne', en: 'Correct' } as Record<string, string>)[language] ?? 'Správně'
+            const isPerfect = correctCount === total && total > 0
+            const fadeIn = (delay: number) => ({
+              opacity: resultsAnim ? 1 : 0,
+              transform: resultsAnim ? 'none' : 'translateY(6px)',
+              transition: `opacity 0.45s ${delay}ms, transform 0.45s ${delay}ms`,
+            })
+            return (
+              <>
+                {deckTitle && (
+                  <div className="text-xs font-medium mb-3 tracking-wide uppercase" style={{ color: tc.textMuted, ...fadeIn(100) }}>
+                    {deckTitle}
+                  </div>
+                )}
+                <div style={fadeIn(200)}>
+                  <ScoreGauge
+                    score={correctCount}
+                    total={total}
+                    label={correctLabel}
+                    accent={tc.accent}
+                    textMuted={tc.textMuted}
+                    isPerfectScore={isPerfect}
+                    animDelay={500}
+                  />
+                </div>
+                <div className="text-2xl font-bold mt-1 mb-0.5" style={{ color: tc.accent, ...fadeIn(1450) }}>{tierTitle}</div>
+                <div className="text-sm mb-5" style={{ color: tc.textMuted, ...fadeIn(1600) }}>{tierMessage}</div>
+              </>
+            )
+          })()}
 
           {/* Online leaderboard */}
           {isOnline ? (
@@ -562,14 +599,14 @@ export default function LightningGame() {
             </div>
           ) : (
             /* Solo stats */
-            <div className="flex flex-col gap-3 text-left mb-5">
-              <div className="flex items-center justify-between gap-8">
-                <span style={{ color: tc.textMuted }}>{tr.soloQuizLabel}</span>
-                <span>
-                  <span className="text-xl font-bold" style={{ color: tc.accent }}>{correctCount}/{total}</span>
-                  <span className="text-sm ml-1.5" style={{ color: tc.textDim }}>({accuracy}%)</span>
-                </span>
-              </div>
+            <div
+              className="flex flex-col gap-3 text-left mb-5"
+              style={{
+                opacity: resultsAnim ? 1 : 0,
+                transform: resultsAnim ? 'none' : 'translateY(6px)',
+                transition: 'opacity 0.45s 1750ms, transform 0.45s 1750ms',
+              }}
+            >
               <div className="flex items-center justify-between gap-8">
                 <span style={{ color: tc.textMuted }}>{tr.lightningAvgTime}</span>
                 <span className="text-xl font-bold" style={{ color: tc.accent }}>{avgTimeS}s</span>
@@ -584,6 +621,11 @@ export default function LightningGame() {
           )}
 
           {/* CTA */}
+          <div style={{
+            opacity: resultsAnim ? 1 : 0,
+            transform: resultsAnim ? 'none' : 'translateY(6px)',
+            transition: 'opacity 0.45s 1950ms, transform 0.45s 1950ms',
+          }}>
           <button
             onClick={() => shareResult({
               deckId: selectedDeckId,
@@ -638,6 +680,7 @@ export default function LightningGame() {
               {tr.leaveRoom}
             </button>
           )}
+          </div>{/* end CTA wrapper */}
         </div>
       </div>
     )
