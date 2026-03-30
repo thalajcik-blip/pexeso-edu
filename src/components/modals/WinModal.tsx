@@ -278,7 +278,7 @@ export default function WinModal() {
 
           {/* Deck title */}
           {deckTitle && (
-            <div className="text-xs font-medium mb-3 tracking-wide uppercase" style={{ color: tc.textMuted, ...fadeIn(100) }}>
+            <div className="text-xs font-medium mb-1 tracking-wide uppercase" style={{ color: tc.textMuted, ...fadeIn(100) }}>
               {deckTitle}
             </div>
           )}
@@ -294,7 +294,7 @@ export default function WinModal() {
               textMuted={tc.textMuted}
               trackColor={theme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'}
               isPerfectScore={isPerfect}
-              animDelay={500}
+              animDelay={200}
             />
           </div>
 
