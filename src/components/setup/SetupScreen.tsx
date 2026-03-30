@@ -504,6 +504,10 @@ export default function SetupScreen() {
             {tr.rulesLink}
           </button>
           <span className="opacity-40">·</span>
+          <a href="/leaderboard" className="transition-opacity opacity-60 hover:opacity-90">
+            {tr.leaderboardLink}
+          </a>
+          <span className="opacity-40">·</span>
           <button onClick={() => setTermsOpen(true)} className="transition-opacity opacity-60 hover:opacity-90">
             {tr.termsLink}
           </button>
