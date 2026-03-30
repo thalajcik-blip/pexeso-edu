@@ -532,6 +532,7 @@ export default function LightningGame() {
             const deckTitle = customDeck?.title ?? DECKS.find(d => d.id === selectedDeckId)?.label ?? ''
             const correctLabel = ({ cs: 'Správně', sk: 'Správne', en: 'Correct' } as Record<string, string>)[language] ?? 'Správně'
             const isPerfect = correctCount === total && total > 0
+            const gaugeTrackColor = theme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'
             const fadeIn = (delay: number) => ({
               opacity: resultsAnim ? 1 : 0,
               transform: resultsAnim ? 'none' : 'translateY(6px)',
@@ -551,12 +552,13 @@ export default function LightningGame() {
                     label={correctLabel}
                     accent={tc.accent}
                     textMuted={tc.textMuted}
+                    trackColor={gaugeTrackColor}
                     isPerfectScore={isPerfect}
                     animDelay={500}
                   />
                 </div>
-                <div className="text-2xl font-bold mt-1 mb-0.5" style={{ color: tc.accent, ...fadeIn(1450) }}>{tierTitle}</div>
-                <div className="text-sm mb-5" style={{ color: tc.textMuted, ...fadeIn(1600) }}>{tierMessage}</div>
+                <div className="text-2xl font-bold mt-1 mb-0.5" style={{ color: tc.accent, ...fadeIn(1050) }}>{tierTitle}</div>
+                <div className="text-sm mb-5" style={{ color: tc.textMuted, ...fadeIn(1200) }}>{tierMessage}</div>
               </>
             )
           })()}
@@ -603,7 +605,7 @@ export default function LightningGame() {
               style={{
                 opacity: resultsAnim ? 1 : 0,
                 transform: resultsAnim ? 'none' : 'translateY(6px)',
-                transition: 'opacity 0.45s 1750ms, transform 0.45s 1750ms',
+                transition: 'opacity 0.45s 1350ms, transform 0.45s 1350ms',
               }}
             >
               <div className="flex items-center justify-between gap-8">
@@ -623,7 +625,7 @@ export default function LightningGame() {
           <div style={{
             opacity: resultsAnim ? 1 : 0,
             transform: resultsAnim ? 'none' : 'translateY(6px)',
-            transition: 'opacity 0.45s 1950ms, transform 0.45s 1950ms',
+            transition: 'opacity 0.45s 1550ms, transform 0.45s 1550ms',
           }}>
           <button
             onClick={() => shareResult({
