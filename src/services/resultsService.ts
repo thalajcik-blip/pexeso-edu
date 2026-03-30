@@ -8,6 +8,13 @@ export const SET_NAMES: Record<string, string> = {
   jobs: 'Povolání',
 }
 
+export const SET_ICONS: Record<string, string> = {
+  flags: '🏳️',
+  animals: '🐾',
+  fruits: '🍎',
+  jobs: '💼',
+}
+
 export const MODE_LABELS: Record<string, { emoji: string; label: string }> = {
   pexequiz: { emoji: '🃏', label: 'PexeQuiz' },
   lightning: { emoji: '⚡', label: 'Bleskový kvíz' },
