@@ -108,6 +108,15 @@ export default function App() {
   }, [user?.id])
 
   // Back button → return to setup instead of leaving the app
+  const customDeck = useGameStore(s => s.customDeck)
+  useEffect(() => {
+    if (phase !== 'playing' && phase !== 'lightning_playing') return
+    if (!customDeck) return
+    Object.values(customDeck.pool).forEach(item => {
+      if (item.image_url) { const img = new Image(); img.src = item.image_url }
+    })
+  }, [phase, customDeck])
+
   const prevPhaseRef = useRef(phase)
   useEffect(() => {
     if (prevPhaseRef.current === 'setup' && phase !== 'setup') {
