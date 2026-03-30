@@ -497,7 +497,6 @@ export default function LightningGame() {
     const tierIdx = getLightningTierIdx(accuracy)
     const customTier = customDeck?.results_config?.[tierIdx]
     const defTier = LIGHTNING_TIERS[tierIdx]
-    const tierIcon  = customTier?.icon ?? defTier.icon
     const tierTitle = customTier?.title ?? (defTier.title[language] ?? defTier.title['cs'])
 
     // Online: compute my result + leaderboard
