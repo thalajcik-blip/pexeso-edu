@@ -523,13 +523,31 @@ export default function LightningGame() {
           style={{ background: tc.modalSurface, border: `2px solid ${tc.accent}`, boxShadow: `0 0 60px ${tc.accentGlow}`, color: tc.text }}>
 
           {/* Header */}
-          {isOnline && onlineResultData ? (
-            <>
-              <div className="text-4xl mb-1">{onlineResultData.icon}</div>
-              <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{onlineResultData.title[language]}</div>
-              <div className="text-sm mb-6" style={{ color: tc.textMuted }}>{onlineMessage}</div>
-            </>
-          ) : (() => {
+          {isOnline && onlineResultData ? (() => {
+            const myStats = myIdx >= 0 ? lightningPlayerStats[playerIds[myIdx]] : undefined
+            const myCorrect = myStats?.correct ?? correctCount
+            const correctLabel = ({ cs: 'Správně', sk: 'Správne', en: 'Correct' } as Record<string, string>)[language] ?? 'Správně'
+            const isPerfect = myCorrect === total && total > 0
+            const gaugeTrackColor = theme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'
+            return (
+              <>
+                <div className="text-4xl mb-1">{onlineResultData.icon}</div>
+                <div className="text-2xl font-bold mb-1" style={{ color: tc.accent }}>{onlineResultData.title[language]}</div>
+                <div className="text-sm mb-3" style={{ color: tc.textMuted }}>{onlineMessage}</div>
+                <ScoreGauge
+                  score={myCorrect}
+                  total={total}
+                  label={correctLabel}
+                  accent={tc.accent}
+                  accentGradient={tc.accentGradient}
+                  textMuted={tc.textMuted}
+                  trackColor={gaugeTrackColor}
+                  isPerfectScore={isPerfect}
+                  animDelay={200}
+                />
+              </>
+            )
+          })() : (() => {
             const deckTitle = customDeck?.title ?? DECKS.find(d => d.id === selectedDeckId)?.label ?? ''
             const correctLabel = ({ cs: 'Správně', sk: 'Správne', en: 'Correct' } as Record<string, string>)[language] ?? 'Správně'
             const isPerfect = correctCount === total && total > 0
