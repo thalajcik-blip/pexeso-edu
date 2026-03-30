@@ -563,9 +563,9 @@ export default function LightningGame() {
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
-                  ...fadeIn(1050),
+                  ...fadeIn(500),
                 }}>{tierTitle}</div>
-                <div className="text-sm mb-5" style={{ color: tc.textMuted, ...fadeIn(1200) }}>{tierMessage}</div>
+                <div className="text-sm mb-5" style={{ color: tc.textMuted, ...fadeIn(650) }}>{tierMessage}</div>
               </>
             )
           })()}
@@ -612,7 +612,7 @@ export default function LightningGame() {
               style={{
                 opacity: resultsAnim ? 1 : 0,
                 transform: resultsAnim ? 'none' : 'translateY(6px)',
-                transition: 'opacity 0.45s 1350ms, transform 0.45s 1350ms',
+                transition: 'opacity 0.45s 800ms, transform 0.45s 800ms',
               }}
             >
               <div className="flex items-center justify-between gap-8">
@@ -632,7 +632,7 @@ export default function LightningGame() {
           <div style={{
             opacity: resultsAnim ? 1 : 0,
             transform: resultsAnim ? 'none' : 'translateY(6px)',
-            transition: 'opacity 0.45s 1550ms, transform 0.45s 1550ms',
+            transition: 'opacity 0.45s 1000ms, transform 0.45s 1000ms',
           }}>
           <button
             onClick={() => shareResult({

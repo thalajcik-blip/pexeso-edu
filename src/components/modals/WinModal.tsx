@@ -304,14 +304,14 @@ export default function WinModal() {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
-            ...fadeIn(1050),
+            ...fadeIn(500),
           }}>{title}</div>
-          <div className="text-sm mb-6" style={{ color: tc.textMuted, ...fadeIn(1200) }}>{message}</div>
+          <div className="text-sm mb-6" style={{ color: tc.textMuted, ...fadeIn(650) }}>{message}</div>
 
           {/* Stats */}
           <div
             className="flex flex-col gap-4 text-left mb-2"
-            style={fadeIn(1350)}
+            style={fadeIn(800)}
           >
             <div className="flex items-center justify-between gap-8">
               <span style={{ color: tc.textMuted }}>{tr.soloMovesLabel}</span>
@@ -323,7 +323,7 @@ export default function WinModal() {
           </div>
 
           {/* Save result CTA — only if not logged in */}
-          <div style={fadeIn(1550)}>
+          <div style={fadeIn(1000)}>
             {!user && (
               <div
                 className="mt-4 flex items-center justify-between gap-3 rounded-xl px-4 py-3"
