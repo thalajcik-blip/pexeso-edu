@@ -34,8 +34,8 @@ export function ScoreGauge({
 }: ScoreGaugeProps) {
   const [fillPct, setFillPct]       = useState(0)
   const [displayScore, setDisplay]  = useState(0)
-  const rafRef   = useRef<number>()
-  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const rafRef   = useRef<number>(0)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(0 as unknown as ReturnType<typeof setTimeout>)
 
   const targetPct = total > 0 ? score / total : 0
 
