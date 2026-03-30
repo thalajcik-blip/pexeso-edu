@@ -551,13 +551,20 @@ export default function LightningGame() {
                     total={total}
                     label={correctLabel}
                     accent={tc.accent}
+                    accentGradient={tc.accentGradient}
                     textMuted={tc.textMuted}
                     trackColor={gaugeTrackColor}
                     isPerfectScore={isPerfect}
                     animDelay={500}
                   />
                 </div>
-                <div className="text-2xl font-bold mt-1 mb-0.5" style={{ color: tc.accent, ...fadeIn(1050) }}>{tierTitle}</div>
+                <div className="text-2xl font-bold mt-1 mb-0.5" style={{
+                  background: tc.accentGradient,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  ...fadeIn(1050),
+                }}>{tierTitle}</div>
                 <div className="text-sm mb-5" style={{ color: tc.textMuted, ...fadeIn(1200) }}>{tierMessage}</div>
               </>
             )
