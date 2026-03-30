@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -43,19 +43,23 @@ export function GameResultsTable() {
   const tr = TRANSLATIONS[language]
   const columns = useMemo(() => createColumns(tr), [language])
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const results = await getGameResults({ limit: 100 })
-        setData(results)
-      } catch (err) {
-        console.error('[GameResultsTable] load error:', err)
-      } finally {
-        setLoading(false)
-      }
+  const load = useCallback(async () => {
+    try {
+      const results = await getGameResults({ limit: 100 })
+      setData(results)
+    } catch (err) {
+      console.error('[GameResultsTable] load error:', err)
+    } finally {
+      setLoading(false)
     }
-    load()
   }, [])
+
+  useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    const interval = setInterval(load, 300_000)
+    return () => clearInterval(interval)
+  }, [load])
 
   const table = useReactTable({
     data,

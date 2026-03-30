@@ -69,7 +69,7 @@ export function GlobalLeaderboard() {
   }, [fetchLeaderboard])
 
   useEffect(() => {
-    const interval = setInterval(() => { fetchLeaderboard() }, 3_600_000)
+    const interval = setInterval(() => { fetchLeaderboard() }, 300_000)
     return () => clearInterval(interval)
   }, [fetchLeaderboard])
 
