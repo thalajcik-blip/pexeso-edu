@@ -20,7 +20,7 @@ export async function getGameResults(opts: {
 }): Promise<GameResultRow[]> {
   let query = supabase
     .from('game_history')
-    .select('id, played_at, user_id, set_slug, set_title, custom_deck_id, game_mode, score, quiz_correct, quiz_total, total_pairs, duration_sec, is_multiplayer, profiles!inner(username, avatar_id), custom_decks!left(language)')
+    .select('id, played_at, user_id, set_slug, set_title, custom_deck_id, game_mode, score, quiz_correct, quiz_total, total_pairs, duration_sec, is_multiplayer, profiles!inner(username, avatar_id)')
 
   if (opts.userId) {
     query = query.eq('user_id', opts.userId)
@@ -56,7 +56,6 @@ export async function getGameResults(opts: {
     duration_sec: number
     is_multiplayer: boolean
     profiles: { username: string | null; avatar_id: number | null }
-    custom_decks: { language: string | null } | null
   }
 
   return (data as unknown as RawRow[]).map((row) => ({
@@ -74,7 +73,7 @@ export async function getGameResults(opts: {
     total_pairs: row.total_pairs,
     duration_sec: row.duration_sec,
     is_multiplayer: row.is_multiplayer,
-    deck_language: row.custom_decks?.language ?? null,
+    deck_language: null,
     accuracy: row.quiz_total > 0
       ? Math.round(row.quiz_correct / row.quiz_total * 100)
       : null,
