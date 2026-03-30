@@ -115,6 +115,7 @@ export interface Translations {
   termsLink: string
   privacyLink: string
   leaderboardLink: string
+  backToGame: string
   // Leaderboard
   lbTitle: string
   lbTabRanking: string
@@ -270,6 +271,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     hostChangingSettings: 'Hostitel mění nastavení hry...',
     shareBtn: 'Sdílet výsledek',
     leaderboardLink: '🏆 Žebříček',
+    backToGame: '← Zpět do hry',
     termsLink: 'Podmínky používání',
     privacyLink: 'Ochrana údajů',
     lbTitle: 'Žebříček',
@@ -425,6 +427,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     hostChangingSettings: 'Hostiteľ mení nastavenia hry...',
     shareBtn: 'Zdieľať výsledok',
     leaderboardLink: '🏆 Rebríček',
+    backToGame: '← Späť do hry',
     termsLink: 'Podmienky používania',
     privacyLink: 'Ochrana údajov',
     lbTitle: 'Rebríček',
@@ -580,6 +583,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     hostChangingSettings: 'Host is changing game settings...',
     shareBtn: 'Share result',
     leaderboardLink: '🏆 Leaderboard',
+    backToGame: '← Back to game',
     termsLink: 'Terms of use',
     privacyLink: 'Privacy policy',
     lbTitle: 'Leaderboard',
