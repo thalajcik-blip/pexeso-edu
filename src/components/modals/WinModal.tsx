@@ -291,19 +291,20 @@ export default function WinModal() {
               label={correctLabel}
               accent={tc.accent}
               textMuted={tc.textMuted}
+              trackColor={theme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'}
               isPerfectScore={isPerfect}
               animDelay={500}
             />
           </div>
 
           {/* Headline + subtitle */}
-          <div className="text-2xl font-bold mt-1 mb-0.5" style={{ color: tc.accent, ...fadeIn(1450) }}>{title}</div>
-          <div className="text-sm mb-6" style={{ color: tc.textMuted, ...fadeIn(1600) }}>{message}</div>
+          <div className="text-2xl font-bold mt-1 mb-0.5" style={{ color: tc.accent, ...fadeIn(1050) }}>{title}</div>
+          <div className="text-sm mb-6" style={{ color: tc.textMuted, ...fadeIn(1200) }}>{message}</div>
 
           {/* Stats */}
           <div
             className="flex flex-col gap-4 text-left mb-2"
-            style={fadeIn(1750)}
+            style={fadeIn(1350)}
           >
             <div className="flex items-center justify-between gap-8">
               <span style={{ color: tc.textMuted }}>{tr.soloMovesLabel}</span>
@@ -315,7 +316,7 @@ export default function WinModal() {
           </div>
 
           {/* Save result CTA — only if not logged in */}
-          <div style={fadeIn(1950)}>
+          <div style={fadeIn(1550)}>
             {!user && (
               <div
                 className="mt-4 flex items-center justify-between gap-3 rounded-xl px-4 py-3"

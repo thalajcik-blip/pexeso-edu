@@ -6,6 +6,7 @@ interface ScoreGaugeProps {
   label: string          // "Správně" / "Správne" / "Correct"
   accent: string
   textMuted: string
+  trackColor?: string    // defaults to white-10 (dark mode); pass darker value for light mode
   isPerfectScore: boolean
   animDelay?: number     // ms before arc + count-up starts
 }
@@ -30,7 +31,7 @@ const ARC_PATH = `M ${startX.toFixed(2)} ${startY.toFixed(2)} A ${R} ${R} 0 1 1 
 const TOTAL_ARC_LEN = (SWEEP_DEG / 360) * 2 * Math.PI * R  // ≈ 293
 
 export function ScoreGauge({
-  score, total, label, accent, textMuted, isPerfectScore, animDelay = 400,
+  score, total, label, accent, textMuted, trackColor = 'rgba(255,255,255,0.1)', isPerfectScore, animDelay = 400,
 }: ScoreGaugeProps) {
   const [fillPct, setFillPct]       = useState(0)
   const [displayScore, setDisplay]  = useState(0)
@@ -82,7 +83,7 @@ export function ScoreGauge({
       <path
         d={ARC_PATH}
         fill="none"
-        stroke="rgba(255,255,255,0.1)"
+        stroke={trackColor}
         strokeWidth={STROKE_W}
         strokeLinecap="round"
       />
