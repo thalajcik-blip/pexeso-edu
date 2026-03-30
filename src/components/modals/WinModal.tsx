@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
 import { useAuthStore } from '../../store/authStore'
@@ -162,6 +162,37 @@ export default function WinModal() {
 
   const isSolo = players.length === 1
 
+  // Compute result messages once — avoid re-randomising on re-renders
+  const stableMessages = useMemo(() => {
+    const p0 = players[0]
+    const totalQuizzes0 = p0 ? p0.quizzes + p0.wrongQuizzes : 0
+    const soloAccuracy = totalQuizzes0 > 0 ? Math.round(p0.quizzes / totalQuizzes0 * 100) : 100
+    const soloTierIdx = getTierIdx(soloAccuracy)
+    const soloDef = PEXE_TIERS[soloTierIdx]
+    const soloCustTier = customDeck?.results_config?.[soloTierIdx]
+    const soloPool = soloCustTier?.messages?.length ? soloCustTier.messages : (soloDef.messages[language] ?? soloDef.messages['cs'])
+    const soloMessage = pickRandom(soloPool)
+
+    const sorted = [...players].map((p, i) => ({ ...p, idx: i })).sort((a, b) => b.score - a.score)
+    const maxScore = sorted[0]?.score ?? 0
+    const isTie = sorted.filter(p => p.score === maxScore).length > 1
+    const myIdx = players.findIndex((_, i) => playerIds[i] === myPlayerId)
+    const myScore = players[myIdx]?.score ?? 0
+    let multiResult: 'tie' | 'winner' | 'champion' | 'close_loss' | 'loss'
+    if (isTie) multiResult = 'tie'
+    else if (isOnline) {
+      if (myScore < maxScore) multiResult = (maxScore - myScore) <= 2 ? 'close_loss' : 'loss'
+      else { const second = sorted.find(p => p.score < myScore)?.score ?? myScore; multiResult = (myScore - second) <= 2 ? 'winner' : 'champion' }
+    } else {
+      const second = sorted[1]?.score ?? maxScore
+      multiResult = (maxScore - second) <= 2 ? 'winner' : 'champion'
+    }
+    const multiData = MULTI_RESULT_DATA[multiResult]
+    const multiMessage = pickRandom(multiData.messages[language] ?? multiData.messages['cs'])
+    return { soloMessage, multiMessage }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language])
+
   // Auto-save result for solo + online multiplayer (skip local multiplayer — shared screen)
   useEffect(() => {
     if (!user || savedRef.current) return
@@ -221,7 +252,8 @@ export default function WinModal() {
     const totalQuizzes = p.quizzes + p.wrongQuizzes
     const accuracy = totalQuizzes > 0 ? Math.round(p.quizzes / totalQuizzes * 100) : 100
     const movesPerPair = p.pairs > 0 ? (soloMoves / p.pairs).toFixed(1) : '—'
-    const { icon, title, message } = getPexeTierDisplay(accuracy)
+    const { icon, title } = getPexeTierDisplay(accuracy)
+    const message = stableMessages.soloMessage
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.winOverlayBg }}>
@@ -326,7 +358,7 @@ export default function WinModal() {
 
   const resultKey = getMyResult()
   const resultData = MULTI_RESULT_DATA[resultKey]
-  const resultMessage = pickRandom(resultData.messages[language] ?? resultData.messages['cs'])
+  const resultMessage = stableMessages.multiMessage
   const showMedals = players.length >= 3
 
   return (

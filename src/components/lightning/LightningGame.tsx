@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import confetti from 'canvas-confetti'
 import { useGameStore } from '../../store/gameStore'
 import { useAuthStore } from '../../store/authStore'
@@ -259,6 +259,31 @@ export default function LightningGame() {
   const isResults = phase === 'lightning_results' && lightningAnswers.length > 0
   const total     = lightningQuestions.length
 
+  // Compute result messages once per results screen (avoid re-randomising on re-renders)
+  const { tierMessage, onlineMessage: onlineMessageMemo } = useMemo(() => {
+    if (phase !== 'lightning_results' || lightningAnswers.length === 0) return { tierMessage: '', onlineMessage: '' }
+    const correctCount = lightningAnswers.filter(a => a.correct).length
+    const accuracy = total > 0 ? Math.round(correctCount / total * 100) : 0
+    const tierIdx = getLightningTierIdx(accuracy)
+    const customTier = customDeck?.results_config?.[tierIdx]
+    const defTier = LIGHTNING_TIERS[tierIdx]
+    const tierMsgPool = customTier?.messages?.length ? customTier.messages : (defTier.messages[language] ?? defTier.messages['cs'])
+    const tm = pickRandom(tierMsgPool)
+    if (!isOnline) return { tierMessage: tm, onlineMessage: '' }
+    const sortedP = [...players].map((p, i) => ({ ...p, idx: i })).sort((a, b) => b.score - a.score)
+    const maxScore = sortedP[0]?.score ?? 0
+    const isTie = sortedP.filter(p => p.score === maxScore).length > 1
+    const myIdx = players.findIndex((_, i) => playerIds[i] === myPlayerId)
+    const myScore = players[myIdx]?.score ?? 0
+    let onlineResult: MultiResult
+    if (isTie) onlineResult = 'tie'
+    else if (myScore < maxScore) onlineResult = (maxScore - myScore) <= 2 ? 'close_loss' : 'loss'
+    else { const second = sortedP.find(p => p.score < myScore)?.score ?? myScore; onlineResult = (myScore - second) <= 2 ? 'winner' : 'champion' }
+    const ord = LIGHTNING_MULTI[onlineResult]
+    return { tierMessage: tm, onlineMessage: ord ? pickRandom(ord.messages[language] ?? ord.messages['cs']) : '' }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, lightningAnswers.length, language])
+
   // Reset on new question
   useEffect(() => {
     const initRemaining = lightningQuestionEndTime > 0
@@ -456,14 +481,12 @@ export default function LightningGame() {
       : null
     const fastestS = fastestMs !== null ? (fastestMs / 1000).toFixed(1) : null
 
-    // Tier + random message (custom deck overrides icon/title/messages)
+    // Tier + random message (stable — computed once in useMemo above)
     const tierIdx = getLightningTierIdx(accuracy)
     const customTier = customDeck?.results_config?.[tierIdx]
     const defTier = LIGHTNING_TIERS[tierIdx]
-    const tierIcon    = customTier?.icon ?? defTier.icon
-    const tierTitle   = customTier?.title ?? (defTier.title[language] ?? defTier.title['cs'])
-    const tierMsgPool = customTier?.messages?.length ? customTier.messages : (defTier.messages[language] ?? defTier.messages['cs'])
-    const tierMessage = pickRandom(tierMsgPool)
+    const tierIcon  = customTier?.icon ?? defTier.icon
+    const tierTitle = customTier?.title ?? (defTier.title[language] ?? defTier.title['cs'])
 
     // Online: compute my result + leaderboard
     const sortedPlayers = [...players].map((p, i) => ({ ...p, idx: i })).sort((a, b) => b.score - a.score)
@@ -480,7 +503,7 @@ export default function LightningGame() {
     }
     const onlineResult = isOnline ? getOnlineResult() : null
     const onlineResultData = onlineResult ? LIGHTNING_MULTI[onlineResult] : null
-    const onlineMessage = onlineResultData ? pickRandom(onlineResultData.messages[language] ?? onlineResultData.messages['cs']) : ''
+    const onlineMessage = onlineMessageMemo
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.winOverlayBg }}>
