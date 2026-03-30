@@ -541,7 +541,7 @@ export default function LightningGame() {
             return (
               <>
                 {deckTitle && (
-                  <div className="text-xs font-medium mb-3 tracking-wide uppercase" style={{ color: tc.textMuted, ...fadeIn(100) }}>
+                  <div className="text-xs font-medium mb-1 tracking-wide uppercase" style={{ color: tc.textMuted, ...fadeIn(100) }}>
                     {deckTitle}
                   </div>
                 )}
@@ -555,7 +555,7 @@ export default function LightningGame() {
                     textMuted={tc.textMuted}
                     trackColor={gaugeTrackColor}
                     isPerfectScore={isPerfect}
-                    animDelay={500}
+                    animDelay={200}
                   />
                 </div>
                 <div className="text-2xl font-bold mt-1 mb-0.5" style={{
