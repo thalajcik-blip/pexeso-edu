@@ -1,5 +1,6 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs'
 import { GameResultsTable } from './GameResultsTable'
+import { GlobalLeaderboard } from './GlobalLeaderboard'
 
 export default function LeaderboardPage() {
   return (
@@ -13,9 +14,7 @@ export default function LeaderboardPage() {
           <TabsTrigger value="results">Vysledky hier</TabsTrigger>
         </TabsList>
         <TabsContent value="ranking">
-          <div style={{ padding: '2rem 0', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
-            Rebricek bude dostupny v dalsej verzii.
-          </div>
+          <GlobalLeaderboard />
         </TabsContent>
         <TabsContent value="results">
           <GameResultsTable />
