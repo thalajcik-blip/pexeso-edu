@@ -437,6 +437,7 @@ export default function LightningGame() {
 
   // Auto-save lightning result for logged-in players (solo + online multiplayer)
   useEffect(() => {
+    if (phase === 'lightning_playing') { savedRef.current = false; return }
     if (phase !== 'lightning_results' || !user || savedRef.current) return
     savedRef.current = true
     const correctCount = lightningAnswers.filter(a => a.correct).length
