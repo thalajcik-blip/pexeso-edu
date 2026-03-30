@@ -223,7 +223,7 @@ export default function WinModal() {
     const builtInDeck = customDeck ? null : DECKS.find(d => d.id === selectedDeckId)
     saveGameResult({
       setSlug:       customDeck ? null : selectedDeckId,
-      setTitle:      customDeck ? customDeck.title : (builtInDeck?.label ?? selectedDeckId),
+      setTitle:      customDeck ? customDeck.title : (builtInDeck?.label ?? null),
       customDeckId:  customDeck?.id ?? null,
       mode:          'pexequiz',
       score:         p.score,

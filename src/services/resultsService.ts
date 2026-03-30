@@ -78,6 +78,8 @@ export async function getGameResults(opts: {
     accuracy: row.quiz_total > 0
       ? Math.round(row.quiz_correct / row.quiz_total * 100)
       : null,
-    set_name: row.set_title ?? (row.set_slug ? (SET_NAMES[row.set_slug] ?? row.set_slug) : (row.custom_decks?.title ?? '—')),
+    set_name: (row.set_title && row.set_title !== '—')
+      ? row.set_title
+      : (row.set_slug ? (SET_NAMES[row.set_slug] ?? row.set_slug) : (row.custom_decks?.title ?? '—')),
   }))
 }
