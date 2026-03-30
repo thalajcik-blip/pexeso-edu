@@ -437,13 +437,14 @@ export default function LightningGame() {
 
   // Auto-save lightning result for logged-in players (solo + online multiplayer)
   useEffect(() => {
+    if (phase === 'lightning_playing') { savedRef.current = false; return }
     if (phase !== 'lightning_results' || !user || savedRef.current) return
     savedRef.current = true
     const correctCount = lightningAnswers.filter(a => a.correct).length
     const builtInDeck = customDeck ? null : DECKS.find(d => d.id === selectedDeckId)
     saveGameResult({
       setSlug:       customDeck ? null : selectedDeckId,
-      setTitle:      customDeck ? customDeck.title : (builtInDeck?.label ?? '—'),
+      setTitle:      customDeck ? customDeck.title : (builtInDeck?.label ?? null),
       customDeckId:  customDeck?.id ?? null,
       mode:          'lightning',
       score:         correctCount,
