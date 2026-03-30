@@ -7,7 +7,7 @@ type RawRow = {
   score: number
   set_slug: string | null
   played_at: string
-  profiles: { username: string | null; avatar_id: number | null; age_group: string }
+  profiles: { username: string | null; avatar_id: number | null; is_minor: boolean }
 }
 
 function buildTimeFilterDate(timeFilter: TimeFilter): string | null {
@@ -33,10 +33,10 @@ async function fetchAndAggregate(opts: {
 
   let query = supabase
     .from('game_history')
-    .select('user_id, score, set_slug, played_at, profiles!inner(username, avatar_id, age_group)')
+    .select('user_id, score, set_slug, played_at, profiles!inner(username, avatar_id, is_minor)')
 
-  // GDPR: exclude under-16 players (per D-15)
-  query = query.neq('profiles.age_group', 'under_16')
+  // GDPR: exclude minors (per D-15)
+  query = query.eq('profiles.is_minor', false)
 
   // Per-sada filter (per D-07, D-08)
   if (setSlug) {
