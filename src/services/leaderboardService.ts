@@ -35,8 +35,8 @@ async function fetchAndAggregate(opts: {
     .from('game_history')
     .select('user_id, score, set_slug, played_at, profiles!inner(username, avatar_id, is_minor)')
 
-  // GDPR: exclude minors (per D-15)
-  query = query.eq('profiles.is_minor', false)
+  // GDPR: exclude only explicit minors (is_minor = true); allow null = unknown
+  query = query.or('is_minor.eq.false,is_minor.is.null', { referencedTable: 'profiles' })
 
   // Per-sada filter (per D-07, D-08)
   if (setSlug) {
