@@ -175,10 +175,10 @@ Plans:
 **Goal:** Funkcny globalny leaderboard v Rebricek tabe — top 50 hracov podla celkoveho skore, s per-sada a time filtrom, poziciou prihlaseneho hraca a GDPR under-16 exclusion
 **Requirements**: GLB-01, GLB-02, GLB-03, GLB-04, GLB-05, GLB-06, GLB-07, GDPR-05
 **Depends on:** Phase 03.5.1
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 03.5.2-01-PLAN.md — Global leaderboard (service + type + GlobalLeaderboard component + LeaderboardPage wiring)
+- [x] 03.5.2-01-PLAN.md — Global leaderboard (service + type + GlobalLeaderboard component + LeaderboardPage wiring)
 
 ### Phase 4: Share, deep links a virálny rast
 **Goal:** Každý výsledok a každá sada je zdieľateľná s OG preview — share + daily challenge live do 31. mája

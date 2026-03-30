@@ -2,22 +2,22 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 03.5.1
-status: Executing Phase 03.5.1
-stopped_at: Completed 03.5.1-02-PLAN.md checkpoint approved
-last_updated: "2026-03-29T19:35:39.294Z"
+current_phase: 03.5.2
+status: Executing Phase 03.5.2
+stopped_at: Completed 03.5.2-01-PLAN.md
+last_updated: "2026-03-30T12:20:30Z"
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 11
+  completed_plans: 11
 ---
 
 # Project State
 
 **Project:** pexedu Q2 2026
 **Initialized:** 2026-03-27
-**Current phase:** 03.5.1
+**Current phase:** 03.5.2
 
 ## Status
 
@@ -36,6 +36,7 @@ progress:
 - [x] Phase 2 — Plan 04 (teacher dashboard analytics: ClassResults + OnboardingChecklist) executed
 - [x] Phase 2 — Plan 05 (rejection email + language selector in settings) executed
 - [x] Phase 3.5.1 — Plan 01 (leaderboard data layer: GameResultRow type + resultsService + TanStack Table + shadcn table/tabs) executed
+- [x] Phase 3.5.2 — Plan 01 (global leaderboard: LeaderboardEntry type + leaderboardService + GlobalLeaderboard component) executed
 
 ## Current Milestone
 
@@ -66,6 +67,8 @@ Phase 2 Wave 3: Teacher dashboard analytics (Plan 04)
 - ✓ Assignment results are expandable on click — avoids loading all game_history results on page mount (Phase 02, Plan 04)
 - ✓ GameResultRow named distinctly from GameResult (insert type) to prevent import collisions (Phase 03.5.1, Plan 01)
 - ✓ profiles!inner join excludes deleted profiles — sufficient GDPR coverage for MVP leaderboard (Phase 03.5.1, Plan 01)
+- ✓ Client-side aggregation in leaderboardService instead of Supabase RPC — avoids DB migration, acceptable for MVP scale (Phase 03.5.2, Plan 01)
+- ✓ Time filter disabled when no specific set selected — per D-02/D-06, global ranking has no meaningful time slice (Phase 03.5.2, Plan 01)
 - Daily challenge replay semantics (vyriešiť pred Phase 4)
 - Pro tier cena (vyriešiť pred Phase 6)
 - `npm:stripe` Deno kompatibilita overiť (pred Phase 6 buildom)
@@ -92,11 +95,12 @@ Phase 2 Wave 3: Teacher dashboard analytics (Plan 04)
 | Phase 02 P04 | 15 | 2 tasks | 4 files |
 | Phase 03.5.1 P01 | 7 | 2 tasks | 6 files |
 | Phase 03.5.1 P02 | 3min | 2 tasks | 4 files |
+| Phase 03.5.2 P01 | 2min | 2 tasks | 4 files |
 
 ## Session
 
-**Last session:** 2026-03-29T19:35:39.287Z
-**Stopped at:** Completed 03.5.1-02-PLAN.md checkpoint approved
+**Last session:** 2026-03-30T12:20:30Z
+**Stopped at:** Completed 03.5.2-01-PLAN.md
 
 ---
-*Last updated: 2026-03-28*
+*Last updated: 2026-03-30*
