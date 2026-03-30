@@ -46,7 +46,7 @@ Učiteľ vytvorí sadu za 5 minút a žiaci ju hrajú ihneď — bez inštaláci
 - [ ] Deep links — `pexedu.cz/?set=vlajky&mode=bleskovy_kviz`
 - [ ] OG image — dynamický náhľad pri zdieľaní (Vercel Edge)
 - [ ] Daily challenge — každý deň iná sada, globálny leaderboard
-- [ ] Leaderboard — top 10 pre každú sadu
+- [x] Leaderboard — top 50 hráčov, per-sada + time filter, GDPR under-16 exclusion — Validated in Phase 03.5.2
 
 **Jún — Pilotné školy + monetizácia**
 - [ ] Štatistiky triedy — teacher vidí výsledky celej triedy, export
@@ -110,4 +110,4 @@ Tento dokument sa vyvíja pri fázových prechodoch a míľnikoch.
 4. Aktualizuj Context s aktuálnym stavom
 
 ---
-*Last updated: 2026-03-27 after initialization*
+*Last updated: 2026-03-30 — Phase 03.5.2 complete (Global Leaderboard)*
