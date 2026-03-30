@@ -109,13 +109,13 @@ export default function App() {
 
   // Back button → return to setup instead of leaving the app
   const customDeck = useGameStore(s => s.customDeck)
+  // Preload custom deck images as soon as deck is selected (not on game start — too late)
   useEffect(() => {
-    if (phase !== 'playing' && phase !== 'lightning_playing') return
     if (!customDeck) return
     Object.values(customDeck.pool).forEach(item => {
       if (item.image_url) { const img = new Image(); img.src = item.image_url }
     })
-  }, [phase, customDeck])
+  }, [customDeck])
 
   const prevPhaseRef = useRef(phase)
   useEffect(() => {
