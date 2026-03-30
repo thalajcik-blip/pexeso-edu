@@ -117,7 +117,7 @@ export function ScoreGauge({
       {/* Label */}
       <text
         x={CX}
-        y={114}
+        y={121}
         textAnchor="middle"
         dominantBaseline="central"
         fill={textMuted}
