@@ -49,6 +49,9 @@ const AVATARS: AvatarDef[] = [
 
 export const AVATAR_COUNT = AVATARS.length
 
+// One representative per color group — used as defaults for players 1-6
+export const DEFAULT_AVATAR_IDS = [1, 7, 9, 13, 17, 21]
+
 export function getAvatarSvg(avatarId: number): string {
   const def = AVATARS[avatarId % AVATAR_COUNT]!
   return createAvatar(funEmoji, {
