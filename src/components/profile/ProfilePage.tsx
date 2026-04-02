@@ -8,7 +8,6 @@ const SET_NAMES: Record<string, string> = {
   flags:   'Vlajky',
   animals: 'Zvířátka',
   fruits:  'Ovoce & zelenina',
-  jobs:    'Povolání',
 }
 function xpForLevel(level: number) { return LEVEL_XP[Math.min(level - 1, LEVEL_XP.length - 1)] }
 function xpForNextLevel(level: number) { return LEVEL_XP[Math.min(level, LEVEL_XP.length - 1)] }

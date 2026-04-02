@@ -1,4 +1,4 @@
-export type DeckId = 'animals' | 'flags' | 'fruits' | 'jobs'
+export type DeckId = 'animals' | 'flags' | 'fruits'
 
 export interface AnswerOption {
   text: string

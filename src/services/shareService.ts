@@ -6,14 +6,12 @@ export const DECK_TO_SLUG: Record<string, string> = {
   flags:    'vlajky',
   animals:  'zviratka',
   fruits:   'ovoce-zelenina',
-  jobs:     'povolani',
 }
 
 export const SLUG_TO_DECK: Record<string, string> = {
   vlajky:             'flags',
   zviratka:           'animals',
   'ovoce-zelenina':   'fruits',
-  povolani:           'jobs',
 }
 
 export function getDeckSlug(deckId: string): string {
