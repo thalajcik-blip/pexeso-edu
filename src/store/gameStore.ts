@@ -336,7 +336,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   setGameMode: (mode) => set({ gameMode: mode }),
   applyDeepLink: ({ set: setParam, mode, challenge, time, from }) => {
     const SLUG_MAP: Record<string, string> = {
-      vlajky: 'flags', zviratka: 'animals', 'ovoce-zelenina': 'fruits', povolani: 'jobs',
+      vlajky: 'flags', zviratka: 'animals', 'ovoce-zelenina': 'fruits',
     }
     const updates: Record<string, unknown> = {}
     if (setParam) updates.selectedDeckId = SLUG_MAP[setParam] ?? setParam

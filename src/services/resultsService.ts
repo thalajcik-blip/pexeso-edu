@@ -5,7 +5,6 @@ export const SET_NAMES: Record<string, string> = {
   flags: 'Vlajky',
   animals: 'Zvířátka',
   fruits: 'Ovoce & zelenina',
-  jobs: 'Povolání',
 }
 
 export const MODE_LABELS: Record<string, { emoji: string; label: string }> = {

@@ -14,7 +14,6 @@ const SET_NAMES: Record<string, string> = {
   flags:           'Vlajky',
   animals:         'Zvířátka',
   fruits:          'Ovoce & zelenina',
-  jobs:            'Povolání',
 }
 
 type GameRow = {
