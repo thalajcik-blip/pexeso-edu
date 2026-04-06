@@ -12,7 +12,7 @@ export function incrementDeckPlayCount(deckId: string) {
 
 export async function fetchCustomDeckFull(id: string): Promise<CustomDeckData | null> {
   const [{ data: deckRow }, { data: cards }] = await Promise.all([
-    supabase.from('custom_decks').select('title, language, deck_type, results_config').eq('id', id).single(),
+    supabase.from('custom_decks').select('title, language, deck_type, results_config, thumbnail_url').eq('id', id).single(),
     supabase.from('custom_cards')
       .select('image_url, audio_url, label, quiz_question, answers, display_count, quiz_options, quiz_correct, fun_fact, translations')
       .eq('deck_id', id)
@@ -42,7 +42,7 @@ export async function fetchCustomDeckFull(id: string): Promise<CustomDeckData | 
     title: deckRow?.title ?? '',
     language: deckRow?.language ?? 'cs',
     deck_type: deckType,
-    thumbnail: (deckType === 'audio' || deckType === 'text') ? null : (cards[0]?.image_url || null),
+    thumbnail: deckRow?.thumbnail_url || (deckType === 'image' ? (cards[0]?.image_url || null) : null),
     pool,
     results_config: deckRow?.results_config ?? null,
   }
