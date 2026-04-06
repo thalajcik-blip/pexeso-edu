@@ -71,6 +71,7 @@ type QuizJson = {
     question: string
     correct_answer: string
     wrong_answers: string[]
+    fun_fact?: string
     difficulty?: 'easy' | 'medium' | 'hard'
     tags?: string[]
   }[]
@@ -348,7 +349,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
             display_count: Math.min(4, item.wrong_answers.length + 1),
             quiz_options: null,
             quiz_correct: null,
-            fun_fact: null,
+            fun_fact: item.fun_fact ?? null,
             sort_order: i,
           }
         })
