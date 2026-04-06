@@ -342,7 +342,7 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
           ]
           return {
             deck_id: newDeck.id,
-            image_url: null,
+            image_url: '',
             label: item.correct_answer,
             quiz_question: item.question,
             answers,
@@ -358,7 +358,8 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
       }
       load()
     } catch (err) {
-      alert(`Import zlyhal: ${err instanceof Error ? err.message : String(err)}`)
+      const msg = err instanceof Error ? err.message : (typeof err === 'object' ? JSON.stringify(err) : String(err))
+      alert(`Import zlyhal: ${msg}`)
     } finally {
       setImportingQuiz(false)
     }
