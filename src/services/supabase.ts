@@ -42,7 +42,7 @@ export async function fetchCustomDeckFull(id: string): Promise<CustomDeckData | 
     title: deckRow?.title ?? '',
     language: deckRow?.language ?? 'cs',
     deck_type: deckType,
-    thumbnail: (deckType === 'audio' || deckType === 'text') ? null : (cards[0]?.image_url ?? null),
+    thumbnail: (deckType === 'audio' || deckType === 'text') ? null : (cards[0]?.image_url || null),
     pool,
     results_config: deckRow?.results_config ?? null,
   }
