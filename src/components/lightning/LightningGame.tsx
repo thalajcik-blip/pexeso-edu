@@ -802,19 +802,28 @@ export default function LightningGame() {
             style={{ width: 'clamp(80px, 22vw, 160px)', height: 'clamp(80px, 22vw, 160px)' }}
           />
         ) : question.isTextCard ? (
-          <div
-            className="flex items-center justify-center rounded-2xl px-3 text-center font-semibold"
-            style={{
-              fontSize: 'clamp(0.85rem, 3.5vw, 1.15rem)',
-              lineHeight: 1.3,
-              width: 'clamp(80px, 22vw, 160px)',
-              height: 'clamp(80px, 22vw, 160px)',
-              background: tc.cardFront,
-              color: tc.text,
-            }}
-          >
-            {question.label}
-          </div>
+          customDeck?.thumbnail ? (
+            <img
+              src={customDeck.thumbnail}
+              alt={customDeck.title}
+              className="rounded-2xl object-cover"
+              style={{ width: 'clamp(80px, 22vw, 160px)', height: 'clamp(80px, 22vw, 160px)' }}
+            />
+          ) : (
+            <div
+              className="flex items-center justify-center rounded-2xl px-3 text-center font-semibold"
+              style={{
+                fontSize: 'clamp(0.85rem, 3.5vw, 1.15rem)',
+                lineHeight: 1.3,
+                width: 'clamp(80px, 22vw, 160px)',
+                height: 'clamp(80px, 22vw, 160px)',
+                background: tc.cardFront,
+                color: tc.text,
+              }}
+            >
+              📝
+            </div>
+          )
         ) : (
           <div
             className="flex items-center justify-center rounded-2xl"
