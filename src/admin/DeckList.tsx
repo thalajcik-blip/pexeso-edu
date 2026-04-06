@@ -63,6 +63,19 @@ type DeckJson = {
   }[]
 }
 
+type QuizJson = {
+  title: string
+  language: Deck['language']
+  difficulty?: 'easy' | 'medium' | 'hard' | 'mixed'
+  items: {
+    question: string
+    correct_answer: string
+    wrong_answers: string[]
+    difficulty?: 'easy' | 'medium' | 'hard'
+    tags?: string[]
+  }[]
+}
+
 type TranslateState = {
   deckId: string
   targetLang: Deck['language'] | null
@@ -84,13 +97,15 @@ const PAGE_SIZE = 10
 export default function DeckList({ role, onNew, onEdit }: Props) {
   const [decks, setDecks]         = useState<Deck[]>([])
   const [loading, setLoading]     = useState(true)
-  const [importing, setImporting] = useState(false)
-  const [translate, setTranslate] = useState<TranslateState | null>(null)
-  const [cardStats, setCardStats] = useState<CardValidationRow[]>([])
-  const [sort, setSort]           = useState<SortOption>('newest')
-  const [page, setPage]           = useState(1)
-  const [search, setSearch]       = useState('')
-  const importRef                 = useRef<HTMLInputElement>(null)
+  const [importing, setImporting]         = useState(false)
+  const [importingQuiz, setImportingQuiz] = useState(false)
+  const [translate, setTranslate]         = useState<TranslateState | null>(null)
+  const [cardStats, setCardStats]         = useState<CardValidationRow[]>([])
+  const [sort, setSort]                   = useState<SortOption>('newest')
+  const [page, setPage]                   = useState(1)
+  const [search, setSearch]               = useState('')
+  const importRef                         = useRef<HTMLInputElement>(null)
+  const importQuizRef                     = useRef<HTMLInputElement>(null)
 
   async function load() {
     setLoading(true)
@@ -291,6 +306,63 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
     }
   }
 
+  async function handleImportQuiz(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    setImportingQuiz(true)
+    try {
+      const text = await file.text()
+      const json: QuizJson = JSON.parse(text)
+      if (!json.title || !Array.isArray(json.items)) throw new Error('Neplatný formát — chýba title alebo items[]')
+      const language = (['cs', 'sk', 'en'] as const).includes(json.language as 'cs' | 'sk' | 'en') ? json.language : 'cs'
+      const { data: newDeck, error } = await supabase
+        .from('custom_decks')
+        .insert({
+          title: json.title,
+          description: null,
+          language,
+          difficulty: 'medium',
+          is_private: false,
+          private_code: null,
+          status: 'draft',
+          deck_type: 'text',
+          supported_modes: ['lightning'],
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single()
+      if (error || !newDeck) throw error ?? new Error('Nepodarilo sa vytvoriť sadu')
+      if (json.items.length > 0) {
+        const cardRows = json.items.map((item, i) => {
+          const answers: { text: string; correct: boolean }[] = [
+            { text: item.correct_answer, correct: true },
+            ...item.wrong_answers.map(w => ({ text: w, correct: false })),
+          ]
+          return {
+            deck_id: newDeck.id,
+            image_url: null,
+            label: item.correct_answer,
+            quiz_question: item.question,
+            answers,
+            display_count: Math.min(4, item.wrong_answers.length + 1),
+            quiz_options: null,
+            quiz_correct: null,
+            fun_fact: null,
+            sort_order: i,
+          }
+        })
+        const { error: cardsErr } = await supabase.from('custom_cards').insert(cardRows)
+        if (cardsErr) throw cardsErr
+      }
+      load()
+    } catch (err) {
+      alert(`Import zlyhal: ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setImportingQuiz(false)
+    }
+  }
+
   useEffect(() => { load() }, [])
 
   const filteredDecks = decks.filter(d => {
@@ -383,6 +455,10 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
               <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
               <Button variant="outline" onClick={() => importRef.current?.click()} disabled={importing} className="text-indigo-600 border-indigo-200 hover:bg-indigo-50">
                 {importing ? 'Importuji…' : '↑ Import JSON'}
+              </Button>
+              <input ref={importQuizRef} type="file" accept=".json" className="hidden" onChange={handleImportQuiz} />
+              <Button variant="outline" onClick={() => importQuizRef.current?.click()} disabled={importingQuiz} className="text-emerald-600 border-emerald-200 hover:bg-emerald-50">
+                {importingQuiz ? 'Importujem…' : '↑ Import kvíz'}
               </Button>
             </>
           )}

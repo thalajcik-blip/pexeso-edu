@@ -41,6 +41,7 @@ function buildLightningQuestions(
   const isEn = language === 'en'
 
   if (isCustom) {
+    const isTextDeck = customDeck.deck_type === 'text'
     // Build all valid questions first, then slice — so skipped cards (no quiz) don't reduce the count
     const allSymbols = shuffle(Object.keys(customDeck.pool))
     const allQuestions = allSymbols.flatMap((symbol): LightningQuestion[] => {
@@ -52,8 +53,9 @@ function buildLightningQuestions(
           return [{
             symbol,
             label: item.label,
-            imageUrl: item.image_url || undefined,
+            imageUrl: isTextDeck ? undefined : (item.image_url || undefined),
             audioUrl: item.audio_url || undefined,
+            isTextCard: isTextDeck,
             question: item.quiz_question || item.label,
             options,
             correct,
@@ -67,8 +69,9 @@ function buildLightningQuestions(
         return [{
           symbol,
           label: item.label,
-          imageUrl: item.image_url || undefined,
+          imageUrl: isTextDeck ? undefined : (item.image_url || undefined),
           audioUrl: item.audio_url || undefined,
+          isTextCard: isTextDeck,
           question: item.quiz_question || item.label,
           options: shuffle([...item.quiz_options]),
           correct: item.quiz_correct,

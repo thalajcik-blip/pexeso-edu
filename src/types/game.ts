@@ -20,6 +20,7 @@ export interface LightningQuestion {
   label: string        // display name
   imageUrl?: string    // custom deck image
   audioUrl?: string    // custom deck audio
+  isTextCard?: boolean // text-only deck, no image/audio/emoji
   question: string
   options: string[]    // 4 shuffled options
   correct: string
@@ -48,9 +49,9 @@ export interface CustomDeckData {
   id: string
   title: string
   language: string
-  deck_type: 'image' | 'audio'
-  thumbnail: string | null  // first card image_url (or null for audio decks)
-  pool: Record<string, CustomDeckCard>  // keyed by image_url or audio_url
+  deck_type: 'image' | 'audio' | 'text'
+  thumbnail: string | null  // first card image_url (or null for audio/text decks)
+  pool: Record<string, CustomDeckCard>  // keyed by image_url, audio_url, or label (text decks)
   results_config: DeckResultsConfig | null
 }
 

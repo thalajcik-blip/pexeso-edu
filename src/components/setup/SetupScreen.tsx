@@ -35,7 +35,7 @@ type CustomDeckMeta = {
   title: string
   thumbnail: string | null
   supported_modes: string[]
-  deck_type: 'image' | 'audio'
+  deck_type: 'image' | 'audio' | 'text'
 }
 
 
@@ -79,13 +79,13 @@ export default function SetupScreen() {
         // Use thumbnail_url if set; fallback to first card image only for image decks without thumbnail
         Promise.all(
           data.map(async (d: { id: string; title: string; supported_modes: string[] | null; thumbnail_url: string | null; deck_type?: string }) => {
-            const deckType: 'image' | 'audio' = d.deck_type === 'audio' ? 'audio' : 'image'
-            if (deckType === 'audio') {
+            const deckType: 'image' | 'audio' | 'text' = d.deck_type === 'audio' ? 'audio' : d.deck_type === 'text' ? 'text' : 'image'
+            if (deckType === 'audio' || deckType === 'text') {
               return {
                 id: d.id,
                 title: d.title,
                 thumbnail: d.thumbnail_url ?? null,
-                supported_modes: ['lightning'],
+                supported_modes: d.supported_modes ?? ['lightning'],
                 deck_type: deckType,
               }
             }
@@ -121,8 +121,8 @@ export default function SetupScreen() {
     if (!full) return
     full.title = meta.title
     selectDeck(meta.id, full)
-    // Audio deck → force lightning mode
-    if (meta.deck_type === 'audio' && gameMode === 'pexequiz') setGameMode('lightning')
+    // Audio/text deck → force lightning mode
+    if ((meta.deck_type === 'audio' || meta.deck_type === 'text') && gameMode === 'pexequiz') setGameMode('lightning')
   }
 
   const tr = TRANSLATIONS[language]
@@ -344,6 +344,8 @@ export default function SetupScreen() {
                 >
                   {cd.thumbnail ? (
                     <img src={cd.thumbnail} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                  ) : cd.deck_type === 'text' ? (
+                    <span className="text-3xl leading-none">📝</span>
                   ) : (
                     <span className="text-3xl leading-none">🃏</span>
                   )}
