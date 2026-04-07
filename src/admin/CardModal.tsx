@@ -174,6 +174,18 @@ export default function CardModal({ deckId, language, difficulty, deckType = 'im
     e.target.value = ''
   }
 
+  async function handleCropExisting() {
+    setError('')
+    try {
+      const resp = await fetch(imagePreview)
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+      const blob = await resp.blob()
+      setCropSrc(URL.createObjectURL(blob))
+    } catch {
+      setError('Nepodařilo se načíst obrázek k ořezu. Stáhněte obrázek a nahrajte ho znovu.')
+    }
+  }
+
   async function handleCropped(blob: Blob) {
     setCropSrc(null)
     setImagePreview(URL.createObjectURL(blob))
@@ -276,9 +288,14 @@ export default function CardModal({ deckId, language, difficulty, deckType = 'im
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
             {uploading && <div className="text-xs text-indigo-500 mt-1">Nahrávání…</div>}
             {imagePreview && !uploading && (
-              <button onClick={() => fileRef.current?.click()} className="text-xs text-indigo-500 hover:underline mt-1">
-                Změnit obrázek
-              </button>
+              <div className="flex gap-3 mt-1">
+                <button onClick={() => fileRef.current?.click()} className="text-xs text-indigo-500 hover:underline">
+                  Změnit obrázek
+                </button>
+                <button onClick={handleCropExisting} className="text-xs text-indigo-500 hover:underline">
+                  Orezat
+                </button>
+              </div>
             )}
           </div>
           )}
