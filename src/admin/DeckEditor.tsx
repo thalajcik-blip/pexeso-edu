@@ -114,6 +114,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null)
   const [thumbCropSrc, setThumbCropSrc] = useState<string | null>(null)
   const [uploadingThumb, setUploadingThumb] = useState(false)
+  const [thumbDragOver, setThumbDragOver] = useState(false)
   const thumbInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -439,28 +440,33 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
 
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-2">Náhledový obrázek <span className="text-gray-300">(volitelné)</span></label>
-            <div className="flex items-center gap-4">
-              <div
-                className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden cursor-pointer hover:border-indigo-400 transition-colors flex-shrink-0"
-                onClick={() => thumbInputRef.current?.click()}
-              >
-                {thumbnailUrl ? (
-                  <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-2xl">{uploadingThumb ? '⏳' : '🖼️'}</span>
-                )}
-              </div>
-              <div className="flex flex-col gap-1">
-                <Button variant="outline" size="sm" onClick={() => thumbInputRef.current?.click()} disabled={uploadingThumb}>
-                  {uploadingThumb ? 'Nahrávání…' : thumbnailUrl ? 'Změnit obrázek' : 'Nahrát obrázek'}
-                </Button>
-                {thumbnailUrl && (
-                  <button className="text-xs text-gray-400 hover:text-red-500 text-left" onClick={() => setThumbnailUrl(null)}>
-                    Odebrat
-                  </button>
-                )}
-              </div>
+            <div
+              className="relative rounded-xl border-2 border-dashed flex items-center justify-center cursor-pointer transition-colors overflow-hidden"
+              style={{ height: 120, borderColor: thumbDragOver ? '#6366f1' : thumbnailUrl ? '#e5e7eb' : '#e5e7eb', background: thumbDragOver ? '#eef2ff' : 'transparent' }}
+              onClick={() => thumbInputRef.current?.click()}
+              onDragOver={e => { e.preventDefault(); setThumbDragOver(true) }}
+              onDragLeave={() => setThumbDragOver(false)}
+              onDrop={e => { e.preventDefault(); setThumbDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) handleThumbFileSelect(f) }}
+            >
+              {thumbnailUrl ? (
+                <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="flex flex-col items-center gap-1 text-gray-400 select-none">
+                  <span className="text-3xl">{uploadingThumb ? '⏳' : thumbDragOver ? '📂' : '🖼️'}</span>
+                  <span className="text-xs">{uploadingThumb ? 'Nahrávání…' : 'Přetáhni sem nebo klikni'}</span>
+                </div>
+              )}
+              {thumbnailUrl && (
+                <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+                  <span className="text-white text-xs font-medium">Změnit</span>
+                </div>
+              )}
             </div>
+            {thumbnailUrl && (
+              <button className="text-xs text-gray-400 hover:text-red-500 mt-1" onClick={() => setThumbnailUrl(null)}>
+                Odebrat
+              </button>
+            )}
             <input
               ref={thumbInputRef}
               type="file"
