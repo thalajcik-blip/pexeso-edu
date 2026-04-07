@@ -342,7 +342,9 @@ export default function DeckList({ role, onNew, onEdit }: Props) {
           ]
           return {
             deck_id: newDeck.id,
-            image_url: '',
+            image_url: item.image_url ?? '',
+            image_source: item.image_source ?? null,
+            image_attribution: item.image_attribution ?? null,
             label: item.correct_answer,
             quiz_question: item.question,
             answers,
