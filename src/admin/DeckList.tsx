@@ -74,6 +74,9 @@ type QuizJson = {
     fun_fact?: string
     difficulty?: 'easy' | 'medium' | 'hard'
     tags?: string[]
+    image_url?: string
+    image_source?: string
+    image_attribution?: Record<string, string>
   }[]
 }
 
