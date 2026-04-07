@@ -52,7 +52,7 @@ type Props = {
   deckId: string
   language: 'cs' | 'sk' | 'en'
   difficulty: 'easy' | 'medium' | 'hard'
-  deckType?: 'image' | 'audio'
+  deckType?: 'image' | 'audio' | 'text'
   card?: CardData
   sortOrder: number
   onSave: () => void
@@ -251,10 +251,10 @@ export default function CardModal({ deckId, language, difficulty, deckType = 'im
             <DialogTitle>{card ? 'Upravit kartičku' : 'Nová kartička'}</DialogTitle>
           </DialogHeader>
 
-          {/* Image upload (image decks only) */}
-          {deckType === 'image' && (
+          {/* Image upload (image decks + optional for text decks) */}
+          {(deckType === 'image' || deckType === 'text') && (
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-2">Obrázek *</label>
+            <label className="block text-xs font-medium text-gray-600 mb-2">Obrázek {deckType === 'text' ? <span className="text-gray-300">(volitelné)</span> : '*'}</label>
             <div
               className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors overflow-hidden ${isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'}`}
               style={{ minHeight: 140 }}

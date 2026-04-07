@@ -67,7 +67,7 @@ type Deck = {
   difficulty: 'easy' | 'medium' | 'hard'
   supported_modes: string[]
   thumbnail_url: string | null
-  deck_type: 'image' | 'audio'
+  deck_type: 'image' | 'audio' | 'text'
 }
 
 type Props = {
@@ -106,7 +106,7 @@ export default function DeckEditor({ deckId, isSuperadmin, onBack }: Props) {
   const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number } | null>(null)
   const [translateError, setTranslateError] = useState('')
   const [supportedModes, setSupportedModes] = useState<string[]>(['pexequiz', 'lightning'])
-  const [deckType, setDeckType] = useState<'image' | 'audio'>('image')
+  const [deckType, setDeckType] = useState<'image' | 'audio' | 'text'>('image')
   const [customizeResults, setCustomizeResults] = useState(false)
   const [resultsConfig, setResultsConfig] = useState<TierConfig[]>([])
   const [globalResultsDefaults, setGlobalResultsDefaults] = useState<Record<string, TierConfig[]> | null>(null)
