@@ -385,8 +385,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     // Event system — solo only (online uses transitionToLightningReveal)
     const evStore = useGameEventStore.getState()
     const eventActive = evStore.currentEvent?.active ?? false
-    const activated = evStore.incrementTurn()
-    if (activated) showEventActivatedToast('double_points')
+    evStore.incrementTurn()
 
     let bonusPoints = 0
     if (isCorrect && eventActive) {
@@ -458,11 +457,8 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const evStore = useGameEventStore.getState()
     if (!isOnline || isHost) {
       const activated = evStore.incrementTurn()
-      if (activated) {
-        showEventActivatedToast('double_points')
-        if (isOnline && isHost) {
-          broadcastGameAction({ type: 'game_event_activated', eventType: 'double_points' })
-        }
+      if (activated && isOnline && isHost) {
+        broadcastGameAction({ type: 'game_event_activated', eventType: 'double_points' })
       }
     }
     const eventActive = evStore.currentEvent?.active ?? false
@@ -823,7 +819,8 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
         // Guest receives activation from host
         if (!get().isHost) {
           useGameEventStore.getState().setEventActiveFromHost(action.eventType)
-          showEventActivatedToast(action.eventType)
+          // PexeQuiz: toast notification; Lightning: heading shown in LightningGame
+          if (get().gameMode !== 'lightning') showEventActivatedToast(action.eventType)
         }
         break
       case 'game_event_consumed':

@@ -92,21 +92,6 @@ export default function GameBoard() {
 
       <ScoreBoard />
 
-      {currentEvent?.active && (
-        <div className="flex justify-center pb-2">
-          <div
-            className="event-badge flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold"
-            style={{
-              background: `rgba(245,196,0,0.12)`,
-              border: `1px solid ${EVENT_CONFIGS[currentEvent.type].color}`,
-              color: EVENT_CONFIGS[currentEvent.type].color,
-            }}
-          >
-            {EVENT_CONFIGS[currentEvent.type].emoji} {EVENT_CONFIGS[currentEvent.type].label}
-          </div>
-        </div>
-      )}
-
       <div className="rounded-xl py-2 px-1" style={{ background: tc.cardGridBg, overflow: 'clip' }}>
         <div
           className="grid w-full mx-auto"

@@ -226,6 +226,9 @@ export default function LightningGame() {
   const lastTickSecRef = useRef(lightningTimeLimit + 1)
   const hasAnsweredRef = useRef(false)
   const floatIdRef = useRef(0)
+  const prevEventActiveRef = useRef(false)
+
+  const [showEventHeading, setShowEventHeading] = useState(false)
   const prevReactionsRef = useRef<Record<string, string>>({})
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -257,6 +260,21 @@ export default function LightningGame() {
     prevReactionsRef.current = emojiReactions
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emojiReactions])
+
+  // Show event heading temporarily in card visual area when event activates
+  useEffect(() => {
+    const isNowActive = currentEvent?.active ?? false
+    if (isNowActive && !prevEventActiveRef.current) {
+      setShowEventHeading(true)
+      const t = setTimeout(() => setShowEventHeading(false), 2500)
+      prevEventActiveRef.current = true
+      return () => clearTimeout(t)
+    }
+    if (!isNowActive) {
+      prevEventActiveRef.current = false
+      setShowEventHeading(false)
+    }
+  }, [currentEvent?.active])
 
   const question = lightningQuestions[lightningCurrentIndex]
   const isReveal  = phase === 'lightning_reveal'
@@ -793,25 +811,26 @@ export default function LightningGame() {
         </div>
       </div>
 
-      {/* Active event badge */}
-      {currentEvent?.active && !isReveal && (
-        <div className="flex justify-center mb-3">
+      {/* Card visual — temporarily replaced by event heading on activation */}
+      <div className="flex justify-center mb-4">
+        {showEventHeading && currentEvent ? (
           <div
-            className="event-badge flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold"
+            className="event-badge flex flex-col items-center justify-center rounded-2xl gap-1"
             style={{
+              width: 'clamp(80px, 22vw, 160px)',
+              height: 'clamp(80px, 22vw, 160px)',
               background: 'rgba(245,196,0,0.12)',
-              border: `1px solid ${EVENT_CONFIGS[currentEvent.type].color}`,
-              color: EVENT_CONFIGS[currentEvent.type].color,
+              border: `2px solid ${EVENT_CONFIGS[currentEvent.type].color}`,
             }}
           >
-            {EVENT_CONFIGS[currentEvent.type].emoji} {EVENT_CONFIGS[currentEvent.type].label}
+            <span style={{ fontSize: 'clamp(1.8rem, 8vw, 2.8rem)', lineHeight: 1 }}>
+              {EVENT_CONFIGS[currentEvent.type].emoji}
+            </span>
+            <span className="font-bold text-center leading-tight" style={{ fontSize: 'clamp(0.7rem, 3vw, 0.95rem)', color: EVENT_CONFIGS[currentEvent.type].color }}>
+              {EVENT_CONFIGS[currentEvent.type].label}
+            </span>
           </div>
-        </div>
-      )}
-
-      {/* Card visual */}
-      <div className="flex justify-center mb-4">
-        {question.audioUrl ? (
+        ) : question.audioUrl ? (
           <AudioPlayer key={question.audioUrl} audioUrl={question.audioUrl} tc={tc} />
         ) : question.imageUrl ? (
           <img
