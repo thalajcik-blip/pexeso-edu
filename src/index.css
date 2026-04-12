@@ -52,6 +52,15 @@ button, a { cursor: pointer; }
   }
 }
 
+/* Game event badge pulse */
+@keyframes event-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(245,196,0,0.4); }
+  50%       { opacity: 0.85; box-shadow: 0 0 0 6px rgba(245,196,0,0); }
+}
+.event-badge {
+  animation: event-pulse 1.8s ease-in-out infinite;
+}
+
 /* Card flip animation */
 .card-inner {
   transform-style: preserve-3d;

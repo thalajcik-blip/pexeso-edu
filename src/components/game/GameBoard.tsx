@@ -4,6 +4,8 @@ import { TRANSLATIONS } from '../../data/translations'
 import { SIZE_CONFIG } from '../../types/game'
 import { THEMES } from '../../data/themes'
 import { isMuted, toggleMuted } from '../../services/audioService'
+import { useGameEventStore } from '../../store/gameEventStore'
+import { EVENT_CONFIGS } from '../../types/gameEvents'
 import GameCard from './GameCard'
 import ScoreBoard from './ScoreBoard'
 
@@ -21,6 +23,7 @@ export default function GameBoard() {
   const isOnline = useGameStore(s => s.isOnline)
   const phase = useGameStore(s => s.phase)
   const sendEmojiReact = useGameStore(s => s.sendEmojiReact)
+  const currentEvent = useGameEventStore(s => s.currentEvent)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
   const cols = SIZE_CONFIG[selectedSize].cols
@@ -88,6 +91,21 @@ export default function GameBoard() {
       </div>
 
       <ScoreBoard />
+
+      {currentEvent?.active && (
+        <div className="flex justify-center pb-2">
+          <div
+            className="event-badge flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold"
+            style={{
+              background: `rgba(245,196,0,0.12)`,
+              border: `1px solid ${EVENT_CONFIGS[currentEvent.type].color}`,
+              color: EVENT_CONFIGS[currentEvent.type].color,
+            }}
+          >
+            {EVENT_CONFIGS[currentEvent.type].emoji} {EVENT_CONFIGS[currentEvent.type].label}
+          </div>
+        </div>
+      )}
 
       <div className="rounded-xl py-2 px-1" style={{ background: tc.cardGridBg, overflow: 'clip' }}>
         <div

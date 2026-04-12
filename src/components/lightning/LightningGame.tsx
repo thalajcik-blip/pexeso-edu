@@ -10,6 +10,8 @@ import { THEMES } from '../../data/themes'
 import { soundQuizSelect, soundQuizCorrect, soundQuizWrong, soundQuizTimeout, soundTick, soundWin, isMuted, toggleMuted } from '../../services/audioService'
 import { Avatar } from '../auth/Avatar'
 import { shareResult } from '../../services/shareService'
+import { useGameEventStore } from '../../store/gameEventStore'
+import { EVENT_CONFIGS } from '../../types/gameEvents'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 const EMOJI_OPTS = ['👍', '😱', '🎉', '😂', '🔥', '😅']
@@ -203,6 +205,7 @@ export default function LightningGame() {
   const playerNames               = useGameStore(s => s.playerNames)
   const emojiReactions            = useGameStore(s => s.emojiReactions)
   const sendEmojiReact            = useGameStore(s => s.sendEmojiReact)
+  const currentEvent              = useGameEventStore(s => s.currentEvent)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
@@ -789,6 +792,22 @@ export default function LightningGame() {
           </span>
         </div>
       </div>
+
+      {/* Active event badge */}
+      {currentEvent?.active && !isReveal && (
+        <div className="flex justify-center mb-3">
+          <div
+            className="event-badge flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold"
+            style={{
+              background: 'rgba(245,196,0,0.12)',
+              border: `1px solid ${EVENT_CONFIGS[currentEvent.type].color}`,
+              color: EVENT_CONFIGS[currentEvent.type].color,
+            }}
+          >
+            {EVENT_CONFIGS[currentEvent.type].emoji} {EVENT_CONFIGS[currentEvent.type].label}
+          </div>
+        </div>
+      )}
 
       {/* Card visual */}
       <div className="flex justify-center mb-4">

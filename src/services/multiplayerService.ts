@@ -51,6 +51,8 @@ export type GameAction =
   | { type: 'host_opening_settings' }
   | { type: 'settings_updated'; deckId: string; gameMode: 'pexequiz' | 'lightning'; size: string; lightningQuestionCount: number; lightningTimeLimit: number; turnTime: number; quizTime: number }
   | { type: 'player_name_changed'; playerId: string; name: string }
+  | { type: 'game_event_activated'; eventType: 'double_points' }
+  | { type: 'game_event_consumed' }
 
 let channel: RealtimeChannel | null = null
 let myCurrentPresence: LobbyPlayer | null = null
