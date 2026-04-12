@@ -6,18 +6,19 @@ function randomInterval(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-function makeInitialNextEventAt(): number {
-  const cfg = EVENT_CONFIGS.double_points
-  return randomInterval(cfg.minInterval, cfg.maxInterval)
+const DEFAULT_INTERVAL = {
+  min: EVENT_CONFIGS.double_points.minInterval,
+  max: EVENT_CONFIGS.double_points.maxInterval,
 }
 
 interface GameEventState {
   currentEvent: GameEvent | null
   turnCount: number
   nextEventAt: number
+  activeInterval: { min: number; max: number }
 
   // Authority (solo or host): full logic
-  initEvents: () => void
+  initEvents: (interval?: { min: number; max: number }) => void
   incrementTurn: () => boolean      // returns true if event just activated
   consumeEvent: () => void
   resetEvents: () => void
@@ -30,13 +31,16 @@ interface GameEventState {
 export const useGameEventStore = create<GameEventState>((set, get) => ({
   currentEvent: null,
   turnCount: 0,
-  nextEventAt: makeInitialNextEventAt(),
+  nextEventAt: randomInterval(DEFAULT_INTERVAL.min, DEFAULT_INTERVAL.max),
+  activeInterval: DEFAULT_INTERVAL,
 
-  initEvents: () => {
+  initEvents: (interval?) => {
+    const iv = interval ?? DEFAULT_INTERVAL
     set({
       currentEvent: null,
       turnCount: 0,
-      nextEventAt: makeInitialNextEventAt(),
+      nextEventAt: randomInterval(iv.min, iv.max),
+      activeInterval: iv,
     })
   },
 
@@ -55,16 +59,16 @@ export const useGameEventStore = create<GameEventState>((set, get) => ({
   },
 
   consumeEvent: () => {
-    const { turnCount } = get()
-    const cfg = EVENT_CONFIGS.double_points
+    const { turnCount, activeInterval } = get()
     set({
       currentEvent: null,
-      nextEventAt: turnCount + randomInterval(cfg.minInterval, cfg.maxInterval),
+      nextEventAt: turnCount + randomInterval(activeInterval.min, activeInterval.max),
     })
   },
 
   resetEvents: () => {
-    set({ currentEvent: null, turnCount: 0, nextEventAt: makeInitialNextEventAt() })
+    const iv = get().activeInterval
+    set({ currentEvent: null, turnCount: 0, nextEventAt: randomInterval(iv.min, iv.max) })
   },
 
   setEventActiveFromHost: (type) => {

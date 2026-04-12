@@ -408,12 +408,16 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       set({ phase: 'lightning_results' })
     } else {
       const REVEAL_DURATION = 4000
+      const BADGE_DURATION = 1200
       // Online: derive next end time deterministically from previous (all clients compute same value)
       // Solo: use current time
+      // Add badge delay when double_points event is active so timer starts after badge disappears
+      const eventActive = useGameEventStore.getState().currentEvent?.active ?? false
+      const badgeDelay = eventActive ? BADGE_DURATION : 0
       const now = Date.now()
       const nextEndTime = isOnline
-        ? lightningQuestionEndTime + REVEAL_DURATION + lightningTimeLimit * 1000
-        : now + lightningTimeLimit * 1000
+        ? lightningQuestionEndTime + REVEAL_DURATION + lightningTimeLimit * 1000 + badgeDelay
+        : now + lightningTimeLimit * 1000 + badgeDelay
       set({
         phase: 'lightning_playing',
         lightningCurrentIndex: next,
@@ -579,7 +583,12 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       avatarId: i === 0 && profileAvatarId != null ? profileAvatarId : (DEFAULT_AVATAR_IDS[i] ?? i % AVATAR_COUNT),
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
-    useGameEventStore.getState().initEvents()
+    // PexeQuiz event frequency: 1x for small, 4x for medium, 6x for large
+    const pexeEventInterval =
+      selectedSize === 'small'  ? { min: 6, max: 8 }  :
+      selectedSize === 'medium' ? { min: 4, max: 5 }  :
+                                  { min: 5, max: 6 }
+    useGameEventStore.getState().initEvents(pexeEventInterval)
     set({ phase: 'playing', cards, players, playerIds: [], currentPlayer: numPlayers === 1 ? 0 : Math.floor(Math.random() * players.length), flipped: [], locked: false, turnMessage: '', quizSymbol: null, soloMoves: 0 })
   },
 
@@ -716,7 +725,11 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
     const myIndex = playerIds.indexOf(myPlayerId)
-    useGameEventStore.getState().initEvents()
+    const pexeEventInterval =
+      size === 'small'  ? { min: 6, max: 8 } :
+      size === 'medium' ? { min: 4, max: 5 } :
+                          { min: 5, max: 6 }
+    useGameEventStore.getState().initEvents(pexeEventInterval)
     set({
       selectedDeckId: deckId as DeckId,
       customDeck,

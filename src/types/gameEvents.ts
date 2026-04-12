@@ -21,7 +21,7 @@ export const EVENT_CONFIGS: Record<GameEventType, GameEventConfig> = {
     type: 'double_points',
     minInterval: 8,
     maxInterval: 10,
-    label: '2× Body!',
+    label: 'Otázka za dvojnásobný počet bodov!',
     emoji: '⚡',
     color: '#F5C400',
   },
