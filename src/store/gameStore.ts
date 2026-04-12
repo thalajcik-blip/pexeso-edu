@@ -29,7 +29,6 @@ import { fetchCustomDeckFull, incrementDeckPlayCount } from '../services/supabas
 import { useAuthStore } from './authStore'
 import type { LobbyPlayer, GameAction } from '../services/multiplayerService'
 import { useGameEventStore } from './gameEventStore'
-import { showEventActivatedToast, showEventAppliedToast } from '../utils/eventToasts'
 
 const SESSION_ROOM_KEY = 'qm_last_room'
 
@@ -391,7 +390,6 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     if (isCorrect && eventActive) {
       evStore.consumeEvent()
       bonusPoints = 1
-      showEventAppliedToast('double_points')
     }
     // Wrong answer: event stays active (spec)
 
@@ -476,7 +474,6 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const anyCorrect = Object.values(lightningPlayerAnswers).some(a => a.correct)
     if (eventActive && anyCorrect) {
       evStore.consumeEvent()
-      showEventAppliedToast('double_points')
       if (isOnline && isHost) {
         broadcastGameAction({ type: 'game_event_consumed' })
       }
@@ -607,7 +604,6 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     if (!isOnline || isHost) {
       const activated = evStore.incrementTurn()
       if (activated) {
-        showEventActivatedToast('double_points')
         if (isOnline && isHost) {
           broadcastGameAction({ type: 'game_event_activated', eventType: 'double_points' })
         }
@@ -659,7 +655,6 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const quizBonus = correct && eventActive ? 2 : correct ? 1 : 0
     if (eventActive) {
       evStore.consumeEvent()
-      if (correct) showEventAppliedToast('double_points')
       const { isOnline, isHost } = get()
       if (isOnline && isHost) broadcastGameAction({ type: 'game_event_consumed' })
     }
@@ -820,7 +815,6 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
         if (!get().isHost) {
           useGameEventStore.getState().setEventActiveFromHost(action.eventType)
           // PexeQuiz: toast notification; Lightning: heading shown in LightningGame
-          if (get().gameMode !== 'lightning') showEventActivatedToast(action.eventType)
         }
         break
       case 'game_event_consumed':
