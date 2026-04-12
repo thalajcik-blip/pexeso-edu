@@ -52,6 +52,43 @@ button, a { cursor: pointer; }
   }
 }
 
+/* Game event badge */
+@keyframes event-badge-in {
+  from { opacity: 0; transform: scale(0.85) translateY(0); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+@keyframes event-badge-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-28px); }
+}
+@keyframes event-2x-bounce {
+  0%   { transform: scale(0.1);  opacity: 0; }
+  60%  { transform: scale(1.25); opacity: 1; }
+  80%  { transform: scale(0.92); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+@keyframes event-2x-glow {
+  0%, 100% { text-shadow: 0 0 0px rgba(245,196,0,0); }
+  50%       { text-shadow: 0 0 32px rgba(245,196,0,0.7), 0 0 8px rgba(245,196,0,0.5); }
+}
+.event-badge {
+  animation: event-badge-in 0.2s ease-out forwards;
+  border: 1.5px solid rgba(245,196,0,0.55);
+  border-radius: 1.25rem;
+  box-shadow: 0 0 18px rgba(245,196,0,0.12);
+  max-width: 384px;
+  margin-left: auto;
+  margin-right: auto;
+  background-image: linear-gradient(160deg, rgb(17, 31, 46) 0%, rgb(26, 47, 74) 100%);
+}
+.event-badge--exit {
+  animation: event-badge-out 0.5s ease-in forwards !important;
+}
+.event-badge-2x {
+  animation: event-2x-bounce 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+             event-2x-glow 1.6s ease-in-out 0.55s infinite;
+}
+
 /* Card flip animation */
 .card-inner {
   transform-style: preserve-3d;

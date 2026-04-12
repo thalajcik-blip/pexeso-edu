@@ -28,6 +28,7 @@ import {
 import { fetchCustomDeckFull, incrementDeckPlayCount } from '../services/supabase'
 import { useAuthStore } from './authStore'
 import type { LobbyPlayer, GameAction } from '../services/multiplayerService'
+import { useGameEventStore } from './gameEventStore'
 
 const SESSION_ROOM_KEY = 'qm_last_room'
 
@@ -179,6 +180,7 @@ interface GameStore {
   lightningQuestionEndTime: number
   lightningPlayerAnswers: Record<string, { answer: string; timeMs: number; correct: boolean }>
   lightningPlayerStats: Record<string, { correct: number; totalCorrectMs: number }>
+  lightningBonusPoints: number   // solo Lightning: extra points from double_points event
 
   // Quiz
   quizSymbol: string | null
@@ -305,6 +307,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   lightningQuestionEndTime: 0,
   lightningPlayerAnswers: {},
   lightningPlayerStats: {},
+  lightningBonusPoints: 0,
   quizSymbol: null,
   challengeScore: null,
   challengeTime: null,
@@ -358,6 +361,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     if (customDeck && customDeck.id === selectedDeckId) incrementDeckPlayCount(selectedDeckId)
     const questions = buildLightningQuestions(selectedDeckId, customDeck, language, lightningQuestionCount)
     const now = Date.now()
+    useGameEventStore.getState().initEvents()
     set({
       phase: 'lightning_playing',
       lightningQuestions: questions,
@@ -365,6 +369,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       lightningAnswers: [],
       lightningPlayerAnswers: {},
       lightningPlayerStats: {},
+      lightningBonusPoints: 0,
       lightningQuestionStart: now,
       lightningQuestionEndTime: now + lightningTimeLimit * 1000,
     })
@@ -375,9 +380,23 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const question = lightningQuestions[lightningCurrentIndex]
     const isCorrect = answer !== '' && answer === question.correct
     const timeMs = Date.now() - lightningQuestionStart
+
+    // Event system — solo only (online uses transitionToLightningReveal)
+    const evStore = useGameEventStore.getState()
+    const eventActive = evStore.currentEvent?.active ?? false
+    evStore.incrementTurn()
+
+    let bonusPoints = 0
+    if (isCorrect && eventActive) {
+      evStore.consumeEvent()
+      bonusPoints = 1
+    }
+    // Wrong answer: event stays active (spec)
+
     set({
       phase: 'lightning_reveal',
       lightningAnswers: [...lightningAnswers, { correct: isCorrect, timeMs }],
+      ...(bonusPoints > 0 ? { lightningBonusPoints: get().lightningBonusPoints + bonusPoints } : {}),
     })
   },
 
@@ -389,12 +408,16 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       set({ phase: 'lightning_results' })
     } else {
       const REVEAL_DURATION = 4000
+      const BADGE_DURATION = 1200
       // Online: derive next end time deterministically from previous (all clients compute same value)
       // Solo: use current time
+      // Add badge delay when double_points event is active so timer starts after badge disappears
+      const eventActive = useGameEventStore.getState().currentEvent?.active ?? false
+      const badgeDelay = eventActive ? BADGE_DURATION : 0
       const now = Date.now()
       const nextEndTime = isOnline
-        ? lightningQuestionEndTime + REVEAL_DURATION + lightningTimeLimit * 1000
-        : now + lightningTimeLimit * 1000
+        ? lightningQuestionEndTime + REVEAL_DURATION + lightningTimeLimit * 1000 + badgeDelay
+        : now + lightningTimeLimit * 1000 + badgeDelay
       set({
         phase: 'lightning_playing',
         lightningCurrentIndex: next,
@@ -430,13 +453,36 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
 
   transitionToLightningReveal: () => {
     if (get().phase !== 'lightning_playing') return  // guard against double-call (timer + all-answered race)
-    const { lightningPlayerAnswers, players, playerIds, myPlayerId, lightningAnswers, lightningQuestionStart } = get()
-    // Update cumulative scores for all players
+    const { lightningPlayerAnswers, players, playerIds, myPlayerId, lightningAnswers, lightningQuestionStart, isOnline, isHost } = get()
+
+    // Event system — online only (solo uses answerLightningQuestion)
+    const evStore = useGameEventStore.getState()
+    if (!isOnline || isHost) {
+      const activated = evStore.incrementTurn()
+      if (activated && isOnline && isHost) {
+        broadcastGameAction({ type: 'game_event_activated', eventType: 'double_points' })
+      }
+    }
+    const eventActive = evStore.currentEvent?.active ?? false
+
+    // Update cumulative scores — double if event active
     const updatedPlayers = players.map((p, i) => {
       const ans = lightningPlayerAnswers[playerIds[i]]
       if (!ans) return p
-      return ans.correct ? { ...p, score: p.score + 1 } : p
+      if (!ans.correct) return p
+      const gain = eventActive ? 2 : 1
+      return { ...p, score: p.score + gain }
     })
+
+    // Consume event if at least one player answered correctly (spec: stays active on wrong)
+    const anyCorrect = Object.values(lightningPlayerAnswers).some(a => a.correct)
+    if (eventActive && anyCorrect) {
+      evStore.consumeEvent()
+      if (isOnline && isHost) {
+        broadcastGameAction({ type: 'game_event_consumed' })
+      }
+    }
+
     // Track my own answer for results stats
     const myAns = lightningPlayerAnswers[myPlayerId]
     const myEntry = {
@@ -459,6 +505,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
     const myIndex = playerIds.indexOf(myPlayerId)
+    useGameEventStore.getState().initEvents()
     set({
       phase: 'lightning_playing',
       lightningQuestions: questions,
@@ -466,6 +513,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       lightningAnswers: [],
       lightningPlayerAnswers: {},
       lightningPlayerStats: {},
+      lightningBonusPoints: 0,
       lightningQuestionStart: Date.now(),
       lightningQuestionEndTime: questionEndTime,
       players,
@@ -535,6 +583,12 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       avatarId: i === 0 && profileAvatarId != null ? profileAvatarId : (DEFAULT_AVATAR_IDS[i] ?? i % AVATAR_COUNT),
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
+    // PexeQuiz event frequency: 1x for small, 4x for medium, 6x for large
+    const pexeEventInterval =
+      selectedSize === 'small'  ? { min: 6, max: 8 }  :
+      selectedSize === 'medium' ? { min: 4, max: 5 }  :
+                                  { min: 5, max: 6 }
+    useGameEventStore.getState().initEvents(pexeEventInterval)
     set({ phase: 'playing', cards, players, playerIds: [], currentPlayer: numPlayers === 1 ? 0 : Math.floor(Math.random() * players.length), flipped: [], locked: false, turnMessage: '', quizSymbol: null, soloMoves: 0 })
   },
 
@@ -552,16 +606,31 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     if (newFlipped.length < 2) return
 
     set(s => ({ locked: true, soloMoves: s.players.length === 1 ? s.soloMoves + 1 : s.soloMoves }))
+
+    // Event system: host (or solo) tracks turns
+    const { isOnline, isHost } = get()
+    const evStore = useGameEventStore.getState()
+    if (!isOnline || isHost) {
+      const activated = evStore.incrementTurn()
+      if (activated) {
+        if (isOnline && isHost) {
+          broadcastGameAction({ type: 'game_event_activated', eventType: 'double_points' })
+        }
+      }
+    }
+
     const [a, b] = newFlipped
 
     if (newCards[a].symbol === newCards[b].symbol) {
       soundMatch()
       setTimeout(() => {
+        // Double pair score if event active at match time
+        const pairBonus = (useGameEventStore.getState().currentEvent?.active) ? 2 : 1
         const matchedCards = get().cards.map((c, i) =>
           i === a || i === b ? { ...c, state: 'matched' as const, matchedBy: currentPlayer } : c
         )
         const updatedPlayers = get().players.map((p, i) =>
-          i === currentPlayer ? { ...p, score: p.score + 1, pairs: p.pairs + 1 } : p
+          i === currentPlayer ? { ...p, score: p.score + pairBonus, pairs: p.pairs + 1 } : p
         )
         set({ cards: matchedCards, players: updatedPlayers, flipped: [] })
         setTimeout(() => {
@@ -588,10 +657,21 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
 
   _answerQuiz: (correct) => {
     const { players, currentPlayer, cards, quizSymbol } = get()
+
+    // Event system: consume event on quiz answer (pair was found — event applies regardless of quiz correctness)
+    const evStore = useGameEventStore.getState()
+    const eventActive = evStore.currentEvent?.active ?? false
+    const quizBonus = correct && eventActive ? 2 : correct ? 1 : 0
+    if (eventActive) {
+      evStore.consumeEvent()
+      const { isOnline, isHost } = get()
+      if (isOnline && isHost) broadcastGameAction({ type: 'game_event_consumed' })
+    }
+
     const updatedPlayers = players.map((p, i) =>
       i === currentPlayer
         ? correct
-          ? { ...p, score: p.score + 1, quizzes: p.quizzes + 1 }
+          ? { ...p, score: p.score + quizBonus, quizzes: p.quizzes + 1 }
           : { ...p, wrongQuizzes: p.wrongQuizzes + 1 }
         : p
     )
@@ -645,6 +725,11 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0,
     }))
     const myIndex = playerIds.indexOf(myPlayerId)
+    const pexeEventInterval =
+      size === 'small'  ? { min: 6, max: 8 } :
+      size === 'medium' ? { min: 4, max: 5 } :
+                          { min: 5, max: 6 }
+    useGameEventStore.getState().initEvents(pexeEventInterval)
     set({
       selectedDeckId: deckId as DeckId,
       customDeck,
@@ -738,6 +823,19 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
           lobbyPlayers: s.lobbyPlayers.map(p => p.id === action.playerId ? { ...p, name: action.name } : p),
         }))
         break
+      case 'game_event_activated':
+        // Guest receives activation from host
+        if (!get().isHost) {
+          useGameEventStore.getState().setEventActiveFromHost(action.eventType)
+          // PexeQuiz: toast notification; Lightning: heading shown in LightningGame
+        }
+        break
+      case 'game_event_consumed':
+        // Guest clears event (host already consumed locally)
+        if (!get().isHost) {
+          useGameEventStore.getState().clearEventFromHost()
+        }
+        break
     }
   },
 
@@ -787,12 +885,14 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     } else {
       const resetPlayers = players.map(p => ({ ...p, score: 0, pairs: 0, quizzes: 0, wrongQuizzes: 0 }))
       const isSolo = resetPlayers.length === 1
+      useGameEventStore.getState().resetEvents()
       set({ phase: 'playing', cards, players: resetPlayers, currentPlayer: isSolo ? 0 : Math.floor(Math.random() * resetPlayers.length), flipped: [], locked: false, turnMessage: '', quizSymbol: null, soloMoves: 0 })
     }
     set({ rematchRequested: false })
   },
 
   resetToSetup: () => {
+    useGameEventStore.getState().resetEvents()
     if (get().isOnline) get().leaveRoom()
     else set({ phase: 'setup', cards: [], players: [], quizSymbol: null })
   },

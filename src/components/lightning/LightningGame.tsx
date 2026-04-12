@@ -10,6 +10,8 @@ import { THEMES } from '../../data/themes'
 import { soundQuizSelect, soundQuizCorrect, soundQuizWrong, soundQuizTimeout, soundTick, soundWin, isMuted, toggleMuted } from '../../services/audioService'
 import { Avatar } from '../auth/Avatar'
 import { shareResult } from '../../services/shareService'
+import { useGameEventStore } from '../../store/gameEventStore'
+import { EVENT_CONFIGS } from '../../types/gameEvents'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 const EMOJI_OPTS = ['👍', '😱', '🎉', '😂', '🔥', '😅']
@@ -203,6 +205,7 @@ export default function LightningGame() {
   const playerNames               = useGameStore(s => s.playerNames)
   const emojiReactions            = useGameStore(s => s.emojiReactions)
   const sendEmojiReact            = useGameStore(s => s.sendEmojiReact)
+  const currentEvent              = useGameEventStore(s => s.currentEvent)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
 
@@ -223,6 +226,8 @@ export default function LightningGame() {
   const lastTickSecRef = useRef(lightningTimeLimit + 1)
   const hasAnsweredRef = useRef(false)
   const floatIdRef = useRef(0)
+  const [showEventHeading, setShowEventHeading] = useState(false)
+  const [eventHeadingExiting, setEventHeadingExiting] = useState(false)
   const prevReactionsRef = useRef<Record<string, string>>({})
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -254,6 +259,18 @@ export default function LightningGame() {
     prevReactionsRef.current = emojiReactions
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emojiReactions])
+
+  // Show event heading as standalone separator when a new question starts with active event
+  useEffect(() => {
+    if (phase !== 'lightning_playing') return
+    if (!(currentEvent?.active)) return
+    setShowEventHeading(true)
+    setEventHeadingExiting(false)
+    const tExit = setTimeout(() => setEventHeadingExiting(true), 1200)
+    const t = setTimeout(() => { setShowEventHeading(false); setEventHeadingExiting(false) }, 1700)
+    return () => { clearTimeout(t); clearTimeout(tExit) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightningCurrentIndex, phase])
 
   const question = lightningQuestions[lightningCurrentIndex]
   const isReveal  = phase === 'lightning_reveal'
@@ -383,7 +400,7 @@ export default function LightningGame() {
   // Keyboard shortcuts: 1-4 = answer, Enter = next (solo only)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (phase === 'lightning_playing') {
+      if (phase === 'lightning_playing' && !showEventHeading) {
         const idx = parseInt(e.key) - 1
         if (idx >= 0 && idx < 4 && question?.options[idx] !== undefined) {
           handleAnswer(question.options[idx])
@@ -765,13 +782,13 @@ export default function LightningGame() {
         )}
       </div>
 
-      {/* Question number */}
-      <div className="text-center text-sm font-bold tabular-nums mb-3" style={{ color: tc.textMuted }}>
+      {/* Question number — hidden during event badge */}
+      <div className="text-center text-sm font-bold tabular-nums mb-3" style={{ color: tc.textMuted, visibility: showEventHeading ? 'hidden' : 'visible' }}>
         {lightningCurrentIndex + 1}/{total}
       </div>
 
-      {/* Timer bar */}
-      <div className="max-w-lg mx-auto w-full mb-4">
+      {/* Timer bar — hidden during event badge */}
+      <div className="max-w-lg mx-auto w-full mb-4" style={{ visibility: showEventHeading ? 'hidden' : 'visible' }}>
         <div className="flex items-center gap-2">
           <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: tc.scorePillBg }}>
             <div
@@ -784,15 +801,27 @@ export default function LightningGame() {
               }}
             />
           </div>
-          <span className="text-sm font-bold tabular-nums w-7 text-right" style={{ color: timerColor, visibility: isReveal ? 'hidden' : 'visible' }}>
+          <span className="text-sm font-bold tabular-nums w-7 text-right" style={{ color: timerColor, visibility: (isReveal || showEventHeading) ? 'hidden' : 'visible' }}>
             {Math.ceil(timeLeft)}
           </span>
         </div>
       </div>
 
-      {/* Card visual */}
+      {/* Card visual — temporarily replaced by event heading on activation */}
       <div className="flex justify-center mb-4">
-        {question.audioUrl ? (
+        {showEventHeading && currentEvent ? (
+          <div className={`event-badge${eventHeadingExiting ? ' event-badge--exit' : ''} flex flex-col items-center justify-center gap-2 w-full py-4 px-6`}>
+            <span
+              className="event-badge-2x font-black leading-none"
+              style={{ fontSize: 'clamp(6.5rem, 29vw, 10.5rem)', color: EVENT_CONFIGS[currentEvent.type].color }}
+            >
+              2×
+            </span>
+            <span className="font-semibold text-center" style={{ fontSize: 'clamp(0.85rem, 3vw, 1rem)', color: EVENT_CONFIGS[currentEvent.type].color, opacity: 0.85 }}>
+              {EVENT_CONFIGS[currentEvent.type].label}
+            </span>
+          </div>
+        ) : question.audioUrl ? (
           <AudioPlayer key={question.audioUrl} audioUrl={question.audioUrl} tc={tc} />
         ) : question.imageUrl ? (
           <img
@@ -840,26 +869,28 @@ export default function LightningGame() {
       </div>
 
       {/* Question text */}
-      <div className="text-center text-base font-semibold mb-1 max-w-lg mx-auto" style={{ color: tc.text }}>
-        {question.question}
-      </div>
+      {!showEventHeading && (
+        <div className="text-center text-base font-semibold mb-1 max-w-lg mx-auto" style={{ color: tc.text }}>
+          {question.question}
+        </div>
+      )}
 
       {/* Reveal feedback / answered counter */}
       <div className="text-center text-sm mb-2 h-5 flex items-center justify-center">
-        {isReveal ? (
+        {!showEventHeading && isReveal ? (
           isTimedOut
             ? <span style={{ color: '#ef4444' }}>{tr.lightningTimeUp}</span>
             : lastAnswer?.correct
               ? <span style={{ color: '#22c55e' }}>✓ {language === 'cs' ? 'Správně!' : language === 'sk' ? 'Správne!' : 'Correct!'}</span>
               : <span style={{ color: '#ef4444' }}>✗ {language === 'cs' ? 'Špatně.' : language === 'sk' ? 'Zle.' : 'Wrong.'}</span>
-        ) : isOnline ? (
+        ) : !showEventHeading && isOnline ? (
           <span style={{ color: tc.textMuted }}>{answeredCount}/{playerIds.length} {tr.lightningAnswered}</span>
         ) : null}
       </div>
 
       {/* Player answer dots — always reserved (online only) to prevent layout shift */}
       <div className="flex justify-center gap-1.5 mb-3 h-5">
-        {isOnline && players.map((p, i) => {
+        {isOnline && !showEventHeading && players.map((p, i) => {
           const answered = lightningPlayerAnswers[playerIds[i]] !== undefined
           return (
             <div
@@ -876,27 +907,29 @@ export default function LightningGame() {
         })}
       </div>
 
-      {/* Answer options 2x2 */}
-      <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto w-full">
-        {question.options.map((option, i) => (
-          <button
-            key={i}
-            onClick={() => handleAnswer(option)}
-            disabled={isReveal || selectedAnswer !== null}
-            className={[
-              'py-3 px-3 rounded-xl border-2 font-semibold text-sm text-left transition-all cursor-pointer disabled:cursor-default',
-              isReveal && feedbackClass === 'answer-correct' && option === question.correct ? 'answer-correct' : '',
-              isReveal && feedbackClass === 'answer-shake' && option === selectedAnswer ? 'answer-shake' : '',
-            ].join(' ')}
-            style={getOptionStyle(option)}
-          >
-            <span className="flex items-start gap-1.5">
-              <span className="opacity-60 text-xs font-bold shrink-0 mt-0.5">{OPTION_LABELS[i]}</span>
-              <span>{option}</span>
-            </span>
-          </button>
-        ))}
-      </div>
+      {/* Answer options 2x2 — hidden during event badge */}
+      {!showEventHeading && (
+        <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto w-full">
+          {question.options.map((option, i) => (
+            <button
+              key={i}
+              onClick={() => handleAnswer(option)}
+              disabled={isReveal || selectedAnswer !== null}
+              className={[
+                'py-3 px-3 rounded-xl border-2 font-semibold text-sm text-left transition-all cursor-pointer disabled:cursor-default',
+                isReveal && feedbackClass === 'answer-correct' && option === question.correct ? 'answer-correct' : '',
+                isReveal && feedbackClass === 'answer-shake' && option === selectedAnswer ? 'answer-shake' : '',
+              ].join(' ')}
+              style={getOptionStyle(option)}
+            >
+              <span className="flex items-start gap-1.5">
+                <span className="opacity-60 text-xs font-bold shrink-0 mt-0.5">{OPTION_LABELS[i]}</span>
+                <span>{option}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Emoji reactions — online only, not on results screen */}
       {isOnline && !isResults && (

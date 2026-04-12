@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useGameStore } from '../../store/gameStore'
+import { useGameEventStore } from '../../store/gameEventStore'
+import { EVENT_CONFIGS } from '../../types/gameEvents'
 import { DECKS } from '../../data/decks'
 import { TRANSLATIONS, t } from '../../data/translations'
 import { EN_QUIZ } from '../../data/enQuiz'
@@ -31,9 +33,14 @@ export default function QuizModal() {
   const triggerReveal     = useGameStore(s => s._triggerReveal)
   const tc                = THEMES[theme]
 
+  const currentEvent = useGameEventStore(s => s.currentEvent)
+
   const [answered, setAnswered] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState(5)
+  const [showEventBadge, setShowEventBadge] = useState(false)
+  const [eventBadgeExiting, setEventBadgeExiting] = useState(false)
   const prevQuizTime = useRef<number | null>(null)
+  const prevEventActiveRef = useRef(false)
 
   // Countdown tick
   useEffect(() => {
@@ -166,6 +173,23 @@ export default function QuizModal() {
     return () => window.removeEventListener('keydown', handler)
   }, [quizSymbol, options, myVote, quizRevealCorrect, answered, isOnline, correct, voteQuiz, answerQuiz])
 
+  // Show event badge temporarily in image area when event activates (or is already active on mount)
+  useEffect(() => {
+    const isNowActive = currentEvent?.active ?? false
+    if (isNowActive && !prevEventActiveRef.current) {
+      setShowEventBadge(true)
+      setEventBadgeExiting(false)
+      const tExit = setTimeout(() => setEventBadgeExiting(true), 1200)
+      const t = setTimeout(() => { setShowEventBadge(false); setEventBadgeExiting(false) }, 1700)
+      prevEventActiveRef.current = true
+      return () => { clearTimeout(t); clearTimeout(tExit); prevEventActiveRef.current = false }
+    }
+    if (!isNowActive) {
+      prevEventActiveRef.current = false
+      setShowEventBadge(false)
+    }
+  }, [currentEvent?.active])
+
   // Play wrong sound when result is revealed and player answered incorrectly
   useEffect(() => {
     if (revealed && myVote && !isCorrect) soundQuizWrong()
@@ -184,6 +208,24 @@ export default function QuizModal() {
   const handleContinue = () => {
     setAnswered(null)
     answerQuiz(answered === correct)
+  }
+
+  if (showEventBadge && currentEvent) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.overlayBg }}>
+        <div className={`event-badge${eventBadgeExiting ? ' event-badge--exit' : ''} flex flex-col items-center justify-center gap-2 py-10 px-8`}>
+          <span
+            className="event-badge-2x font-black leading-none"
+            style={{ fontSize: '8rem', color: EVENT_CONFIGS[currentEvent.type].color }}
+          >
+            2×
+          </span>
+          <span className="font-semibold text-center" style={{ fontSize: '0.9rem', color: EVENT_CONFIGS[currentEvent.type].color, opacity: 0.85 }}>
+            {EVENT_CONFIGS[currentEvent.type].label}
+          </span>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -243,31 +285,33 @@ export default function QuizModal() {
         )}
 
         {/* Options */}
-        <div className="grid grid-cols-2 gap-3">
-          {options.map((opt: string, i: number) => {
-            let style: React.CSSProperties = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.text }
-            if (myVote) {
-              if (revealed && opt === resultCorrect)   style = { background: tc.successBg, border: `2px solid ${tc.successColor}`, color: tc.successColor }
-              else if (revealed && opt === myVote)     style = { background: tc.errorBg,   border: `2px solid ${tc.errorColor}`,   color: tc.errorColor }
-              else if (opt === myVote)                 style = { background: tc.accentBgActive, border: `2px solid ${tc.accentBorderActive}`, color: tc.accent }
-              else                                     style = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.textFaint }
-            }
-            return (
-              <button
-                key={opt}
-                disabled={!!myVote || !!quizRevealCorrect}
-                onClick={() => handleAnswer(opt)}
-                className="py-3 px-3 rounded-xl border-2 font-semibold text-sm text-left transition-all cursor-pointer disabled:cursor-default"
-                style={style}
-              >
-                <span className="flex items-start gap-1.5">
-                  <span className="opacity-60 text-xs font-bold shrink-0 mt-0.5">{OPTION_LABELS[i]}</span>
-                  <span>{opt}</span>
-                </span>
-              </button>
-            )
-          })}
-        </div>
+        {(
+          <div className="grid grid-cols-2 gap-3">
+            {options.map((opt: string, i: number) => {
+              let style: React.CSSProperties = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.text }
+              if (myVote) {
+                if (revealed && opt === resultCorrect)   style = { background: tc.successBg, border: `2px solid ${tc.successColor}`, color: tc.successColor }
+                else if (revealed && opt === myVote)     style = { background: tc.errorBg,   border: `2px solid ${tc.errorColor}`,   color: tc.errorColor }
+                else if (opt === myVote)                 style = { background: tc.accentBgActive, border: `2px solid ${tc.accentBorderActive}`, color: tc.accent }
+                else                                     style = { background: tc.quizOptionBg, border: `2px solid ${tc.quizOptionBorder}`, color: tc.textFaint }
+              }
+              return (
+                <button
+                  key={opt}
+                  disabled={!!myVote || !!quizRevealCorrect}
+                  onClick={() => handleAnswer(opt)}
+                  className="py-3 px-3 rounded-xl border-2 font-semibold text-sm text-left transition-all cursor-pointer disabled:cursor-default"
+                  style={style}
+                >
+                  <span className="flex items-start gap-1.5">
+                    <span className="opacity-60 text-xs font-bold shrink-0 mt-0.5">{OPTION_LABELS[i]}</span>
+                    <span>{opt}</span>
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {/* Result message */}
         {myVote && revealed && (
