@@ -77,9 +77,14 @@ button, a { cursor: pointer; }
   border-radius: 1.25rem;
   box-shadow: 0 0 18px rgba(245,196,0,0.12);
   max-width: 384px;
+  min-height: 520px;
   margin-left: auto;
   margin-right: auto;
   background-image: linear-gradient(160deg, rgb(17, 31, 46) 0%, rgb(26, 47, 74) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .event-badge--exit {
   animation: event-badge-out 0.5s ease-in forwards !important;
