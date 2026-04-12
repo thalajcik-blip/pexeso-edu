@@ -4,8 +4,6 @@ import { TRANSLATIONS } from '../../data/translations'
 import { SIZE_CONFIG } from '../../types/game'
 import { THEMES } from '../../data/themes'
 import { isMuted, toggleMuted } from '../../services/audioService'
-import { useGameEventStore } from '../../store/gameEventStore'
-import { EVENT_CONFIGS } from '../../types/gameEvents'
 import GameCard from './GameCard'
 import ScoreBoard from './ScoreBoard'
 
@@ -23,7 +21,6 @@ export default function GameBoard() {
   const isOnline = useGameStore(s => s.isOnline)
   const phase = useGameStore(s => s.phase)
   const sendEmojiReact = useGameStore(s => s.sendEmojiReact)
-  const currentEvent = useGameEventStore(s => s.currentEvent)
   const tr = TRANSLATIONS[language]
   const tc = THEMES[theme]
   const cols = SIZE_CONFIG[selectedSize].cols
