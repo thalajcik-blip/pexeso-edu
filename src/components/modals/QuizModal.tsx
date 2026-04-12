@@ -153,7 +153,8 @@ export default function QuizModal() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!quizSymbol || !options.length) return
-      const idx = parseInt(e.key) - 1
+      const letterIdx = 'abcdefgh'.indexOf(e.key.toLowerCase())
+      const idx = letterIdx >= 0 ? letterIdx : parseInt(e.key) - 1
       if (idx >= 0 && idx < options.length) {
         const opt = options[idx]
         soundQuizSelect()

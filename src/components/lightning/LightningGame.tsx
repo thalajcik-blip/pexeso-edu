@@ -401,8 +401,9 @@ export default function LightningGame() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (phase === 'lightning_playing' && !showEventHeading) {
-        const idx = parseInt(e.key) - 1
-        if (idx >= 0 && idx < 4 && question?.options[idx] !== undefined) {
+        const letterIdx = 'abcdefgh'.indexOf(e.key.toLowerCase())
+        const idx = letterIdx >= 0 ? letterIdx : parseInt(e.key) - 1
+        if (idx >= 0 && question?.options[idx] !== undefined) {
           handleAnswer(question.options[idx])
         }
       }
