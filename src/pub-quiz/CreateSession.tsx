@@ -29,6 +29,7 @@ export default function CreateSession() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const { isLoading } = useAuthStore()
   const isTeacher = profile?.roles?.includes('teacher') || profile?.roles?.includes('superadmin') || profile?.roles?.includes('admin')
 
   function addRound() {
@@ -65,6 +66,8 @@ export default function CreateSession() {
     joinChannel(session.code, applyEvent)
     navigate(`/host/${session.code}`)
   }
+
+  if (isLoading) return null
 
   if (!user || !isTeacher) {
     return (

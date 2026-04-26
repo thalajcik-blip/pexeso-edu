@@ -8,13 +8,15 @@ import { useAuthStore } from '../store/authStore'
 import { supabase } from '../services/supabase'
 
 export default function PubQuizApp() {
-  const { loadProfile } = useAuthStore()
+  const { loadProfile, _setUser } = useAuthStore()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      _setUser(session?.user ?? null)
       if (session?.user) loadProfile()
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      _setUser(session?.user ?? null)
       if (session?.user) loadProfile()
     })
     return () => subscription.unsubscribe()
