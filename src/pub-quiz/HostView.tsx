@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { usePubQuizStore } from '../store/pubQuizStore'
 import { loadSession, loadRounds, loadTeams, joinChannel, broadcast } from '../services/pubQuizService'
 import { DECKS } from '../data/decks'
 import type { RoundScore } from '../types/pubQuiz'
+import { soundFlip, soundOpponentAnswered, soundTick, soundQuizTimeout, soundMatch, soundWin } from '../services/audioService'
 
 const LABEL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
@@ -24,6 +25,36 @@ export default function HostView() {
 
   const [loading, setLoading] = useState(true)
   const [qrOpen, setQrOpen] = useState(false)
+
+  const prevStatus = useRef(status)
+  const prevAnsweredCount = useRef(0)
+  const prevTimer = useRef<number | null>(null)
+  const prevRevealed = useRef(0)
+
+  useEffect(() => {
+    if (status === 'question_active' && prevStatus.current !== 'question_active') soundFlip()
+    if (status === 'finished' && prevStatus.current !== 'finished') soundWin()
+    prevStatus.current = status
+  }, [status])
+
+  useEffect(() => {
+    if (answeredTeamIds.size > prevAnsweredCount.current) soundOpponentAnswered()
+    prevAnsweredCount.current = answeredTeamIds.size
+  }, [answeredTeamIds.size])
+
+  useEffect(() => {
+    if (status !== 'question_active' || timerRemaining === null) return
+    if (prevTimer.current !== null && timerRemaining < prevTimer.current) {
+      if (timerRemaining <= 0) soundQuizTimeout()
+      else soundTick(timerRemaining <= 5)
+    }
+    prevTimer.current = timerRemaining
+  }, [timerRemaining, status])
+
+  useEffect(() => {
+    if (status === 'round_results' && revealedCount > prevRevealed.current) soundMatch()
+    prevRevealed.current = revealedCount
+  }, [revealedCount, status])
 
   // Load session on mount
   useEffect(() => {

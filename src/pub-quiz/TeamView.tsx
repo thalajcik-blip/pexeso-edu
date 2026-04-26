@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { usePubQuizStore } from '../store/pubQuizStore'
 import { loadSession, loadTeams, joinChannel } from '../services/pubQuizService'
 import { TEAM_COLORS, TEAM_AVATARS } from '../types/pubQuiz'
+import { soundFlip, soundQuizSelect, soundOpponentAnswered, soundTick, soundQuizTimeout, soundMatch, soundWin } from '../services/audioService'
 
 const LABEL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
@@ -16,6 +17,48 @@ export default function TeamView() {
     initSession, applyEvent,
     teamJoin, teamSelectAnswer, teamSubmitAnswer, teamChangeAnswer,
   } = usePubQuizStore()
+
+  const prevStatus = useRef(status)
+  const prevAnsweredCount = useRef(0)
+  const prevTimer = useRef<number | null>(null)
+  const prevRevealed = useRef(0)
+
+  // Sound: new question
+  useEffect(() => {
+    if (status === 'question_active' && prevStatus.current !== 'question_active') soundFlip()
+    prevStatus.current = status
+  }, [status])
+
+  // Sound: someone answered
+  useEffect(() => {
+    if (answeredTeamIds.size > prevAnsweredCount.current) soundOpponentAnswered()
+    prevAnsweredCount.current = answeredTeamIds.size
+  }, [answeredTeamIds.size])
+
+  // Sound: timer tick
+  useEffect(() => {
+    if (status !== 'question_active' || timerRemaining === null) return
+    if (prevTimer.current !== null && timerRemaining < prevTimer.current) {
+      if (timerRemaining <= 0) soundQuizTimeout()
+      else soundTick(timerRemaining <= 5)
+    }
+    prevTimer.current = timerRemaining
+  }, [timerRemaining, status])
+
+  // Sound: round results reveal
+  useEffect(() => {
+    if (status === 'round_results' && revealedCount > prevRevealed.current) soundMatch()
+    prevRevealed.current = revealedCount
+  }, [revealedCount, status])
+
+  // Sound: game finished
+  useEffect(() => {
+    if (status === 'finished') {
+      const myScore = roundScores.find(s => s.teamId === myTeamId)
+      if (myScore?.position === 1) soundWin()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
 
   const [joining, setJoining] = useState(false)
   const [joinError, setJoinError] = useState('')
@@ -250,7 +293,7 @@ export default function TeamView() {
             return (
               <button
                 key={i}
-                onClick={() => !hasSubmitted && teamSelectAnswer(opt)}
+                onClick={() => { if (!hasSubmitted) { teamSelectAnswer(opt); soundQuizSelect() } }}
                 disabled={hasSubmitted}
                 className={`
                   rounded-2xl p-4 text-left font-bold text-base transition-all
