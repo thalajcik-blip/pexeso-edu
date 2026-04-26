@@ -13,21 +13,21 @@ export function generateSessionCode(): string {
 
 // ── Session CRUD ──────────────────────────────────────────────────────────────
 
-export async function createSession(hostId: string): Promise<{ id: string; code: string } | null> {
+export async function createSession(hostId: string, name?: string): Promise<{ id: string; code: string } | null> {
   const code = generateSessionCode()
   const { data, error } = await supabase
     .from('pub_quiz_sessions')
-    .insert({ code, host_id: hostId, status: 'lobby' })
+    .insert({ code, host_id: hostId, status: 'lobby', name: name ?? null })
     .select('id, code')
     .single()
   if (error) { console.error(error); return null }
   return data
 }
 
-export async function loadSession(code: string): Promise<{ id: string; status: string; current_round: number; current_question: number } | null> {
+export async function loadSession(code: string): Promise<{ id: string; status: string; current_round: number; current_question: number; name: string | null } | null> {
   const { data, error } = await supabase
     .from('pub_quiz_sessions')
-    .select('id, status, current_round, current_question')
+    .select('id, status, current_round, current_question, name')
     .eq('code', code)
     .single()
   if (error) { console.error(error); return null }

@@ -78,7 +78,7 @@ export default function TeamView() {
       // Restore sessionId if reloading
       if (!sessionId) {
         const existingTeams = await loadTeams(session.id)
-        initSession(session.id, sessionCode, null)
+        initSession(session.id, sessionCode, null, session.name ?? '')
         usePubQuizStore.setState({ teams: existingTeams, status: session.status as any })
       }
 

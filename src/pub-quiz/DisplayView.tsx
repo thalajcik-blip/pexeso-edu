@@ -13,7 +13,7 @@ export default function DisplayView() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const {
-    sessionId, status, teams, currentRound, currentQuestion,
+    sessionId, status, teams, currentRound, currentQuestion, quizName,
     currentQuestionData, timerRemaining, timerSeconds, answeredTeamIds,
     roundScores, revealedCount, rounds,
     initSession, applyEvent,
@@ -26,7 +26,7 @@ export default function DisplayView() {
       if (!session) return
       if (!sessionId) {
         const dbTeams = await loadTeams(session.id)
-        initSession(session.id, sessionCode, null)
+        initSession(session.id, sessionCode, null, session.name ?? '')
         usePubQuizStore.setState({ teams: dbTeams, status: session.status as any })
       }
       joinChannel(sessionCode, applyEvent)
@@ -83,7 +83,7 @@ export default function DisplayView() {
       >
         <div className="text-center px-8">
           <div className="text-8xl mb-6">🎯</div>
-          <h1 className="text-6xl font-black text-white mb-4">Pub Kvíz</h1>
+          <h1 className="text-6xl font-black text-white mb-4">{quizName || 'Pub Kvíz'}</h1>
           <p className="text-[#8899aa] text-xl mb-8">Přidejte se na svém telefonu:</p>
           <div className="flex items-center justify-center gap-10 mb-8">
             <div className="bg-[#1a2a3a] rounded-3xl px-12 py-6 inline-block">
@@ -137,7 +137,7 @@ export default function DisplayView() {
         <div className="text-center">
           <div className="text-9xl mb-6">⏸</div>
           <h2 className="text-5xl font-black text-white mb-4">Krátká přestávka</h2>
-          <div className="text-4xl">🎯 pexedu Pub Kvíz</div>
+          <div className="text-4xl text-[#8899aa]">🎯 {quizName || 'pexedu Pub Kvíz'}</div>
         </div>
       </div>
     )

@@ -23,6 +23,7 @@ export default function CreateSession() {
   const { user, profile } = useAuthStore()
   const { initSession, setRounds, applyEvent } = usePubQuizStore()
 
+  const [quizName, setQuizName] = useState('')
   const [rounds, setLocalRounds] = useState<Omit<PubQuizRound, 'roundNumber' | 'status'>[]>([
     { ...DEFAULT_ROUND },
   ])
@@ -52,7 +53,7 @@ export default function CreateSession() {
 
     setLoading(true)
     setError('')
-    const session = await createSession(user.id)
+    const session = await createSession(user.id, quizName.trim() || undefined)
     if (!session) { setError('Nepodařilo se vytvořit session.'); setLoading(false); return }
 
     const fullRounds: PubQuizRound[] = rounds.map((r, i) => ({
@@ -61,7 +62,7 @@ export default function CreateSession() {
       status: 'pending',
     }))
 
-    initSession(session.id, session.code, user.id)
+    initSession(session.id, session.code, user.id, quizName.trim() || undefined)
     setRounds(fullRounds)
     joinChannel(session.code, applyEvent)
     navigate(`/host/${session.code}`)
@@ -96,6 +97,18 @@ export default function CreateSession() {
             ← Zpět
           </button>
           <h1 className="text-2xl font-bold text-white">🎯 Nový Pub Kvíz</h1>
+        </div>
+
+        {/* Quiz name */}
+        <div className="bg-[#1a2a3a] rounded-2xl p-6 mb-6">
+          <label className="text-[#8899aa] text-sm block mb-2">Název kvízu (nepovinné)</label>
+          <input
+            value={quizName}
+            onChange={e => setQuizName(e.target.value)}
+            maxLength={60}
+            placeholder="např. Geografický pub kvíz"
+            className="w-full bg-[#0d1b2a] text-white rounded-xl px-4 py-3 border border-[#2a3a4a] focus:border-[#f9d74e] outline-none"
+          />
         </div>
 
         {/* Rounds */}
