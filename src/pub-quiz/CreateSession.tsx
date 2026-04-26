@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { usePubQuizStore } from '../store/pubQuizStore'
 import { createSession, joinChannel } from '../services/pubQuizService'
+import { supabase } from '../services/supabase'
 import { DECKS } from '../data/decks'
 import type { PubQuizRound } from '../types/pubQuiz'
 
@@ -11,11 +12,23 @@ const GAME_MODE_LABELS = {
   bleskovy_kviz: 'Bleskový kvíz (rychlost = body)',
 }
 
+type CustomDeckOption = { id: string; title: string }
+
 const DEFAULT_ROUND: Omit<PubQuizRound, 'roundNumber' | 'status'> = {
   gameMode: 'bleskovy_kviz',
   setSlug: 'flags',
   questionCount: 10,
   doublePoints: false,
+}
+
+function deckSelectValue(round: Omit<PubQuizRound, 'roundNumber' | 'status'>): string {
+  if (round.customDeckId) return `custom:${round.customDeckId}`
+  return round.setSlug ?? DECKS[0].id
+}
+
+function applyDeckSelection(value: string): Partial<Omit<PubQuizRound, 'roundNumber' | 'status'>> {
+  if (value.startsWith('custom:')) return { customDeckId: value.slice(7), setSlug: undefined }
+  return { setSlug: value, customDeckId: undefined }
 }
 
 export default function CreateSession() {
@@ -27,11 +40,23 @@ export default function CreateSession() {
   const [rounds, setLocalRounds] = useState<Omit<PubQuizRound, 'roundNumber' | 'status'>[]>([
     { ...DEFAULT_ROUND },
   ])
+  const [customDecks, setCustomDecks] = useState<CustomDeckOption[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const { isLoading } = useAuthStore()
   const isTeacher = profile?.roles?.includes('teacher') || profile?.roles?.includes('superadmin') || profile?.roles?.includes('admin')
+
+  useEffect(() => {
+    supabase
+      .from('custom_decks')
+      .select('id, title')
+      .eq('status', 'approved')
+      .order('title')
+      .then(({ data }) => {
+        if (data) setCustomDecks(data)
+      })
+  }, [])
 
   function addRound() {
     if (rounds.length >= 8) return
@@ -161,13 +186,22 @@ export default function CreateSession() {
                   <div>
                     <label className="text-[#8899aa] text-xs mb-1 block">Sada</label>
                     <select
-                      value={round.setSlug ?? ''}
-                      onChange={e => updateRound(i, { setSlug: e.target.value, customDeckId: undefined })}
+                      value={deckSelectValue(round)}
+                      onChange={e => updateRound(i, applyDeckSelection(e.target.value))}
                       className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
                     >
-                      {DECKS.map(d => (
-                        <option key={d.id} value={d.id}>{d.icon} {d.label}</option>
-                      ))}
+                      <optgroup label="Vestavěné sady">
+                        {DECKS.map(d => (
+                          <option key={d.id} value={d.id}>{d.icon} {d.label}</option>
+                        ))}
+                      </optgroup>
+                      {customDecks.length > 0 && (
+                        <optgroup label="Vlastní sady">
+                          {customDecks.map(d => (
+                            <option key={d.id} value={`custom:${d.id}`}>📚 {d.title}</option>
+                          ))}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
 
