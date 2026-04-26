@@ -11,6 +11,7 @@ interface PubQuizState {
   // Session
   sessionId: string
   sessionCode: string
+  quizName: string
   status: SessionStatus
   hostId: string | null
 
@@ -46,7 +47,7 @@ interface PubQuizState {
 
 interface PubQuizActions {
   // Setup
-  initSession: (sessionId: string, sessionCode: string, hostId: string | null) => void
+  initSession: (sessionId: string, sessionCode: string, hostId: string | null, quizName?: string) => void
   setRounds: (rounds: PubQuizRound[]) => void
   applyEvent: (event: PubQuizEvent) => void
 
@@ -75,6 +76,7 @@ interface PubQuizActions {
 const DEFAULT: PubQuizState = {
   sessionId: '',
   sessionCode: '',
+  quizName: '',
   status: 'lobby',
   hostId: null,
   rounds: [],
@@ -99,8 +101,8 @@ const DEFAULT: PubQuizState = {
 export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) => ({
   ...DEFAULT,
 
-  initSession(sessionId, sessionCode, hostId) {
-    set({ sessionId, sessionCode, hostId })
+  initSession(sessionId, sessionCode, hostId, quizName = '') {
+    set({ sessionId, sessionCode, hostId, quizName })
   },
 
   setRounds(rounds) {
