@@ -90,18 +90,17 @@ export default function HostView() {
 
   const handleEndQuestion = useCallback(async () => {
     await hostEndQuestion()
-    // After scoring, show round results if this was the last question
-    const q = store.currentQuestion
-    const total = store.rounds[store.currentRound - 1]?.questionCount ?? 0
-    if (q >= total) {
-      // Build round scores for reveal
-      const sorted = [...store.teams]
+    // Read fresh state after async scoring completes
+    const s = usePubQuizStore.getState()
+    const total = s.rounds[s.currentRound - 1]?.questionCount ?? 0
+    if (s.currentQuestion >= total) {
+      const sorted = [...s.teams]
         .sort((a, b) => b.totalScore - a.totalScore)
         .map((t, i) => ({ teamId: t.id, teamName: t.name, avatar: t.avatar, color: t.color, score: t.totalScore, position: i + 1 }))
       usePubQuizStore.setState({ status: 'round_results', roundScores: sorted, revealedCount: 0 })
-      broadcast({ type: 'round_results_reveal', roundNumber: store.currentRound, scores: sorted, revealedCount: 0 })
+      broadcast({ type: 'round_results_reveal', roundNumber: s.currentRound, scores: sorted, revealedCount: 0 })
     }
-  }, [hostEndQuestion, store])
+  }, [hostEndQuestion])
 
   if (loading) {
     return (

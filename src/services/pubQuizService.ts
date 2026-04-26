@@ -113,10 +113,11 @@ export async function submitAnswer(
   questionIndex: number,
   answer: string,
 ): Promise<void> {
-  await supabase.from('pub_quiz_answers').upsert(
+  const { error } = await supabase.from('pub_quiz_answers').upsert(
     { session_id: sessionId, team_id: teamId, round_number: roundNumber, question_index: questionIndex, answer },
     { onConflict: 'team_id,round_number,question_index' },
   )
+  if (error) console.error('[pub quiz] submitAnswer failed:', error)
 }
 
 export async function loadAnswersForQuestion(
