@@ -338,27 +338,27 @@ export default function TeamView() {
   // ── FINISHED ──────────────────────────────────────────────────────────────
 
   if (status === 'finished') {
-    const sorted = [...teams].sort((a, b) => b.totalScore - a.totalScore)
-    const myPosition = sorted.findIndex(t => t.id === myTeamId) + 1
-    const myTeam = teams.find(t => t.id === myTeamId)
+    const sorted = [...roundScores].sort((a, b) => a.position - b.position)
+    const myScore = sorted.find(s => s.teamId === myTeamId)
+    const myPosition = myScore?.position ?? sorted.length + 1
 
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="w-full max-w-sm text-center">
           <div className="text-6xl mb-2">{myPosition === 1 ? '🏆' : myPosition === 2 ? '🥈' : myPosition === 3 ? '🥉' : '🎯'}</div>
-          <p className="text-[#8899aa] mb-1">{myTeam?.avatar} {myTeam?.name}</p>
+          <p className="text-[#8899aa] mb-1">{myScore?.avatar} {myScore?.teamName}</p>
           <h2 className="text-3xl font-black text-white mb-1">
             {myPosition}. místo
           </h2>
-          <p className="text-[#f9d74e] text-2xl font-bold mb-6">{myTeam?.totalScore} bodů</p>
+          <p className="text-[#f9d74e] text-2xl font-bold mb-6">{myScore?.score ?? 0} bodů</p>
 
           <div className="bg-[#1a2a3a] rounded-2xl p-5 space-y-3">
-            {sorted.map((t, i) => (
-              <div key={t.id} className={`flex items-center gap-3 ${t.id === myTeamId ? '' : ''}`}>
+            {sorted.map((s, i) => (
+              <div key={s.teamId} className="flex items-center gap-3">
                 <span className="text-xl w-6">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
-                <span className="text-xl">{t.avatar}</span>
-                <span className={`flex-1 text-left font-bold ${t.id === myTeamId ? 'text-[#f9d74e]' : 'text-white'}`}>{t.name}</span>
-                <span className={`font-black ${t.id === myTeamId ? 'text-[#f9d74e]' : 'text-white'}`}>{t.totalScore}</span>
+                <span className="text-xl">{s.avatar}</span>
+                <span className={`flex-1 text-left font-bold ${s.teamId === myTeamId ? 'text-[#f9d74e]' : 'text-white'}`}>{s.teamName}</span>
+                <span className={`font-black ${s.teamId === myTeamId ? 'text-[#f9d74e]' : 'text-white'}`}>{s.score}</span>
               </div>
             ))}
           </div>

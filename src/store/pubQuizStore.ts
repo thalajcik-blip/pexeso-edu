@@ -301,7 +301,7 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
     if (!sessionId) return false
     const team = await svc.joinTeam(sessionId, name, avatar, color)
     if (!team) return false
-    set({ myTeamId: team.id, myTeamName: name })
+    set({ myTeamId: team.id, myTeamName: name, teams: [...get().teams, team] })
     svc.broadcast({ type: 'team_joined', team })
     return true
   },
