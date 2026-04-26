@@ -6,6 +6,7 @@ import { THEMES } from '../../data/themes'
 import { TRANSLATIONS } from '../../data/translations'
 import { MAX_LIGHTNING_PLAYERS } from '../../types/game'
 import { Avatar } from '../auth/Avatar'
+import { supabase } from '../../services/supabase'
 
 
 export default function LobbyScreen() {
@@ -90,6 +91,11 @@ export default function LobbyScreen() {
     if (code.length < 6 || !myName.trim()) return
     setLoading(true); setError(null)
     try {
+      const { data } = await supabase.from('pub_quiz_sessions').select('id').eq('code', code).maybeSingle()
+      if (data) {
+        window.location.href = `/pub-quiz/play/${code}`
+        return
+      }
       await joinRoom(code, myName.trim())
     } catch {
       setError(tr.roomNotFound)

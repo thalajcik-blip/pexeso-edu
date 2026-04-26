@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
+import QRCode from 'react-qr-code'
 import { usePubQuizStore } from '../store/pubQuizStore'
 import { loadSession, loadTeams, joinChannel } from '../services/pubQuizService'
 import { DECKS } from '../data/decks'
@@ -61,9 +62,14 @@ export default function DisplayView() {
           <div className="text-8xl mb-6">🎯</div>
           <h1 className="text-6xl font-black text-white mb-4">Pub Kvíz</h1>
           <p className="text-[#8899aa] text-xl mb-8">Přidejte se na svém telefonu:</p>
-          <div className="bg-[#1a2a3a] rounded-3xl px-12 py-6 inline-block mb-8">
-            <p className="text-[#8899aa] text-sm mb-2">Kód</p>
-            <div className="text-6xl font-mono font-black text-[#f9d74e] tracking-widest">{sessionCode}</div>
+          <div className="flex items-center justify-center gap-10 mb-8">
+            <div className="bg-[#1a2a3a] rounded-3xl px-12 py-6 inline-block">
+              <p className="text-[#8899aa] text-sm mb-2">Kód</p>
+              <div className="text-6xl font-mono font-black text-[#f9d74e] tracking-widest">{sessionCode}</div>
+            </div>
+            <div className="bg-white rounded-2xl p-3">
+              <QRCode value={`${window.location.origin}/?room=${sessionCode}`} size={150} />
+            </div>
           </div>
           <p className="text-[#8899aa]">Týmy ({teams.length}/8)</p>
           <div className="flex flex-wrap gap-4 justify-center mt-4">
