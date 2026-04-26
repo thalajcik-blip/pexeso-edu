@@ -137,9 +137,23 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
   },
 
   async hostStartQuestion(questionIndex) {
-    const { sessionId, currentRound, rounds, roundQuestions } = get()
+    const { sessionId, currentRound, rounds } = get()
     const round = rounds[currentRound - 1]
-    if (!round || !roundQuestions[questionIndex]) return
+    if (!round) return
+
+    // Generate questions for this round if not yet done
+    let { roundQuestions } = get()
+    if (roundQuestions.length === 0) {
+      if (round.customDeckId) {
+        const customDeck = await fetchCustomDeckFull(round.customDeckId)
+        roundQuestions = buildPubQuizQuestions(round.customDeckId, customDeck, 'cs', round.questionCount)
+      } else if (round.setSlug) {
+        roundQuestions = buildPubQuizQuestions(round.setSlug, null, 'cs', round.questionCount)
+      }
+      set({ roundQuestions })
+    }
+
+    if (!roundQuestions[questionIndex]) return
 
     const question = roundQuestions[questionIndex]
     const timerSeconds = round.gameMode === 'bleskovy_kviz' ? 20 : 30
