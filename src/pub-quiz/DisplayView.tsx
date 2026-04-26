@@ -34,6 +34,28 @@ export default function DisplayView() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionCode])
 
+  // Must be declared before any early returns (React rules of hooks)
+  useEffect(() => {
+    if (status !== 'finished') return
+    const sorted = [...teams].sort((a, b) => b.totalScore - a.totalScore)
+    const total = sorted.length
+    sorted.slice().reverse().forEach((_, idx) => {
+      const place = total - idx
+      const delay = idx * 1200
+      const intensity = place / total
+      setTimeout(() => {
+        confetti({
+          particleCount: Math.round(40 + intensity * 160),
+          spread: 50 + intensity * 80,
+          startVelocity: 25 + intensity * 25,
+          origin: { x: 0.5, y: 0.6 },
+          gravity: 0.9,
+        })
+      }, delay)
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
+
   function requestFullscreen() {
     document.documentElement.requestFullscreen?.()
   }
@@ -298,29 +320,6 @@ export default function DisplayView() {
       </div>
     )
   }
-
-  // ── FINISHED — confetti cascade ───────────────────────────────────────────
-
-  useEffect(() => {
-    if (status !== 'finished') return
-    const sorted = [...teams].sort((a, b) => b.totalScore - a.totalScore)
-    const total = sorted.length
-    sorted.slice().reverse().forEach((_, idx) => {
-      const place = total - idx         // last place fires first (small), 1st fires last (big)
-      const delay = idx * 1200
-      const intensity = place / total   // 1st place = 1.0, last = 1/total
-      setTimeout(() => {
-        confetti({
-          particleCount: Math.round(40 + intensity * 160),
-          spread: 50 + intensity * 80,
-          startVelocity: 25 + intensity * 25,
-          origin: { x: 0.5, y: 0.6 },
-          gravity: 0.9,
-        })
-      }, delay)
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status])
 
   if (status === 'finished') {
     const sorted = [...teams].sort((a, b) => b.totalScore - a.totalScore)

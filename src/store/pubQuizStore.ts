@@ -261,6 +261,7 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
     }))
     set({ teams: updatedTeams })
     await svc.updateTeamScores(updatedTeams.map(t => ({ id: t.id, totalScore: t.totalScore })))
+    svc.broadcast({ type: 'team_scores_updated', teams: updatedTeams.map(t => ({ id: t.id, totalScore: t.totalScore })) })
   },
 
   async hostFinishSession() {
@@ -362,6 +363,14 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
       case 'team_joined': {
         const existing = get().teams.find(t => t.id === event.team.id)
         if (!existing) set({ teams: [...get().teams, event.team] })
+        break
+      }
+      case 'team_scores_updated': {
+        const updated = get().teams.map(t => {
+          const u = event.teams.find(e => e.id === t.id)
+          return u ? { ...t, totalScore: u.totalScore } : t
+        })
+        set({ teams: updated })
         break
       }
       case 'round_results_reveal':
