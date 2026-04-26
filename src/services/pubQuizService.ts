@@ -125,13 +125,15 @@ export async function loadAnswersForQuestion(
   roundNumber: number,
   questionIndex: number,
 ): Promise<{ teamId: string; answer: string; answeredAt: string }[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('pub_quiz_answers')
     .select('team_id, answer, answered_at')
     .eq('session_id', sessionId)
     .eq('round_number', roundNumber)
     .eq('question_index', questionIndex)
+  if (error) console.error('[pub quiz] loadAnswersForQuestion failed:', error)
   if (!data) return []
+  console.log(`[pub quiz] loadAnswersForQuestion r${roundNumber}q${questionIndex}: ${data.length} answers`, data)
   return data.map(r => ({ teamId: r.team_id, answer: r.answer, answeredAt: r.answered_at }))
 }
 
