@@ -69,6 +69,7 @@ interface PubQuizActions {
 
   // Shared
   reset: () => void
+  _stopTimer: () => void
 }
 
 const DEFAULT: PubQuizState = {
@@ -198,7 +199,7 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
   },
 
   hostResumeQuestion() {
-    const { timerRemaining, timerSeconds, _questionStartTime } = get()
+    const { timerRemaining, timerSeconds } = get()
     const resumeTime = Date.now()
     set({ status: 'question_active' })
     svc.broadcast({ type: 'question_resumed', questionStartTime: resumeTime, timerRemaining: timerRemaining ?? timerSeconds })
@@ -372,4 +373,4 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
     const interval = get()._timerInterval
     if (interval) { clearInterval(interval); set({ _timerInterval: null }) }
   },
-} as PubQuizState & PubQuizActions & { _stopTimer: () => void }))
+} as PubQuizState & PubQuizActions))

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { usePubQuizStore } from '../store/pubQuizStore'
-import { loadSession, loadRounds, loadTeams, joinChannel, saveRounds, broadcast } from '../services/pubQuizService'
+import { loadSession, loadRounds, loadTeams, joinChannel, broadcast } from '../services/pubQuizService'
 import { DECKS } from '../data/decks'
 import type { RoundScore } from '../types/pubQuiz'
 
@@ -13,11 +13,11 @@ export default function HostView() {
 
   const store = usePubQuizStore()
   const {
-    sessionId, status, rounds, teams, currentRound, currentQuestion,
+    status, rounds, teams, currentRound, currentQuestion,
     currentQuestionData, timerRemaining, answeredTeamIds, roundScores,
-    revealedCount, roundQuestions,
+    revealedCount,
     initSession, setRounds, applyEvent,
-    hostStartSession, hostStartRound, hostStartQuestion,
+    hostStartSession, hostStartQuestion,
     hostPauseQuestion, hostResumeQuestion, hostEndQuestion,
     hostRevealNextTeam, hostNextRound, reset,
   } = store
