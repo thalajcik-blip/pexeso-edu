@@ -26,7 +26,7 @@ interface YouTubePlayerProps {
 
 export function YouTubePlayer({ videoId, startSec, endSec, onEnded }: YouTubePlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const playerRef    = useRef<ReturnType<Window['YT']['Player']> | null>(null)
+  const playerRef    = useRef<InstanceType<Window['YT']['Player']> | null>(null)
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const endedRef     = useRef(false)
 
