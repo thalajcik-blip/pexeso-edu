@@ -25,6 +25,10 @@ export interface LightningQuestion {
   options: string[]    // 4 shuffled options
   correct: string
   funFact?: string     // shown after reveal
+  youtubeUrl?: string
+  youtubeStartSec?: number
+  youtubeEndSec?: number
+  youtubeAutoadvance?: boolean
 }
 
 export interface LightningAnswer {
@@ -43,6 +47,10 @@ export interface CustomDeckCard {
   quiz_correct: string | null           // legacy
   fun_fact: string | null
   translations?: Record<string, { quiz_question?: string; quiz_options?: string[]; quiz_correct?: string; fun_fact?: string }>
+  youtube_url?: string | null
+  youtube_start_sec?: number | null
+  youtube_end_sec?: number | null
+  youtube_autoadvance?: boolean | null
 }
 
 export interface CustomDeckData {
