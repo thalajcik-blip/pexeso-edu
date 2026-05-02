@@ -804,12 +804,12 @@ export default function LightningGame() {
         <div className="flex items-center gap-2">
           <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: tc.scorePillBg }}>
             <div
-              key={lightningCurrentIndex}
+              key={`${lightningCurrentIndex}-${videoPhase}`}
               className="h-full rounded-full"
               style={{
                 background: timerColor,
                 animation: `lightning-timer ${lightningTimeLimit}s linear forwards`,
-                animationPlayState: isReveal ? 'paused' : 'running',
+                animationPlayState: isReveal || videoPhase === 'video' ? 'paused' : 'running',
               }}
             />
           </div>

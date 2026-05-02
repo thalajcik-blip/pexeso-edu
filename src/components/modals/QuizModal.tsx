@@ -11,6 +11,8 @@ import { selectAnswers } from '../../utils/quizValidation'
 import { soundQuizSelect, soundQuizWrong, soundQuizTimeout, soundTick } from '../../services/audioService'
 import type { DeckId } from '../../types/game'
 import { Avatar } from '../auth/Avatar'
+import { YouTubePlayer } from '../quiz/YouTubePlayer'
+import { extractYouTubeId } from '../../utils/youtube'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
@@ -137,6 +139,25 @@ export default function QuizModal() {
   const customQuestion = customTranslation?.quiz_question ?? customCard?.quiz_question
   const customFunFact  = customTranslation?.fun_fact ?? customCard?.fun_fact
 
+  const youtubeVideoId    = customCard?.youtube_url ? extractYouTubeId(customCard.youtube_url) : null
+  const youtubeStartSec   = customCard?.youtube_start_sec ?? 0
+  const youtubeEndSec     = customCard?.youtube_end_sec ?? 30
+  const youtubeAutoadvance = customCard?.youtube_autoadvance ?? false
+
+  const handleVideoEnded = () => {
+    if (!youtubeAutoadvance) return
+    if (isOnline) {
+      if (!quizRevealCorrect) triggerReveal()
+    } else {
+      if (answered) {
+        handleContinue()
+      } else {
+        setAnswered('')
+        answerQuiz(false)
+      }
+    }
+  }
+
   // Static deck data (only when not custom)
   const deck   = !isCustomDeck ? DECKS.find(d => d.id === selectedDeckId) : null
   const item   = deck?.pool[quizSymbol] ?? null
@@ -242,12 +263,21 @@ export default function QuizModal() {
         )}
 
         {isCustomDeck ? (
-          <img
-            src={quizSymbol}
-            alt={hint}
-            className="mx-auto rounded-xl object-cover"
-            style={{ width: 120, height: 120 }}
-          />
+          youtubeVideoId ? (
+            <YouTubePlayer
+              videoId={youtubeVideoId}
+              startSec={youtubeStartSec}
+              endSec={youtubeEndSec}
+              onEnded={handleVideoEnded}
+            />
+          ) : (
+            <img
+              src={quizSymbol}
+              alt={hint}
+              className="mx-auto rounded-xl object-cover"
+              style={{ width: 120, height: 120 }}
+            />
+          )
         ) : (
           <div className="text-7xl leading-none">{quizSymbol}</div>
         )}
