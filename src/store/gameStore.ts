@@ -48,6 +48,12 @@ function buildLightningQuestions(
     const allQuestions = allSymbols.flatMap((symbol): LightningQuestion[] => {
       const item = customDeck.pool[symbol]
       // New: use flexible answer pool
+      const youtubeFields = {
+        youtubeUrl:         item.youtube_url || undefined,
+        youtubeStartSec:    item.youtube_start_sec ?? undefined,
+        youtubeEndSec:      item.youtube_end_sec ?? undefined,
+        youtubeAutoadvance: item.youtube_autoadvance ?? true,
+      }
       if (item.answers && item.answers.length > 0) {
         const { options, correct } = selectAnswers(item.answers, item.display_count || 4)
         if (correct && options.length >= 2) {
@@ -61,6 +67,7 @@ function buildLightningQuestions(
             options,
             correct,
             funFact: item.fun_fact || undefined,
+            ...youtubeFields,
           }]
         }
         // fall through to legacy if answers path failed
@@ -77,6 +84,7 @@ function buildLightningQuestions(
           options: shuffle([...item.quiz_options]),
           correct: item.quiz_correct,
           funFact: item.fun_fact || undefined,
+          ...youtubeFields,
         }]
       }
       return []

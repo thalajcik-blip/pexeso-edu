@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import type { AnswerOption } from '../types/game'
 import { validateAnswers } from '../utils/quizValidation'
+import { extractYouTubeId } from '../utils/youtube'
 
 export type CardData = {
   id?: string
@@ -23,6 +24,10 @@ export type CardData = {
   fun_fact: string
   sort_order: number
   created_at?: string
+  youtube_url?: string | null
+  youtube_start_sec?: number | null
+  youtube_end_sec?: number | null
+  youtube_autoadvance?: boolean | null
 }
 
 function padAnswers(base: AnswerOption[], minCount: number): AnswerOption[] {
@@ -77,6 +82,10 @@ export default function CardModal({ deckId, language, difficulty, deckType = 'im
   const [generatingAnswers, setGeneratingAnswers] = useState(false)
   const [error, setError]               = useState('')
   const [isDragging, setIsDragging]     = useState(false)
+  const [youtubeUrl, setYoutubeUrl]     = useState(card?.youtube_url ?? '')
+  const [youtubeStartSec, setYoutubeStartSec] = useState(card?.youtube_start_sec ?? 0)
+  const [youtubeEndSec, setYoutubeEndSec]     = useState(card?.youtube_end_sec ?? 30)
+  const [youtubeAutoadvance, setYoutubeAutoadvance] = useState(card?.youtube_autoadvance ?? true)
   const fileRef      = useRef<HTMLInputElement>(null)
   const audioFileRef = useRef<HTMLInputElement>(null)
 
@@ -246,6 +255,10 @@ export default function CardModal({ deckId, language, difficulty, deckType = 'im
       quiz_correct:  correctAnswer?.text ?? null,
       fun_fact:      funFact || null,
       sort_order:    sortOrder,
+      youtube_url:          youtubeUrl || null,
+      youtube_start_sec:    youtubeUrl ? youtubeStartSec : null,
+      youtube_end_sec:      youtubeUrl ? youtubeEndSec : null,
+      youtube_autoadvance:  youtubeUrl ? youtubeAutoadvance : null,
     }
     const { error: saveError } = card?.id
       ? await supabase.from('custom_cards').update(payload).eq('id', card.id)
@@ -476,6 +489,64 @@ export default function CardModal({ deckId, language, difficulty, deckType = 'im
                 rows={2}
                 className="resize-none"
               />
+            </div>
+
+            {/* YouTube video preview */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                YouTube ukážka <span className="text-gray-300 font-normal">(volitelné)</span>
+              </label>
+              <Input
+                value={youtubeUrl}
+                onChange={e => setYoutubeUrl(e.target.value)}
+                placeholder="https://youtu.be/..."
+              />
+              {(() => {
+                const vid = extractYouTubeId(youtubeUrl)
+                if (!vid) return null
+                return (
+                  <div className="mt-3 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Začátek (s)</label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={youtubeStartSec}
+                          onChange={e => setYoutubeStartSec(parseInt(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Konec (s)</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={youtubeEndSec}
+                          onChange={e => setYoutubeEndSec(parseInt(e.target.value) || 1)}
+                        />
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={youtubeAutoadvance}
+                        onChange={e => setYoutubeAutoadvance(e.target.checked)}
+                        className="accent-indigo-600 w-4 h-4"
+                      />
+                      Automaticky zobrazit otázku po skončení videa
+                    </label>
+                    <div>
+                      <div className="text-xs text-gray-400 mb-1">Náhled úseku</div>
+                      <iframe
+                        src={`https://www.youtube.com/embed/${vid}?start=${youtubeStartSec}&end=${youtubeEndSec}&autoplay=0&controls=1&rel=0`}
+                        className="w-full rounded-lg border-0"
+                        style={{ aspectRatio: '16/9' }}
+                        allow="autoplay"
+                      />
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           </div>
 

@@ -12,6 +12,8 @@ import { Avatar } from '../auth/Avatar'
 import { shareResult } from '../../services/shareService'
 import { useGameEventStore } from '../../store/gameEventStore'
 import { EVENT_CONFIGS } from '../../types/gameEvents'
+import { YouTubePlayer } from '../quiz/YouTubePlayer'
+import { extractYouTubeId } from '../../utils/youtube'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 const EMOJI_OPTS = ['👍', '😱', '🎉', '😂', '🔥', '😅']
@@ -221,6 +223,7 @@ export default function LightningGame() {
   const [revealSecondsLeft, setRevealSecondsLeft] = useState(REVEAL_DURATION / 1000)
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; playerIndex: number }[]>([])
   const [emojiCooldown, setEmojiCooldown] = useState(false)
+  const [videoPhase, setVideoPhase] = useState<'video' | 'question'>('question')
 
   const remainingRef = useRef(lightningTimeLimit)
   const lastTickSecRef = useRef(lightningTimeLimit + 1)
@@ -313,23 +316,31 @@ export default function LightningGame() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, lightningAnswers.length, language])
 
-  // Reset on new question
+  // Reset answer state + set video phase on new question
   useEffect(() => {
-    const initRemaining = lightningQuestionEndTime > 0
-      ? Math.max(0, (lightningQuestionEndTime - Date.now()) / 1000)
-      : lightningTimeLimit
-    remainingRef.current = initRemaining
-    lastTickSecRef.current = initRemaining + 1
-    setTimeLeft(initRemaining)
+    const q = lightningQuestions[lightningCurrentIndex]
+    setVideoPhase(!isOnline && q?.youtubeUrl ? 'video' : 'question')
     setSelectedAnswer(null)
     setFeedbackClass('')
     hasAnsweredRef.current = false
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightningCurrentIndex])
 
+  // Init timer when question phase starts (after video or immediately when no video)
+  useEffect(() => {
+    if (videoPhase !== 'question') return
+    const initRemaining = lightningQuestionEndTime > 0
+      ? Math.max(0, (lightningQuestionEndTime - Date.now()) / 1000)
+      : lightningTimeLimit
+    remainingRef.current = initRemaining
+    lastTickSecRef.current = initRemaining + 1
+    setTimeLeft(initRemaining)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightningCurrentIndex, videoPhase])
+
   // Timer countdown
   useEffect(() => {
-    if (phase !== 'lightning_playing') return
+    if (phase !== 'lightning_playing' || videoPhase !== 'question') return
     let lastTick = Date.now()
     const interval = setInterval(() => {
       const now = Date.now()
@@ -360,7 +371,7 @@ export default function LightningGame() {
     }, 50)
     return () => clearInterval(interval)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lightningCurrentIndex, phase])
+  }, [lightningCurrentIndex, phase, videoPhase])
 
   // Play reveal sound + trigger feedback animation
   useEffect(() => {
@@ -784,21 +795,21 @@ export default function LightningGame() {
       </div>
 
       {/* Question number — hidden during event badge */}
-      <div className="text-center text-sm font-bold tabular-nums mb-3" style={{ color: tc.textMuted, visibility: showEventHeading ? 'hidden' : 'visible' }}>
+      <div className="text-center text-sm font-bold tabular-nums mb-3" style={{ color: tc.textMuted, visibility: (showEventHeading || videoPhase === 'video') ? 'hidden' : 'visible' }}>
         {lightningCurrentIndex + 1}/{total}
       </div>
 
-      {/* Timer bar — hidden during event badge */}
-      <div className="max-w-lg mx-auto w-full mb-4" style={{ visibility: showEventHeading ? 'hidden' : 'visible' }}>
+      {/* Timer bar — hidden during event badge and video phase */}
+      <div className="max-w-lg mx-auto w-full mb-4" style={{ visibility: (showEventHeading || videoPhase === 'video') ? 'hidden' : 'visible' }}>
         <div className="flex items-center gap-2">
           <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: tc.scorePillBg }}>
             <div
-              key={lightningCurrentIndex}
+              key={`${lightningCurrentIndex}-${videoPhase}`}
               className="h-full rounded-full"
               style={{
                 background: timerColor,
                 animation: `lightning-timer ${lightningTimeLimit}s linear forwards`,
-                animationPlayState: isReveal ? 'paused' : 'running',
+                animationPlayState: isReveal || videoPhase === 'video' ? 'paused' : 'running',
               }}
             />
           </div>
@@ -808,8 +819,38 @@ export default function LightningGame() {
         </div>
       </div>
 
+      {/* Video phase */}
+      {videoPhase === 'video' && question.youtubeUrl && (() => {
+        const vid = extractYouTubeId(question.youtubeUrl!)
+        if (!vid) return null
+        return (
+          <div className="max-w-lg mx-auto w-full mb-4">
+            <YouTubePlayer
+              videoId={vid}
+              startSec={question.youtubeStartSec ?? 0}
+              endSec={question.youtubeEndSec ?? 30}
+              onEnded={() => {
+                if (question.youtubeAutoadvance !== false) setVideoPhase('question')
+              }}
+            />
+            <p className="text-center text-sm mt-2" style={{ color: tc.textMuted }}>
+              👁 Sleduj pozorně…
+            </p>
+            <div className="flex justify-center mt-2">
+              <button
+                onClick={() => setVideoPhase('question')}
+                className="text-xs transition-opacity opacity-40 hover:opacity-70"
+                style={{ color: tc.textFaint }}
+              >
+                {question.youtubeAutoadvance !== false ? 'Přeskočit →' : 'Zobrazit otázku →'}
+              </button>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Card visual — temporarily replaced by event heading on activation */}
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-4" style={{ display: videoPhase === 'video' ? 'none' : undefined }}>
         {showEventHeading && currentEvent ? (
           <div className={`event-badge${eventHeadingExiting ? ' event-badge--exit' : ''} flex flex-col items-center justify-center gap-2 w-full py-4 px-6`}>
             <span
@@ -870,7 +911,7 @@ export default function LightningGame() {
       </div>
 
       {/* Question text */}
-      {!showEventHeading && (
+      {!showEventHeading && videoPhase === 'question' && (
         <div className="text-center text-base font-semibold mb-1 max-w-lg mx-auto" style={{ color: tc.text }}>
           {question.question}
         </div>
@@ -908,8 +949,8 @@ export default function LightningGame() {
         })}
       </div>
 
-      {/* Answer options 2x2 — hidden during event badge */}
-      {!showEventHeading && (
+      {/* Answer options 2x2 — hidden during event badge and video phase */}
+      {!showEventHeading && videoPhase === 'question' && (
         <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto w-full">
           {question.options.map((option, i) => (
             <button
