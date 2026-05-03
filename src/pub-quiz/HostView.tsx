@@ -128,12 +128,6 @@ export default function HostView() {
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-xl font-bold text-white">🎯 {quizName || 'Pub Kvíz'} — Host</h1>
             <div className="flex gap-2">
-              <button
-                onClick={() => setQrOpen(!qrOpen)}
-                className="px-3 py-2 bg-[#1a2a3a] text-white rounded-xl text-sm"
-              >
-                QR kód
-              </button>
               <a
                 href={displayUrl}
                 target="_blank"
