@@ -15,6 +15,7 @@ export interface PubQuizRound {
   gameMode: 'pexequiz' | 'bleskovy_kviz'
   setSlug?: string          // built-in deck id
   customDeckId?: string
+  customDeckName?: string   // display name for custom deck (not persisted to DB)
   questionCount: number
   doublePoints: boolean
   status: 'pending' | 'active' | 'completed'

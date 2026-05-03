@@ -85,6 +85,9 @@ export default function CreateSession() {
       ...r,
       roundNumber: i + 1,
       status: 'pending',
+      customDeckName: r.customDeckId
+        ? customDecks.find(d => d.id === r.customDeckId)?.title
+        : undefined,
     }))
 
     initSession(session.id, session.code, user.id, quizName.trim() || undefined)

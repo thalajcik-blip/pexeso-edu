@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { usePubQuizStore } from '../store/pubQuizStore'
 import { loadSession, loadRounds, loadTeams, joinChannel, broadcast } from '../services/pubQuizService'
+import { supabase } from '../services/supabase'
 import { DECKS } from '../data/decks'
 import type { RoundScore } from '../types/pubQuiz'
 import { soundFlip, soundOpponentAnswered, soundTick, soundQuizTimeout, soundMatch, soundWin } from '../services/audioService'
@@ -26,6 +27,7 @@ export default function HostView() {
 
   const [loading, setLoading] = useState(true)
   const [qrOpen, setQrOpen] = useState(false)
+  const [customDeckNames, setCustomDeckNames] = useState<Record<string, string>>({})
 
   const prevStatus = useRef(status)
   const prevAnsweredCount = useRef(0)
@@ -74,6 +76,12 @@ export default function HostView() {
       }
 
       joinChannel(sessionCode, applyEvent)
+
+      // Load custom deck names for display
+      supabase.from('custom_decks').select('id, title').eq('status', 'approved').then(({ data }) => {
+        if (data) setCustomDeckNames(Object.fromEntries(data.map(d => [d.id, d.title])))
+      })
+
       setLoading(false)
     })()
 
@@ -164,7 +172,7 @@ export default function HostView() {
                 <div key={i} className="flex items-center gap-3 py-2 border-b border-[#2a3a4a] last:border-0">
                   <span className="text-[#f9d74e] font-bold w-8">#{i + 1}</span>
                   <span className="text-white text-sm flex-1">
-                    {r.gameMode === 'bleskovy_kviz' ? '⚡' : '🃏'} {deck?.icon} {deck?.label ?? r.customDeckId ?? '?'}
+                    {r.gameMode === 'bleskovy_kviz' ? '⚡' : '🃏'} {deck?.icon} {deck?.label ?? r.customDeckName ?? (r.customDeckId ? customDeckNames[r.customDeckId] : undefined) ?? '?'}
                     {' — '}{r.questionCount} otázek
                     {r.doublePoints && <span className="ml-2 text-[#f9d74e] text-xs">×2</span>}
                   </span>
