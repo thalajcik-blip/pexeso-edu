@@ -44,6 +44,7 @@ export default function SetupScreen() {
     language, setLanguage,
     theme, toggleTheme,
     selectedDeckId, selectDeck,
+    customDeck,
     selectedSize, selectSize,
     numPlayers, setNumPlayers,
     playerNames, setPlayerName,
@@ -115,6 +116,17 @@ export default function SetupScreen() {
         ).then(setCustomDecks)
       })
   }, [language])
+
+  // Auto-fetch full custom deck data on page load if selectedDeckId points to a custom deck
+  // but customDeck is not loaded yet (Zustand persist restores id but not the full data)
+  useEffect(() => {
+    if (!customDecks.length) return
+    const meta = customDecks.find(cd => cd.id === selectedDeckId)
+    if (!meta) return
+    if (customDeck && customDeck.id === selectedDeckId) return
+    handleSelectCustomDeck(meta)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customDecks, selectedDeckId])
 
   async function handleSelectCustomDeck(meta: CustomDeckMeta) {
     const full = await fetchCustomDeckFull(meta.id)
