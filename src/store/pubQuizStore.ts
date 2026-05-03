@@ -405,6 +405,12 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
         const ids = new Set(get().answeredTeamIds)
         ids.add(event.teamId)
         set({ answeredTeamIds: ids })
+        const { hostId, teams } = get()
+        if (hostId && teams.length > 0 && ids.size >= teams.length) {
+          get()._stopTimer()
+          set({ timerRemaining: 0 })
+          svc.broadcast({ type: 'timer_tick', remaining: 0 })
+        }
         break
       }
       case 'team_joined': {
