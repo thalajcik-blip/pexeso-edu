@@ -225,14 +225,12 @@ export default function DisplayView() {
         {/* Question */}
         <div className="flex-1 flex flex-col items-center justify-center">
           {q.youtubeUrl && extractYouTubeId(q.youtubeUrl) ? (
-            <div style={{ width: 'min(80vw, calc(55vh * (16/9)))', maxWidth: '80vw', marginBottom: '1.5rem' }}>
-              <YouTubePlayer
-                videoId={extractYouTubeId(q.youtubeUrl)!}
-                startSec={q.youtubeStartSec ?? 0}
-                endSec={q.youtubeEndSec ?? 30}
-                onEnded={() => {}}
-              />
-            </div>
+            <img
+              src={`https://img.youtube.com/vi/${extractYouTubeId(q.youtubeUrl)}/hqdefault.jpg`}
+              alt=""
+              className="rounded-2xl mb-6 object-cover"
+              style={{ width: 'min(60vw, calc(40vh * (16/9)))', maxWidth: '60vw' }}
+            />
           ) : q.imageUrl ? (
             <img src={q.imageUrl} alt={q.label} className="w-40 h-40 object-cover rounded-2xl mb-6" />
           ) : q.symbol ? (
