@@ -5,12 +5,9 @@ import { usePubQuizStore } from '../store/pubQuizStore'
 import { createSession, joinChannel } from '../services/pubQuizService'
 import { supabase } from '../services/supabase'
 import { DECKS } from '../data/decks'
+import { useGameStore } from '../store/gameStore'
+import { PQ_TR } from './pubQuizTranslations'
 import type { PubQuizRound } from '../types/pubQuiz'
-
-const GAME_MODE_LABELS = {
-  pexequiz: 'PexeQuiz (100 bodů/otázka)',
-  bleskovy_kviz: 'Bleskový kvíz (rychlost = body)',
-}
 
 type CustomDeckOption = { id: string; title: string }
 
@@ -36,6 +33,8 @@ export default function CreateSession() {
   const navigate = useNavigate()
   const { user, profile } = useAuthStore()
   const { initSession, setRounds, applyEvent } = usePubQuizStore()
+  const lang = useGameStore(s => s.language)
+  const t = PQ_TR[lang] ?? PQ_TR.CZ
 
   const [quizName, setQuizName] = useState('')
   const [rounds, setLocalRounds] = useState<Omit<PubQuizRound, 'roundNumber' | 'status'>[]>([
@@ -73,14 +72,14 @@ export default function CreateSession() {
   }
 
   async function handleCreate() {
-    if (!user) { setError('Musíš být přihlášen jako učitel.'); return }
-    if (!isTeacher) { setError('Pub Kvíz je dostupný pouze pro učitele.'); return }
-    if (rounds.length === 0) { setError('Přidej alespoň jedno kolo.'); return }
+    if (!user) { setError(t.errorMustBeLoggedIn); return }
+    if (!isTeacher) { setError(t.errorTeacherOnly); return }
+    if (rounds.length === 0) { setError(t.errorAddRound); return }
 
     setLoading(true)
     setError('')
     const session = await createSession(user.id, quizName.trim() || undefined)
-    if (!session) { setError('Nepodařilo se vytvořit session.'); setLoading(false); return }
+    if (!session) { setError(t.errorCreateFailed); setLoading(false); return }
 
     const fullRounds: PubQuizRound[] = rounds.map((r, i) => ({
       ...r,
@@ -104,13 +103,13 @@ export default function CreateSession() {
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="bg-[#1a2a3a] rounded-2xl p-8 max-w-md w-full text-center">
           <div className="text-5xl mb-4">🎯</div>
-          <h2 className="text-2xl font-bold text-white mb-2">Pub Kvíz je pro učitele</h2>
-          <p className="text-[#8899aa] mb-6">Organizuj live kvízy pro celou třídu s projektorem a týmy.</p>
+          <h2 className="text-2xl font-bold text-white mb-2">{t.accessDeniedTitle}</h2>
+          <p className="text-[#8899aa] mb-6">{t.accessDeniedDesc}</p>
           <button
             onClick={() => window.location.href = '/'}
             className="px-6 py-3 bg-[#f9d74e] text-[#0d1b2a] font-bold rounded-xl"
           >
-            ← Zpět na Pexedu
+            {t.backToPexedu}
           </button>
         </div>
       </div>
@@ -123,19 +122,19 @@ export default function CreateSession() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <button onClick={() => window.location.href = '/'} className="text-[#8899aa] hover:text-white text-sm">
-            ← Zpět
+            {t.back}
           </button>
-          <h1 className="text-2xl font-bold text-white">🎯 Nový Pub Kvíz</h1>
+          <h1 className="text-2xl font-bold text-white">{t.newPubQuizTitle}</h1>
         </div>
 
         {/* Quiz name */}
         <div className="bg-[#1a2a3a] rounded-2xl p-6 mb-6">
-          <label className="text-[#8899aa] text-sm block mb-2">Název kvízu (nepovinné)</label>
+          <label className="text-[#8899aa] text-sm block mb-2">{t.quizNameLabel}</label>
           <input
             value={quizName}
             onChange={e => setQuizName(e.target.value)}
             maxLength={60}
-            placeholder="např. Geografický pub kvíz"
+            placeholder={t.quizNamePlaceholder}
             className="w-full bg-[#0d1b2a] text-white rounded-xl px-4 py-3 border border-[#2a3a4a] focus:border-[#f9d74e] outline-none"
           />
         </div>
@@ -143,26 +142,26 @@ export default function CreateSession() {
         {/* Rounds */}
         <div className="bg-[#1a2a3a] rounded-2xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Kola ({rounds.length}/8)</h2>
+            <h2 className="text-lg font-semibold text-white">{t.rounds} ({rounds.length}/8)</h2>
             {rounds.length < 8 && (
               <button
                 onClick={addRound}
                 className="px-4 py-2 bg-[#f9d74e] text-[#0d1b2a] font-bold rounded-xl text-sm"
               >
-                + Přidat kolo
+                {t.addRound}
               </button>
             )}
           </div>
 
           {rounds.length === 0 && (
-            <p className="text-[#8899aa] text-center py-4">Zatím žádná kola. Přidej první.</p>
+            <p className="text-[#8899aa] text-center py-4">{t.noRounds}</p>
           )}
 
           <div className="space-y-4">
             {rounds.map((round, i) => (
               <div key={i} className="bg-[#0d1b2a] rounded-xl p-4 relative">
                 <div className="flex items-start justify-between mb-3">
-                  <span className="text-[#f9d74e] font-bold text-sm">Kolo {i + 1}</span>
+                  <span className="text-[#f9d74e] font-bold text-sm">{t.round} {i + 1}</span>
                   <button
                     onClick={() => removeRound(i)}
                     className="text-[#8899aa] hover:text-[#ef4444] text-sm ml-2"
@@ -174,13 +173,13 @@ export default function CreateSession() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Game mode */}
                   <div>
-                    <label className="text-[#8899aa] text-xs mb-1 block">Herní mód</label>
+                    <label className="text-[#8899aa] text-xs mb-1 block">{t.gameModeLabel}</label>
                     <select
                       value={round.gameMode}
                       onChange={e => updateRound(i, { gameMode: e.target.value as PubQuizRound['gameMode'] })}
                       className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
                     >
-                      {Object.entries(GAME_MODE_LABELS).map(([k, v]) => (
+                      {Object.entries(t.gameModeLabels).map(([k, v]) => (
                         <option key={k} value={k}>{v}</option>
                       ))}
                     </select>
@@ -188,19 +187,19 @@ export default function CreateSession() {
 
                   {/* Deck */}
                   <div>
-                    <label className="text-[#8899aa] text-xs mb-1 block">Sada</label>
+                    <label className="text-[#8899aa] text-xs mb-1 block">{t.deckLabel}</label>
                     <select
                       value={deckSelectValue(round)}
                       onChange={e => updateRound(i, applyDeckSelection(e.target.value))}
                       className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
                     >
-                      <optgroup label="Vestavěné sady">
+                      <optgroup label={t.builtInDecks}>
                         {DECKS.map(d => (
                           <option key={d.id} value={d.id}>{d.icon} {d.label}</option>
                         ))}
                       </optgroup>
                       {customDecks.length > 0 && (
-                        <optgroup label="Vlastní sady">
+                        <optgroup label={t.customDecks}>
                           {customDecks.map(d => (
                             <option key={d.id} value={`custom:${d.id}`}>📚 {d.title}</option>
                           ))}
@@ -211,28 +210,28 @@ export default function CreateSession() {
 
                   {/* Question count */}
                   <div>
-                    <label className="text-[#8899aa] text-xs mb-1 block">Počet otázek</label>
+                    <label className="text-[#8899aa] text-xs mb-1 block">{t.questionCountLabel}</label>
                     <select
                       value={round.questionCount}
                       onChange={e => updateRound(i, { questionCount: Number(e.target.value) })}
                       className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
                     >
                       {[5, 10, 15, 20].map(n => (
-                        <option key={n} value={n}>{n} otázek</option>
+                        <option key={n} value={n}>{t.questions(n)}</option>
                       ))}
                     </select>
                   </div>
 
                   {/* Timer */}
                   <div>
-                    <label className="text-[#8899aa] text-xs mb-1 block">Časomiera</label>
+                    <label className="text-[#8899aa] text-xs mb-1 block">{t.timerLabel}</label>
                     <select
                       value={round.timerSeconds ?? 20}
                       onChange={e => updateRound(i, { timerSeconds: Number(e.target.value) })}
                       className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
                     >
                       {[10, 15, 20, 30, 45, 60].map(n => (
-                        <option key={n} value={n}>{n} sekúnd</option>
+                        <option key={n} value={n}>{t.seconds(n)}</option>
                       ))}
                     </select>
                   </div>
@@ -247,7 +246,7 @@ export default function CreateSession() {
                       className="w-4 h-4 accent-[#f9d74e]"
                     />
                     <label htmlFor={`double-${i}`} className="text-[#8899aa] text-sm">
-                      Dvojité body (finálové kolo)
+                      {t.doublePoints}
                     </label>
                   </div>
                 </div>
@@ -267,7 +266,7 @@ export default function CreateSession() {
           disabled={loading || rounds.length === 0}
           className="w-full py-4 bg-[#f9d74e] text-[#0d1b2a] font-bold rounded-2xl text-lg disabled:opacity-50"
         >
-          {loading ? 'Vytváření...' : '🚀 Vytvořit Pub Kvíz'}
+          {loading ? t.creating : t.createButton}
         </button>
       </div>
     </div>

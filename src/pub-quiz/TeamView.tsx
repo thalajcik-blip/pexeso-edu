@@ -3,12 +3,16 @@ import { useParams } from 'react-router-dom'
 import { usePubQuizStore } from '../store/pubQuizStore'
 import { loadSession, loadTeams, joinChannel } from '../services/pubQuizService'
 import { TEAM_COLORS, TEAM_AVATARS } from '../types/pubQuiz'
+import { useGameStore } from '../store/gameStore'
+import { PQ_TR } from './pubQuizTranslations'
 import { soundFlip, soundQuizSelect, soundOpponentAnswered, soundTick, soundQuizTimeout, soundMatch, soundWin } from '../services/audioService'
 
 const LABEL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
 export default function TeamView() {
   const { sessionCode } = useParams<{ sessionCode: string }>()
+  const lang = useGameStore(s => s.language)
+  const t = PQ_TR[lang] ?? PQ_TR.CZ
 
   const {
     sessionId, status, teams, currentRound, currentQuestion,
@@ -23,19 +27,16 @@ export default function TeamView() {
   const prevTimer = useRef<number | null>(null)
   const prevRevealed = useRef(0)
 
-  // Sound: new question
   useEffect(() => {
     if (status === 'question_active' && prevStatus.current !== 'question_active') soundFlip()
     prevStatus.current = status
   }, [status])
 
-  // Sound: someone answered
   useEffect(() => {
     if (answeredTeamIds.size > prevAnsweredCount.current) soundOpponentAnswered()
     prevAnsweredCount.current = answeredTeamIds.size
   }, [answeredTeamIds.size])
 
-  // Sound: timer tick
   useEffect(() => {
     if (status !== 'question_active' || timerRemaining === null) return
     if (prevTimer.current !== null && timerRemaining < prevTimer.current) {
@@ -45,13 +46,11 @@ export default function TeamView() {
     prevTimer.current = timerRemaining
   }, [timerRemaining, status])
 
-  // Sound: round results reveal
   useEffect(() => {
     if (status === 'round_results' && revealedCount > prevRevealed.current) soundMatch()
     prevRevealed.current = revealedCount
   }, [revealedCount, status])
 
-  // Sound: game finished
   useEffect(() => {
     if (status === 'finished') {
       const myScore = roundScores.find(s => s.teamId === myTeamId)
@@ -68,14 +67,12 @@ export default function TeamView() {
   const [sessionLoading, setSessionLoading] = useState(true)
   const [sessionNotFound, setSessionNotFound] = useState(false)
 
-  // Load session
   useEffect(() => {
     if (!sessionCode) return
     ;(async () => {
       const session = await loadSession(sessionCode)
       if (!session) { setSessionNotFound(true); setSessionLoading(false); return }
 
-      // Restore sessionId if reloading
       if (!sessionId) {
         const existingTeams = await loadTeams(session.id)
         initSession(session.id, sessionCode, null, session.name ?? '')
@@ -89,21 +86,21 @@ export default function TeamView() {
   }, [sessionCode])
 
   async function handleJoin() {
-    if (!name.trim()) { setJoinError('Zadej název týmu.'); return }
-    if (teams.length >= 8) { setJoinError('Maximálně 8 týmů.'); return }
-    if (teams.some(t => t.name.toLowerCase() === name.trim().toLowerCase())) {
-      setJoinError('Tento název týmu je již obsazen.'); return
+    if (!name.trim()) { setJoinError(t.errorEnterName); return }
+    if (teams.length >= 8) { setJoinError(t.errorMaxTeams); return }
+    if (teams.some(team => team.name.toLowerCase() === name.trim().toLowerCase())) {
+      setJoinError(t.errorNameTaken); return
     }
     setJoining(true)
     setJoinError('')
     const ok = await teamJoin(name.trim(), avatar, color)
-    if (!ok) { setJoinError('Přihlášení selhalo, zkus to znovu.'); setJoining(false) }
+    if (!ok) { setJoinError(t.errorJoinFailed); setJoining(false) }
   }
 
   if (sessionLoading) {
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center">
-        <div className="text-[#f9d74e] text-xl">Načítání...</div>
+        <div className="text-[#f9d74e] text-xl">{t.loading}</div>
       </div>
     )
   }
@@ -113,8 +110,8 @@ export default function TeamView() {
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="text-center">
           <div className="text-5xl mb-4">🔍</div>
-          <h2 className="text-xl font-bold text-white mb-2">Session nenalezena</h2>
-          <p className="text-[#8899aa]">Zkontroluj kód a zkus to znovu.</p>
+          <h2 className="text-xl font-bold text-white mb-2">{t.sessionNotFound}</h2>
+          <p className="text-[#8899aa]">{t.sessionNotFoundDesc}</p>
         </div>
       </div>
     )
@@ -128,22 +125,22 @@ export default function TeamView() {
         <div className="w-full max-w-sm">
           <div className="text-center mb-6">
             <div className="text-4xl mb-2">🎯</div>
-            <h1 className="text-2xl font-black text-white">Pub Kvíz</h1>
+            <h1 className="text-2xl font-black text-white">{t.pubQuizName}</h1>
             <p className="text-[#8899aa] text-sm">{sessionCode}</p>
           </div>
 
           <div className="bg-[#1a2a3a] rounded-2xl p-6">
-            <label className="text-[#8899aa] text-sm block mb-1">Název týmu</label>
+            <label className="text-[#8899aa] text-sm block mb-1">{t.teamNameLabel}</label>
             <input
               value={name}
               onChange={e => setName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleJoin()}
               maxLength={20}
-              placeholder="Naše skvělý tým..."
+              placeholder={t.teamNamePlaceholder}
               className="w-full bg-[#0d1b2a] text-white rounded-xl px-4 py-3 mb-4 border border-[#2a3a4a] focus:border-[#f9d74e] outline-none"
             />
 
-            <label className="text-[#8899aa] text-sm block mb-2">Avatar týmu</label>
+            <label className="text-[#8899aa] text-sm block mb-2">{t.teamAvatarLabel}</label>
             <div className="grid grid-cols-6 gap-2 mb-4">
               {TEAM_AVATARS.map(a => (
                 <button
@@ -156,7 +153,7 @@ export default function TeamView() {
               ))}
             </div>
 
-            <label className="text-[#8899aa] text-sm block mb-2">Barva týmu</label>
+            <label className="text-[#8899aa] text-sm block mb-2">{t.teamColorLabel}</label>
             <div className="flex gap-2 mb-6">
               {TEAM_COLORS.map(c => (
                 <button
@@ -177,18 +174,17 @@ export default function TeamView() {
               disabled={joining || !name.trim()}
               className="w-full py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-xl text-lg disabled:opacity-50"
             >
-              {joining ? 'Přihlašování...' : `${avatar} Přihlásit se`}
+              {joining ? t.joiningBtn : t.joinButton(avatar)}
             </button>
           </div>
 
-          {/* Existing teams */}
           {teams.length > 0 && (
             <div className="mt-4 bg-[#1a2a3a] rounded-2xl p-4">
-              <p className="text-[#8899aa] text-sm mb-2">Již přihlášené týmy ({teams.length}/8)</p>
-              {teams.map(t => (
-                <div key={t.id} className="flex items-center gap-2 py-1">
-                  <span>{t.avatar}</span>
-                  <span className="text-white text-sm">{t.name}</span>
+              <p className="text-[#8899aa] text-sm mb-2">{t.joinedTeamsTitle} ({teams.length}/8)</p>
+              {teams.map(team => (
+                <div key={team.id} className="flex items-center gap-2 py-1">
+                  <span>{team.avatar}</span>
+                  <span className="text-white text-sm">{team.name}</span>
                 </div>
               ))}
             </div>
@@ -201,21 +197,21 @@ export default function TeamView() {
   // ── LOBBY WAIT ────────────────────────────────────────────────────────────
 
   if (status === 'lobby') {
-    const myTeam = teams.find(t => t.id === myTeamId)
+    const myTeam = teams.find(team => team.id === myTeamId)
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="w-full max-w-sm text-center">
           <div className="text-6xl mb-4">{myTeam?.avatar}</div>
           <h2 className="text-2xl font-black text-white mb-1">{myTeam?.name}</h2>
-          <p className="text-[#8899aa] mb-6">Čekáme na start od kvízmastera...</p>
+          <p className="text-[#8899aa] mb-6">{t.waitingForHost}</p>
 
           <div className="bg-[#1a2a3a] rounded-2xl p-4">
-            <p className="text-[#8899aa] text-sm mb-2">Přihlášené týmy ({teams.length}/8)</p>
-            {teams.map(t => (
-              <div key={t.id} className="flex items-center gap-2 py-1">
-                <span>{t.avatar}</span>
-                <span className={`text-sm ${t.id === myTeamId ? 'text-[#f9d74e] font-bold' : 'text-white'}`}>{t.name}</span>
-                {t.id === myTeamId && <span className="text-xs text-[#8899aa]">(ty)</span>}
+            <p className="text-[#8899aa] text-sm mb-2">{t.loggedInTeams} ({teams.length}/8)</p>
+            {teams.map(team => (
+              <div key={team.id} className="flex items-center gap-2 py-1">
+                <span>{team.avatar}</span>
+                <span className={`text-sm ${team.id === myTeamId ? 'text-[#f9d74e] font-bold' : 'text-white'}`}>{team.name}</span>
+                {team.id === myTeamId && <span className="text-xs text-[#8899aa]">{t.you}</span>}
               </div>
             ))}
           </div>
@@ -231,8 +227,8 @@ export default function TeamView() {
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="text-center">
           <div className="text-5xl mb-3">⏳</div>
-          <h2 className="text-2xl font-black text-white mb-2">Kolo {currentRound}</h2>
-          <p className="text-[#8899aa]">Kvízmaster spouští kolo...</p>
+          <h2 className="text-2xl font-black text-white mb-2">{t.roundTitle(currentRound)}</h2>
+          <p className="text-[#8899aa]">{t.hostStartingRound}</p>
         </div>
       </div>
     )
@@ -245,24 +241,26 @@ export default function TeamView() {
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="text-center">
           <div className="text-6xl mb-4">⏸</div>
-          <h2 className="text-xl font-bold text-white mb-2">Kvízmaster pozastavil hru</h2>
-          <p className="text-[#8899aa]">Počkej chvíli...</p>
+          <h2 className="text-xl font-bold text-white mb-2">{t.hostPaused}</h2>
+          <p className="text-[#8899aa]">{t.waitMoment}</p>
         </div>
       </div>
     )
   }
 
-  // ── QUESTION ACTIVE ───────────────────────────────────────────────────────
+  // ── VIDEO PLAYING ─────────────────────────────────────────────────────────
 
   if (status === 'video_playing') {
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex flex-col items-center justify-center p-6 text-center">
         <div className="text-6xl mb-4">📺</div>
-        <h2 className="text-2xl font-black text-white mb-2">Sleduj video na projektoru</h2>
-        <p className="text-[#8899aa]">Otázka a odpovědi se zobrazí po skončení videa.</p>
+        <h2 className="text-2xl font-black text-white mb-2">{t.watchVideoOnProjector}</h2>
+        <p className="text-[#8899aa]">{t.answersAfterVideo}</p>
       </div>
     )
   }
+
+  // ── QUESTION ACTIVE ───────────────────────────────────────────────────────
 
   if (status === 'question_active') {
     const q = currentQuestionData
@@ -270,16 +268,15 @@ export default function TeamView() {
     if (!q) {
       return (
         <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center">
-          <div className="text-[#8899aa]">Otázka se načítá...</div>
+          <div className="text-[#8899aa]">{t.loadingQuestion}</div>
         </div>
       )
     }
 
     return (
       <div className="min-h-screen bg-[#0d1b2a] p-4 flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <p className="text-[#8899aa] text-sm">Kolo {currentRound} · Otázka {currentQuestion}</p>
+          <p className="text-[#8899aa] text-sm">{t.roundShort(currentRound, 0).split('/')[0]} · {t.questionShort(currentQuestion, 0).split('/')[0]}</p>
           {timerRemaining !== null && (
             <div className={`text-2xl font-mono font-black ${timerRemaining <= 5 ? 'text-[#ef4444]' : 'text-[#f9d74e]'}`}>
               {timerRemaining}s
@@ -287,7 +284,6 @@ export default function TeamView() {
           )}
         </div>
 
-        {/* Question card */}
         <div className="bg-[#1a2a3a] rounded-2xl p-5 mb-4 text-center">
           {q.imageUrl && (
             <img src={q.imageUrl} alt={q.label} className="w-20 h-20 object-cover rounded-xl mx-auto mb-3" />
@@ -296,7 +292,6 @@ export default function TeamView() {
           <p className="text-white font-medium">{q.question}</p>
         </div>
 
-        {/* Answer options */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           {q.options.map((opt, i) => {
             const isSelected = selectedAnswer === opt
@@ -321,27 +316,26 @@ export default function TeamView() {
           })}
         </div>
 
-        {/* Submit / submitted */}
         {!hasSubmitted ? (
           <button
             onClick={teamSubmitAnswer}
             disabled={!selectedAnswer}
             className="w-full py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-2xl text-lg disabled:opacity-40"
           >
-            Potvrdit odpověď
+            {t.submitAnswer}
           </button>
         ) : (
           <div className="text-center">
             <div className="text-3xl mb-2">✅</div>
-            <p className="text-white font-bold mb-1">Odpověď odeslána!</p>
+            <p className="text-white font-bold mb-1">{t.answerSent}</p>
             <p className="text-[#8899aa] text-sm mb-3">
-              Odpovědělo: {answeredTeamIds.size}/{teams.length} týmů
+              {t.answeredCount(answeredTeamIds.size, teams.length)}
             </p>
             <button
               onClick={teamChangeAnswer}
               className="text-[#8899aa] text-sm underline"
             >
-              Změnit odpověď
+              {t.changeAnswer}
             </button>
           </div>
         )}
@@ -353,14 +347,13 @@ export default function TeamView() {
 
   if (status === 'round_results') {
     const sorted = [...roundScores].sort((a, b) => a.position - b.position)
-    // Show from last to first as they get revealed
     const revealed = sorted.slice(sorted.length - revealedCount).reverse()
 
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <h2 className="text-2xl font-black text-white text-center mb-6">
-            🏆 Výsledky Kola {currentRound}
+            {t.roundResultsTeam(currentRound)}
           </h2>
           <div className="bg-[#1a2a3a] rounded-2xl p-5 space-y-3 mb-4">
             {revealed.map(s => (
@@ -373,7 +366,6 @@ export default function TeamView() {
                 <span className="font-black">{s.score}</span>
               </div>
             ))}
-            {/* Unrevealed */}
             {sorted.slice(0, sorted.length - revealedCount).reverse().map((_, i) => (
               <div key={`h-${i}`} className="flex items-center gap-3 opacity-30">
                 <span className="text-2xl w-8">???</span>
@@ -382,7 +374,7 @@ export default function TeamView() {
               </div>
             ))}
           </div>
-          <p className="text-center text-[#8899aa] text-sm">Čekáme na kvízmastera...</p>
+          <p className="text-center text-[#8899aa] text-sm">{t.waitingForQuizmaster}</p>
         </div>
       </div>
     )
@@ -401,9 +393,9 @@ export default function TeamView() {
           <div className="text-6xl mb-2">{myPosition === 1 ? '🏆' : myPosition === 2 ? '🥈' : myPosition === 3 ? '🥉' : '🎯'}</div>
           <p className="text-[#8899aa] mb-1">{myScore?.avatar} {myScore?.teamName}</p>
           <h2 className="text-3xl font-black text-white mb-1">
-            {myPosition}. místo
+            {t.place(myPosition)}
           </h2>
-          <p className="text-[#f9d74e] text-2xl font-bold mb-6">{myScore?.score ?? 0} bodů</p>
+          <p className="text-[#f9d74e] text-2xl font-bold mb-6">{t.points(myScore?.score ?? 0)}</p>
 
           <div className="bg-[#1a2a3a] rounded-2xl p-5 space-y-3">
             {sorted.map((s, i) => (

@@ -4,6 +4,8 @@ import { usePubQuizStore } from '../store/pubQuizStore'
 import { loadSession, loadRounds, loadTeams, joinChannel, broadcast } from '../services/pubQuizService'
 import { supabase } from '../services/supabase'
 import { DECKS } from '../data/decks'
+import { useGameStore } from '../store/gameStore'
+import { PQ_TR } from './pubQuizTranslations'
 import type { RoundScore } from '../types/pubQuiz'
 import { soundFlip, soundOpponentAnswered, soundTick, soundQuizTimeout, soundMatch, soundWin } from '../services/audioService'
 
@@ -12,6 +14,8 @@ const LABEL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 export default function HostView() {
   const { sessionCode } = useParams<{ sessionCode: string }>()
   const navigate = useNavigate()
+  const lang = useGameStore(s => s.language)
+  const t = PQ_TR[lang] ?? PQ_TR.CZ
 
   const store = usePubQuizStore()
   const {
@@ -58,14 +62,12 @@ export default function HostView() {
     prevRevealed.current = revealedCount
   }, [revealedCount, status])
 
-  // Load session on mount
   useEffect(() => {
     if (!sessionCode) return
     ;(async () => {
       let session = await loadSession(sessionCode)
       if (!session) { navigate('/create'); return }
 
-      // Try to restore from DB if store is empty
       if (!store.sessionId) {
         const dbRounds = await loadRounds(session.id)
         const dbTeams = await loadTeams(session.id)
@@ -76,15 +78,12 @@ export default function HostView() {
 
       joinChannel(sessionCode, applyEvent)
 
-      // Load custom deck names for display
       supabase.from('custom_decks').select('id, title').eq('status', 'approved').then(({ data }) => {
         if (data) setCustomDeckNames(Object.fromEntries(data.map(d => [d.id, d.title])))
       })
 
       setLoading(false)
     })()
-
-    return () => { /* channel cleanup handled on navigate away */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionCode])
 
@@ -94,17 +93,14 @@ export default function HostView() {
   const totalQuestions = currentRoundData?.questionCount ?? 0
   const isLastRound = currentRound >= rounds.length
 
-  // ── Round results scoring ─────────────────────────────────────────────────
-
   const handleEndQuestion = useCallback(async () => {
     await hostEndQuestion()
-    // Read fresh state after async scoring completes
     const s = usePubQuizStore.getState()
     const total = s.rounds[s.currentRound - 1]?.questionCount ?? 0
     if (s.currentQuestion >= total) {
       const sorted = [...s.teams]
         .sort((a, b) => b.totalScore - a.totalScore)
-        .map((t, i) => ({ teamId: t.id, teamName: t.name, avatar: t.avatar, color: t.color, score: t.totalScore, position: i + 1 }))
+        .map((team, i) => ({ teamId: team.id, teamName: team.name, avatar: team.avatar, color: team.color, score: team.totalScore, position: i + 1 }))
       usePubQuizStore.setState({ status: 'round_results', roundScores: sorted, revealedCount: 0 })
       broadcast({ type: 'round_results_reveal', roundNumber: s.currentRound, scores: sorted, revealedCount: 0 })
     }
@@ -113,7 +109,7 @@ export default function HostView() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center">
-        <div className="text-[#f9d74e] text-xl">Načítání...</div>
+        <div className="text-[#f9d74e] text-xl">{t.loading}</div>
       </div>
     )
   }
@@ -125,7 +121,7 @@ export default function HostView() {
       <div className="min-h-screen bg-[#0d1b2a] p-6">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-xl font-bold text-white">🎯 {quizName || 'Pub Kvíz'} — Host</h1>
+            <h1 className="text-xl font-bold text-white">🎯 {quizName || t.pubQuizName} {t.hostSuffix}</h1>
             <div className="flex gap-2">
               <a
                 href={displayUrl}
@@ -133,14 +129,14 @@ export default function HostView() {
                 rel="noreferrer"
                 className="px-3 py-2 bg-[#1a2a3a] text-white rounded-xl text-sm"
               >
-                📺 Projektor
+                {t.projector}
               </a>
             </div>
           </div>
 
           {/* Session code */}
           <div className="bg-[#1a2a3a] rounded-2xl p-6 mb-6 text-center">
-            <p className="text-[#8899aa] text-sm mb-2">Kód session — týmy zadají na telefonu</p>
+            <p className="text-[#8899aa] text-sm mb-2">{t.sessionCodeDesc}</p>
             <div className="text-4xl font-mono font-black text-[#f9d74e] tracking-widest mb-3">
               {sessionCode}
             </div>
@@ -152,13 +148,13 @@ export default function HostView() {
               onClick={() => navigator.clipboard.writeText(playUrl)}
               className="mt-3 px-4 py-2 bg-[#0d1b2a] text-[#8899aa] rounded-xl text-sm hover:text-white"
             >
-              📋 Kopírovat odkaz
+              {t.copyLink}
             </button>
           </div>
 
           {/* Rounds summary */}
           <div className="bg-[#1a2a3a] rounded-2xl p-5 mb-6">
-            <h2 className="text-white font-semibold mb-3">Kola ({rounds.length})</h2>
+            <h2 className="text-white font-semibold mb-3">{t.rounds} ({rounds.length})</h2>
             {rounds.map((r, i) => {
               const deck = DECKS.find(d => d.id === r.setSlug)
               return (
@@ -166,7 +162,7 @@ export default function HostView() {
                   <span className="text-[#f9d74e] font-bold w-8">#{i + 1}</span>
                   <span className="text-white text-sm flex-1">
                     {r.gameMode === 'bleskovy_kviz' ? '⚡' : '🃏'} {deck?.icon} {deck?.label ?? r.customDeckName ?? (r.customDeckId ? customDeckNames[r.customDeckId] : undefined) ?? '?'}
-                    {' — '}{r.questionCount} otázek
+                    {' — '}{t.questions(r.questionCount)}
                     {r.doublePoints && <span className="ml-2 text-[#f9d74e] text-xs">×2</span>}
                   </span>
                 </div>
@@ -177,15 +173,15 @@ export default function HostView() {
           {/* Teams */}
           <div className="bg-[#1a2a3a] rounded-2xl p-5 mb-6">
             <h2 className="text-white font-semibold mb-3">
-              Týmy ({teams.length}/8)
-              {teams.length === 0 && <span className="text-[#8899aa] font-normal text-sm ml-2">— čekáme na přihlášení</span>}
+              {t.teamsTitle} ({teams.length}/8)
+              {teams.length === 0 && <span className="text-[#8899aa] font-normal text-sm ml-2">{t.waitingForTeams}</span>}
             </h2>
             <div className="space-y-2">
-              {teams.map(t => (
-                <div key={t.id} className="flex items-center gap-3 py-2">
-                  <span className="text-2xl">{t.avatar}</span>
-                  <span className="text-white font-medium">{t.name}</span>
-                  <span className="ml-auto text-[#8899aa] text-sm" style={{ color: t.color }}>●</span>
+              {teams.map(team => (
+                <div key={team.id} className="flex items-center gap-3 py-2">
+                  <span className="text-2xl">{team.avatar}</span>
+                  <span className="text-white font-medium">{team.name}</span>
+                  <span className="ml-auto text-[#8899aa] text-sm" style={{ color: team.color }}>●</span>
                 </div>
               ))}
             </div>
@@ -196,7 +192,7 @@ export default function HostView() {
             disabled={teams.length === 0 || rounds.length === 0}
             className="w-full py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-2xl text-xl disabled:opacity-40"
           >
-            🚀 Spustit Pub Kvíz
+            {t.startSession}
           </button>
         </div>
       </div>
@@ -210,23 +206,22 @@ export default function HostView() {
     const deck = DECKS.find(d => d.id === round?.setSlug)
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
-        <div className="max-w-lg w-full text-center">
-          <p className="text-[#8899aa] mb-2">Kolo {currentRound} z {rounds.length}</p>
+        <div className="max-lg w-full text-center">
+          <p className="text-[#8899aa] mb-2">{t.roundOf(currentRound, rounds.length)}</p>
           <h2 className="text-4xl font-black text-white mb-2">
             {round?.gameMode === 'bleskovy_kviz' ? '⚡' : '🃏'} {deck?.icon ?? ''} {deck?.label ?? ''}
           </h2>
-          <p className="text-[#8899aa] mb-8">{round?.questionCount} otázek{round?.doublePoints ? ' · dvojité body 🔥' : ''}</p>
+          <p className="text-[#8899aa] mb-8">{t.questions(round?.questionCount ?? 0)}{round?.doublePoints ? t.doublePointsBadge : ''}</p>
 
-          {/* Scores so far */}
           {currentRound > 1 && teams.length > 0 && (
             <div className="bg-[#1a2a3a] rounded-2xl p-4 mb-8">
-              <p className="text-[#8899aa] text-sm mb-3">Celkové skóre</p>
-              {[...teams].sort((a, b) => b.totalScore - a.totalScore).map((t, i) => (
-                <div key={t.id} className="flex items-center gap-2 py-1">
+              <p className="text-[#8899aa] text-sm mb-3">{t.totalScore}</p>
+              {[...teams].sort((a, b) => b.totalScore - a.totalScore).map((team, i) => (
+                <div key={team.id} className="flex items-center gap-2 py-1">
                   <span className="text-[#8899aa] w-6">{i + 1}.</span>
-                  <span className="text-xl">{t.avatar}</span>
-                  <span className="text-white flex-1 text-left">{t.name}</span>
-                  <span className="text-[#f9d74e] font-bold">{t.totalScore}</span>
+                  <span className="text-xl">{team.avatar}</span>
+                  <span className="text-white flex-1 text-left">{team.name}</span>
+                  <span className="text-[#f9d74e] font-bold">{team.totalScore}</span>
                 </div>
               ))}
             </div>
@@ -236,7 +231,7 @@ export default function HostView() {
             onClick={() => hostStartQuestion(0)}
             className="w-full py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-2xl text-xl"
           >
-            ▶ Spustit 1. otázku
+            {t.startFirstQuestion}
           </button>
         </div>
       </div>
@@ -251,14 +246,14 @@ export default function HostView() {
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="max-w-lg w-full text-center">
           <div className="text-6xl mb-4">▶️</div>
-          <h2 className="text-2xl font-black text-white mb-2">Video hraje na projektoru</h2>
+          <h2 className="text-2xl font-black text-white mb-2">{t.videoPlayingHost}</h2>
           {q && <p className="text-[#8899aa] mb-2 text-sm">{q.question}</p>}
-          <p className="text-[#8899aa] mb-8 text-xs">Správná odpověď: <span className="text-[#22c55e] font-bold">{q?.correct}</span></p>
+          <p className="text-[#8899aa] mb-8 text-xs">{t.correctAnswer(q?.correct ?? '')}</p>
           <button
             onClick={hostActivateQuestion}
             className="w-full py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-2xl text-xl"
           >
-            ▶ Spustit otázku
+            {t.startQuestion}
           </button>
         </div>
       </div>
@@ -271,16 +266,15 @@ export default function HostView() {
     const q = currentQuestionData
     const answered = answeredTeamIds.size
     const isPaused = status === 'question_paused'
-    const questionIdx = currentQuestion - 1  // 0-indexed for next
+    const questionIdx = currentQuestion - 1
 
     return (
       <div className="min-h-screen bg-[#0d1b2a] p-6">
         <div className="max-w-2xl mx-auto">
-          {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-[#8899aa] text-sm">Kolo {currentRound}/{rounds.length}</p>
-              <p className="text-white font-bold">Otázka {currentQuestion}/{totalQuestions}</p>
+              <p className="text-[#8899aa] text-sm">{t.roundShort(currentRound, rounds.length)}</p>
+              <p className="text-white font-bold">{t.questionShort(currentQuestion, totalQuestions)}</p>
             </div>
             <div className="text-right">
               {timerRemaining !== null && timerRemaining > 0 && (
@@ -293,11 +287,10 @@ export default function HostView() {
 
           {isPaused && (
             <div className="bg-[#2a1a0a] border border-[#f97316] rounded-xl p-3 mb-4 text-center text-[#f97316] font-bold">
-              ⏸ Hra pozastavena
+              {t.gamePaused}
             </div>
           )}
 
-          {/* Question for host (shows correct answer) */}
           {q && (
             <div className="bg-[#1a2a3a] rounded-2xl p-5 mb-4">
               {q.imageUrl && (
@@ -305,7 +298,7 @@ export default function HostView() {
               )}
               {!q.imageUrl && q.symbol && <div className="text-5xl mb-3">{q.symbol}</div>}
               <p className="text-[#8899aa] text-sm mb-1">{q.question}</p>
-              <p className="text-white font-medium mb-4">Správná odpověď: <span className="text-[#22c55e] font-bold">{q.correct}</span></p>
+              <p className="text-white font-medium mb-4">{t.correctAnswer(q.correct)}</p>
 
               <div className="grid grid-cols-2 gap-2">
                 {q.options.map((opt, i) => (
@@ -320,19 +313,18 @@ export default function HostView() {
             </div>
           )}
 
-          {/* Answer status */}
           <div className="bg-[#1a2a3a] rounded-2xl p-5 mb-6">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-white font-semibold">Odpovědi týmů</p>
+              <p className="text-white font-semibold">{t.teamAnswers}</p>
               <p className="text-[#8899aa] text-sm">{answered}/{teams.length}</p>
             </div>
             <div className="space-y-2">
-              {teams.map(t => {
-                const hasAnswered = answeredTeamIds.has(t.id)
+              {teams.map(team => {
+                const hasAnswered = answeredTeamIds.has(team.id)
                 return (
-                  <div key={t.id} className="flex items-center gap-3">
-                    <span className="text-xl">{t.avatar}</span>
-                    <span className="text-white flex-1">{t.name}</span>
+                  <div key={team.id} className="flex items-center gap-3">
+                    <span className="text-xl">{team.avatar}</span>
+                    <span className="text-white flex-1">{team.name}</span>
                     <span>{hasAnswered ? '✅' : '⏳'}</span>
                   </div>
                 )
@@ -340,21 +332,20 @@ export default function HostView() {
             </div>
           </div>
 
-          {/* Controls */}
           <div className="flex gap-3">
             {!isPaused ? (
               <button
                 onClick={hostPauseQuestion}
                 className="flex-1 py-3 bg-[#2a3a4a] text-white font-bold rounded-xl"
               >
-                ⏸ Pauza
+                {t.pause}
               </button>
             ) : (
               <button
                 onClick={hostResumeQuestion}
                 className="flex-1 py-3 bg-[#2a3a4a] text-white font-bold rounded-xl"
               >
-                ▶ Pokračovat
+                {t.resume}
               </button>
             )}
 
@@ -366,14 +357,14 @@ export default function HostView() {
                 }}
                 className="flex-2 flex-1 py-3 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-xl"
               >
-                ▶ Další otázka
+                {t.nextQuestion}
               </button>
             ) : (
               <button
                 onClick={handleEndQuestion}
                 className="flex-1 py-3 bg-[#a855f7] text-white font-black rounded-xl"
               >
-                📊 Výsledky kola
+                {t.roundResultsBtn}
               </button>
             )}
           </div>
@@ -386,14 +377,14 @@ export default function HostView() {
 
   if (status === 'round_results') {
     const sorted = [...roundScores].sort((a, b) => a.position - b.position)
-    const revealed = sorted.slice(sorted.length - revealedCount).reverse() // reveal from last place
+    const revealed = sorted.slice(sorted.length - revealedCount).reverse()
     const allRevealed = revealedCount >= sorted.length
 
     return (
       <div className="min-h-screen bg-[#0d1b2a] p-6">
         <div className="max-w-lg mx-auto">
           <h2 className="text-2xl font-black text-white text-center mb-6">
-            🏆 Výsledky — Kolo {currentRound}
+            {t.roundResultsTitle(currentRound)}
           </h2>
 
           <div className="bg-[#1a2a3a] rounded-2xl p-5 mb-6 space-y-3">
@@ -404,11 +395,10 @@ export default function HostView() {
                 </span>
                 <span className="text-2xl">{s.avatar}</span>
                 <span className="text-white font-bold flex-1">{s.teamName}</span>
-                <span className="text-[#f9d74e] font-black">{s.score} bodů</span>
+                <span className="text-[#f9d74e] font-black">{t.points(s.score)}</span>
               </div>
             ))}
 
-            {/* Unrevealed slots */}
             {sorted.slice(0, sorted.length - revealedCount).reverse().map((_, i) => (
               <div key={`hidden-${i}`} className="flex items-center gap-3 opacity-40">
                 <span className="text-2xl w-8">???</span>
@@ -424,7 +414,7 @@ export default function HostView() {
                 onClick={hostRevealNextTeam}
                 className="flex-1 py-3 bg-[#a855f7] text-white font-bold rounded-xl"
               >
-                Odhalit další tým ▼
+                {t.revealNext}
               </button>
             )}
             {allRevealed && !isLastRound && (
@@ -432,7 +422,7 @@ export default function HostView() {
                 onClick={hostNextRound}
                 className="flex-1 py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-xl text-lg"
               >
-                Pokračovat na Kolo {currentRound + 1} →
+                {t.continueToRound(currentRound + 1)}
               </button>
             )}
             {allRevealed && isLastRound && (
@@ -440,7 +430,7 @@ export default function HostView() {
                 onClick={() => store.hostFinishSession()}
                 className="flex-1 py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-xl text-lg"
               >
-                🏁 Zobrazit finální výsledky
+                {t.showFinalResults}
               </button>
             )}
           </div>
@@ -457,17 +447,17 @@ export default function HostView() {
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="max-w-lg w-full text-center">
           <div className="text-6xl mb-4">🏆</div>
-          <h2 className="text-3xl font-black text-white mb-8">Finální výsledky</h2>
+          <h2 className="text-3xl font-black text-white mb-8">{t.finalResults}</h2>
 
           <div className="bg-[#1a2a3a] rounded-2xl p-6 mb-8 space-y-4">
-            {sorted.map((t, i) => (
-              <div key={t.id} className="flex items-center gap-3">
+            {sorted.map((team, i) => (
+              <div key={team.id} className="flex items-center gap-3">
                 <span className="text-2xl w-8">
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
                 </span>
-                <span className="text-2xl">{t.avatar}</span>
-                <span className="text-white font-bold flex-1 text-left">{t.name}</span>
-                <span className="text-[#f9d74e] font-black text-xl">{t.totalScore}</span>
+                <span className="text-2xl">{team.avatar}</span>
+                <span className="text-white font-bold flex-1 text-left">{team.name}</span>
+                <span className="text-[#f9d74e] font-black text-xl">{team.totalScore}</span>
               </div>
             ))}
           </div>
@@ -476,7 +466,7 @@ export default function HostView() {
             onClick={() => { reset(); navigate('/create') }}
             className="px-8 py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-2xl text-lg"
           >
-            🔄 Nový Pub Kvíz
+            {t.newPubQuiz}
           </button>
         </div>
       </div>

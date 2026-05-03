@@ -5,6 +5,8 @@ import confetti from 'canvas-confetti'
 import { usePubQuizStore } from '../store/pubQuizStore'
 import { loadSession, loadRounds, loadTeams, joinChannel, broadcast } from '../services/pubQuizService'
 import { DECKS } from '../data/decks'
+import { useGameStore } from '../store/gameStore'
+import { PQ_TR } from './pubQuizTranslations'
 import { YouTubePlayer } from '../components/quiz/YouTubePlayer'
 import { extractYouTubeId } from '../utils/youtube'
 
@@ -13,6 +15,8 @@ const LABEL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 export default function DisplayView() {
   const { sessionCode } = useParams<{ sessionCode: string }>()
   const containerRef = useRef<HTMLDivElement>(null)
+  const lang = useGameStore(s => s.language)
+  const t = PQ_TR[lang] ?? PQ_TR.CZ
 
   const {
     sessionId, status, teams, currentRound, currentQuestion, quizName,
@@ -37,7 +41,6 @@ export default function DisplayView() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionCode])
 
-  // Must be declared before any early returns (React rules of hooks)
   useEffect(() => {
     if (status !== 'finished') return
     const sorted = [...teams].sort((a, b) => b.totalScore - a.totalScore)
@@ -86,23 +89,23 @@ export default function DisplayView() {
       >
         <div className="text-center px-8">
           <div className="text-8xl mb-6">🎯</div>
-          <h1 className="text-6xl font-black text-white mb-4">{quizName || 'Pub Kvíz'}</h1>
-          <p className="text-[#8899aa] text-xl mb-8">Přidejte se na svém telefonu:</p>
+          <h1 className="text-6xl font-black text-white mb-4">{quizName || t.pubQuizName}</h1>
+          <p className="text-[#8899aa] text-xl mb-8">{t.joinOnPhone}</p>
           <div className="flex items-center justify-center gap-10 mb-8">
             <div className="bg-[#1a2a3a] rounded-3xl px-12 py-6 inline-block">
-              <p className="text-[#8899aa] text-sm mb-2">Kód</p>
+              <p className="text-[#8899aa] text-sm mb-2">{t.code}</p>
               <div className="text-6xl font-mono font-black text-[#f9d74e] tracking-widest">{sessionCode}</div>
             </div>
             <div className="bg-white rounded-2xl p-3">
               <QRCode value={`${window.location.origin}/?room=${sessionCode}`} size={150} />
             </div>
           </div>
-          <p className="text-[#8899aa]">Týmy ({teams.length}/8)</p>
+          <p className="text-[#8899aa]">{t.teamsCount(teams.length)}</p>
           <div className="flex flex-wrap gap-4 justify-center mt-4">
-            {teams.map(t => (
-              <div key={t.id} className="flex items-center gap-2 bg-[#1a2a3a] rounded-xl px-4 py-2">
-                <span className="text-2xl">{t.avatar}</span>
-                <span className="text-white font-bold">{t.name}</span>
+            {teams.map(team => (
+              <div key={team.id} className="flex items-center gap-2 bg-[#1a2a3a] rounded-xl px-4 py-2">
+                <span className="text-2xl">{team.avatar}</span>
+                <span className="text-white font-bold">{team.name}</span>
               </div>
             ))}
           </div>
@@ -118,14 +121,14 @@ export default function DisplayView() {
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-[#8899aa] text-2xl mb-4">Kolo {currentRound} z {rounds.length}</p>
+          <p className="text-[#8899aa] text-2xl mb-4">{t.roundOf(currentRound, rounds.length)}</p>
           <div className="text-9xl mb-6">{deck?.icon ?? '❓'}</div>
           <h2 className="text-6xl font-black text-white mb-4">
-            {currentRoundData?.gameMode === 'bleskovy_kviz' ? '⚡ Bleskový kvíz' : '🃏 PexeQuiz'}
+            {currentRoundData?.gameMode === 'bleskovy_kviz' ? t.lightningQuiz : t.pexeQuiz}
           </h2>
           <p className="text-[#8899aa] text-2xl">{deck?.label}</p>
           {currentRoundData?.doublePoints && (
-            <p className="text-[#f9d74e] text-xl font-bold mt-2">🔥 Dvojité body!</p>
+            <p className="text-[#f9d74e] text-xl font-bold mt-2">{t.doublePointsDisplay}</p>
           )}
         </div>
       </div>
@@ -139,8 +142,8 @@ export default function DisplayView() {
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center">
         <div className="text-center">
           <div className="text-9xl mb-6">⏸</div>
-          <h2 className="text-5xl font-black text-white mb-4">Krátká přestávka</h2>
-          <div className="text-4xl text-[#8899aa]">🎯 {quizName || 'pexedu Pub Kvíz'}</div>
+          <h2 className="text-5xl font-black text-white mb-4">{t.shortPause}</h2>
+          <div className="text-4xl text-[#8899aa]">🎯 {quizName || t.pubQuizName}</div>
         </div>
       </div>
     )
@@ -163,13 +166,13 @@ export default function DisplayView() {
             />
           </div>
         ) : (
-          <div className="text-[#f9d74e] text-4xl">Načítání videa...</div>
+          <div className="text-[#f9d74e] text-4xl">{t.loadingVideo}</div>
         )}
         <button
           onClick={() => { broadcast({ type: 'video_ended' }); applyEvent({ type: 'video_ended' }) }}
           className="text-sm text-[#8899aa] opacity-40 hover:opacity-70 transition-opacity"
         >
-          Přeskočit →
+          {t.skip}
         </button>
       </div>
     )
@@ -182,7 +185,7 @@ export default function DisplayView() {
     if (!q) {
       return (
         <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center">
-          <div className="text-[#f9d74e] text-4xl">Připravuji otázku...</div>
+          <div className="text-[#f9d74e] text-4xl">{t.preparingQuestion}</div>
         </div>
       )
     }
@@ -192,14 +195,12 @@ export default function DisplayView() {
 
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex flex-col p-8">
-        {/* Header row */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <span className="text-[#8899aa] text-xl">
-              Kolo {currentRound} · Otázka {currentQuestion}
+              {t.roundShort(currentRound, rounds.length)} · {t.questionShort(currentQuestion, currentRoundData?.questionCount ?? 0)}
             </span>
           </div>
-          {/* Timer */}
           {timerRemaining !== null && (
             <div className="flex items-center gap-3">
               <div
@@ -212,7 +213,6 @@ export default function DisplayView() {
           )}
         </div>
 
-        {/* Timer bar */}
         {timerSeconds > 0 && (
           <div className="w-full h-3 bg-[#1a2a3a] rounded-full mb-8 overflow-hidden">
             <div
@@ -222,7 +222,6 @@ export default function DisplayView() {
           </div>
         )}
 
-        {/* Question */}
         <div className="flex-1 flex flex-col items-center justify-center">
           {q.imageUrl ? (
             <img src={q.imageUrl} alt={q.label} className="w-40 h-40 object-cover rounded-2xl mb-6" />
@@ -231,7 +230,6 @@ export default function DisplayView() {
           ) : null}
           <p className="text-[#8899aa] text-2xl mb-4">{q.question}</p>
 
-          {/* Options grid */}
           <div className="grid grid-cols-2 gap-4 w-full max-w-4xl mb-8">
             {q.options.map((opt, i) => (
               <div
@@ -249,7 +247,6 @@ export default function DisplayView() {
             ))}
           </div>
 
-          {/* Answer progress */}
           <div className="flex items-center gap-4">
             <div className="w-64 h-4 bg-[#1a2a3a] rounded-full overflow-hidden">
               <div
@@ -258,21 +255,20 @@ export default function DisplayView() {
               />
             </div>
             <span className="text-white text-xl font-bold">
-              {answered}/{total} odpovědělo
+              {t.answeredDisplay(answered, total)}
             </span>
           </div>
         </div>
 
-        {/* Team score bar */}
         <div className="flex gap-4 justify-center">
-          {[...teams].sort((a, b) => b.totalScore - a.totalScore).slice(0, 6).map(t => (
-            <div key={t.id} className="flex items-center gap-2 bg-[#1a2a3a] rounded-xl px-3 py-2">
-              <span className="text-xl">{t.avatar}</span>
+          {[...teams].sort((a, b) => b.totalScore - a.totalScore).slice(0, 6).map(team => (
+            <div key={team.id} className="flex items-center gap-2 bg-[#1a2a3a] rounded-xl px-3 py-2">
+              <span className="text-xl">{team.avatar}</span>
               <div>
-                <p className="text-white text-sm font-bold">{t.name}</p>
-                <p className="text-[#f9d74e] text-xs font-black">{t.totalScore} b</p>
+                <p className="text-white text-sm font-bold">{team.name}</p>
+                <p className="text-[#f9d74e] text-xs font-black">{team.totalScore} b</p>
               </div>
-              {answeredTeamIds.has(t.id) && <span className="text-[#22c55e]">✓</span>}
+              {answeredTeamIds.has(team.id) && <span className="text-[#22c55e]">✓</span>}
             </div>
           ))}
         </div>
@@ -284,20 +280,17 @@ export default function DisplayView() {
 
   if (status === 'round_results') {
     const sorted = [...roundScores].sort((a, b) => a.position - b.position)
-    // Reveal from last place upward
     const revealed = sorted.slice(sorted.length - revealedCount).reverse()
     const unrevealed = sorted.slice(0, sorted.length - revealedCount).reverse()
     const maxScore = sorted[0]?.score ?? 1
 
-    // Overall totals
     const overallSorted = [...teams].sort((a, b) => b.totalScore - a.totalScore)
     const maxTotal = overallSorted[0]?.totalScore ?? 1
 
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex p-8 gap-8">
-        {/* Round results left */}
         <div className="flex-1">
-          <h2 className="text-3xl font-black text-white mb-6">🏆 Výsledky — Kolo {currentRound}</h2>
+          <h2 className="text-3xl font-black text-white mb-6">{t.roundResultsTitle(currentRound)}</h2>
           <div className="space-y-3">
             {revealed.map(s => (
               <div key={s.teamId} className="flex items-center gap-4 bg-[#1a2a3a] rounded-2xl p-4">
@@ -307,7 +300,7 @@ export default function DisplayView() {
                 <span className="text-3xl">{s.avatar}</span>
                 <span className="text-white font-bold text-xl flex-1">{s.teamName}</span>
                 <div className="text-right">
-                  <p className="text-[#f9d74e] font-black text-2xl">{s.score} bodů</p>
+                  <p className="text-[#f9d74e] font-black text-2xl">{t.points(s.score)}</p>
                   <div
                     className="h-2 rounded-full bg-[#f9d74e] mt-1"
                     style={{ width: `${Math.round((s.score / maxScore) * 120)}px` }}
@@ -320,30 +313,29 @@ export default function DisplayView() {
                 <span className="text-3xl w-10">🎭</span>
                 <span className="text-3xl">❓</span>
                 <span className="text-[#8899aa] font-bold text-xl flex-1">???</span>
-                <p className="text-[#8899aa] font-black text-2xl">??? bodů</p>
+                <p className="text-[#8899aa] font-black text-2xl">{t.unknownPoints}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Overall scores right */}
         <div className="w-72">
-          <h3 className="text-xl font-black text-white mb-4">Celkové skóre</h3>
+          <h3 className="text-xl font-black text-white mb-4">{t.overallScore}</h3>
           <div className="space-y-3">
-            {overallSorted.map((t, i) => (
-              <div key={t.id} className="flex items-center gap-3 bg-[#1a2a3a] rounded-xl p-3">
+            {overallSorted.map((team, i) => (
+              <div key={team.id} className="flex items-center gap-3 bg-[#1a2a3a] rounded-xl p-3">
                 <span className="text-lg w-6">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
-                <span className="text-xl">{t.avatar}</span>
+                <span className="text-xl">{team.avatar}</span>
                 <div className="flex-1">
-                  <p className="text-white text-sm font-bold truncate">{t.name}</p>
+                  <p className="text-white text-sm font-bold truncate">{team.name}</p>
                   <div className="w-full h-2 bg-[#0d1b2a] rounded-full mt-1">
                     <div
                       className="h-full rounded-full bg-[#f9d74e]"
-                      style={{ width: `${(t.totalScore / maxTotal) * 100}%` }}
+                      style={{ width: `${(team.totalScore / maxTotal) * 100}%` }}
                     />
                   </div>
                 </div>
-                <span className="text-[#f9d74e] font-black text-sm">{t.totalScore}</span>
+                <span className="text-[#f9d74e] font-black text-sm">{team.totalScore}</span>
               </div>
             ))}
           </div>
@@ -358,22 +350,22 @@ export default function DisplayView() {
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-8">
         <div className="text-center w-full max-w-2xl">
           <div className="text-8xl mb-6">🏆</div>
-          <h2 className="text-6xl font-black text-white mb-8">Finální výsledky</h2>
+          <h2 className="text-6xl font-black text-white mb-8">{t.finalResults}</h2>
           <div className="space-y-4">
-            {sorted.map((t, i) => (
+            {sorted.map((team, i) => (
               <div
-                key={t.id}
+                key={team.id}
                 className={`flex items-center gap-4 rounded-2xl p-5 ${i === 0 ? 'bg-[#f9d74e]/10 border-2 border-[#f9d74e]' : 'bg-[#1a2a3a]'}`}
               >
                 <span className="text-4xl w-12">
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
                 </span>
-                <span className="text-4xl">{t.avatar}</span>
+                <span className="text-4xl">{team.avatar}</span>
                 <span className={`flex-1 text-left font-black text-2xl ${i === 0 ? 'text-[#f9d74e]' : 'text-white'}`}>
-                  {t.name}
+                  {team.name}
                 </span>
                 <span className={`font-black text-3xl ${i === 0 ? 'text-[#f9d74e]' : 'text-white'}`}>
-                  {t.totalScore}
+                  {team.totalScore}
                 </span>
               </div>
             ))}
@@ -385,7 +377,7 @@ export default function DisplayView() {
 
   return (
     <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center">
-      <div className="text-[#f9d74e] text-2xl">Načítání...</div>
+      <div className="text-[#f9d74e] text-2xl">{t.loading}</div>
     </div>
   )
 }
