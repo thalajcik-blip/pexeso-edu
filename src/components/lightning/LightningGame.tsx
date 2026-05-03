@@ -329,7 +329,9 @@ export default function LightningGame() {
   // Init timer when question phase starts (after video or immediately when no video)
   useEffect(() => {
     if (videoPhase !== 'question') return
-    const initRemaining = lightningQuestionEndTime > 0
+    const q = lightningQuestions[lightningCurrentIndex]
+    const hadVideo = !isOnline && !!(q?.youtubeUrl)
+    const initRemaining = (!hadVideo && lightningQuestionEndTime > 0)
       ? Math.max(0, (lightningQuestionEndTime - Date.now()) / 1000)
       : lightningTimeLimit
     remainingRef.current = initRemaining
