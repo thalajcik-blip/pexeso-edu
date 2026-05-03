@@ -254,6 +254,16 @@ export default function TeamView() {
 
   // ── QUESTION ACTIVE ───────────────────────────────────────────────────────
 
+  if (status === 'video_playing') {
+    return (
+      <div className="min-h-screen bg-[#0d1b2a] flex flex-col items-center justify-center p-6 text-center">
+        <div className="text-6xl mb-4">📺</div>
+        <h2 className="text-2xl font-black text-white mb-2">Sleduj video na projektoru</h2>
+        <p className="text-[#8899aa]">Otázka a odpovědi se zobrazí po skončení videa.</p>
+      </div>
+    )
+  }
+
   if (status === 'question_active') {
     const q = currentQuestionData
 

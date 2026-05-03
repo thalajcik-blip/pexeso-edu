@@ -55,6 +55,7 @@ interface PubQuizActions {
   hostStartSession: () => Promise<void>
   hostStartRound: (roundIndex: number) => Promise<void>
   hostStartQuestion: (questionIndex: number) => Promise<void>
+  hostActivateQuestion: () => void
   hostPauseQuestion: () => void
   hostResumeQuestion: () => void
   hostEndQuestion: () => Promise<void>
@@ -161,22 +162,25 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
     const timerSeconds = round.gameMode === 'bleskovy_kviz' ? 20 : 30
     const questionStartTime = Date.now()
 
+    const hasVideo = !!question.youtubeUrl
+    const newStatus = hasVideo ? 'video_playing' : 'question_active'
+
     set({
-      status: 'question_active',
+      status: newStatus,
       currentQuestion: questionIndex + 1,
       currentQuestionData: question,
       timerSeconds,
-      timerRemaining: timerSeconds,
+      timerRemaining: hasVideo ? null : timerSeconds,
       answeredTeamIds: new Set(),
-      _questionStartTime: questionStartTime,
+      _questionStartTime: hasVideo ? null : questionStartTime,
     })
 
     await svc.updateSession(sessionId, {
-      status: 'question_active',
+      status: newStatus,
       current_question: questionIndex + 1,
-      timer_active: timerSeconds > 0,
+      timer_active: !hasVideo && timerSeconds > 0,
       timer_seconds: timerSeconds,
-      timer_started_at: new Date(questionStartTime).toISOString(),
+      timer_started_at: hasVideo ? null : new Date(questionStartTime).toISOString(),
     })
 
     svc.broadcast({
@@ -188,21 +192,35 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
       questionStartTime,
     })
 
-    // Start timer
+    // Start timer only if no video
+    get()._stopTimer()
+    if (!hasVideo && timerSeconds > 0) {
+      const interval = setInterval(() => {
+        const remaining = get().timerRemaining
+        if (remaining === null || remaining <= 0) { get()._stopTimer(); return }
+        const next = remaining - 1
+        set({ timerRemaining: next })
+        svc.broadcast({ type: 'timer_tick', remaining: next })
+        if (next <= 0) get()._stopTimer()
+      }, 1000)
+      set({ _timerInterval: interval })
+    }
+  },
+
+  hostActivateQuestion() {
+    const { timerSeconds } = get()
+    const questionStartTime = Date.now()
+    set({ status: 'question_active', timerRemaining: timerSeconds, _questionStartTime: questionStartTime })
+    svc.broadcast({ type: 'video_ended' })
     get()._stopTimer()
     if (timerSeconds > 0) {
       const interval = setInterval(() => {
         const remaining = get().timerRemaining
-        if (remaining === null || remaining <= 0) {
-          get()._stopTimer()
-          return
-        }
+        if (remaining === null || remaining <= 0) { get()._stopTimer(); return }
         const next = remaining - 1
         set({ timerRemaining: next })
         svc.broadcast({ type: 'timer_tick', remaining: next })
-        if (next <= 0) {
-          get()._stopTimer()
-        }
+        if (next <= 0) get()._stopTimer()
       }, 1000)
       set({ _timerInterval: interval })
     }
@@ -333,19 +351,24 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
       case 'session_status_changed':
         set({ status: event.status, currentRound: event.currentRound ?? get().currentRound })
         break
-      case 'question_started':
+      case 'question_started': {
+        const hasVideo = !!event.question.youtubeUrl
         set({
-          status: 'question_active',
+          status: hasVideo ? 'video_playing' : 'question_active',
           currentRound: event.roundNumber,
           currentQuestion: event.questionIndex + 1,
           currentQuestionData: event.question,
           timerSeconds: event.timerSeconds ?? 0,
-          timerRemaining: event.timerSeconds ?? null,
+          timerRemaining: hasVideo ? null : (event.timerSeconds ?? null),
           answeredTeamIds: new Set(),
           selectedAnswer: null,
           hasSubmitted: false,
           _questionStartTime: event.questionStartTime,
         })
+        break
+      }
+      case 'video_ended':
+        set({ status: 'question_active', timerRemaining: get().timerSeconds })
         break
       case 'question_paused':
         set({ status: 'question_paused' })

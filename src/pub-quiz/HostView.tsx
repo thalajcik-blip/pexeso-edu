@@ -19,6 +19,7 @@ export default function HostView() {
     revealedCount,
     initSession, setRounds, applyEvent,
     hostStartSession, hostStartQuestion,
+    hostActivateQuestion,
     hostPauseQuestion, hostResumeQuestion, hostEndQuestion,
     hostRevealNextTeam, hostNextRound, reset,
   } = store
@@ -235,6 +236,28 @@ export default function HostView() {
             className="w-full py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-2xl text-xl"
           >
             ▶ Spustit 1. otázku
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── VIDEO PLAYING ─────────────────────────────────────────────────────────
+
+  if (status === 'video_playing') {
+    const q = currentQuestionData
+    return (
+      <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
+        <div className="max-w-lg w-full text-center">
+          <div className="text-6xl mb-4">▶️</div>
+          <h2 className="text-2xl font-black text-white mb-2">Video hraje na projektoru</h2>
+          {q && <p className="text-[#8899aa] mb-2 text-sm">{q.question}</p>}
+          <p className="text-[#8899aa] mb-8 text-xs">Správná odpověď: <span className="text-[#22c55e] font-bold">{q?.correct}</span></p>
+          <button
+            onClick={hostActivateQuestion}
+            className="w-full py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-2xl text-xl"
+          >
+            ▶ Spustit otázku
           </button>
         </div>
       </div>

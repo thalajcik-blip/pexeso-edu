@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import QRCode from 'react-qr-code'
 import confetti from 'canvas-confetti'
 import { usePubQuizStore } from '../store/pubQuizStore'
-import { loadSession, loadTeams, joinChannel } from '../services/pubQuizService'
+import { loadSession, loadTeams, joinChannel, broadcast } from '../services/pubQuizService'
 import { DECKS } from '../data/decks'
 import { YouTubePlayer } from '../components/quiz/YouTubePlayer'
 import { extractYouTubeId } from '../utils/youtube'
@@ -141,6 +141,35 @@ export default function DisplayView() {
           <h2 className="text-5xl font-black text-white mb-4">Krátká přestávka</h2>
           <div className="text-4xl text-[#8899aa]">🎯 {quizName || 'pexedu Pub Kvíz'}</div>
         </div>
+      </div>
+    )
+  }
+
+  // ── VIDEO PLAYING ─────────────────────────────────────────────────────────
+
+  if (status === 'video_playing') {
+    const q = currentQuestionData
+    const vid = q?.youtubeUrl ? extractYouTubeId(q.youtubeUrl) : null
+    return (
+      <div className="min-h-screen bg-[#0d1b2a] flex flex-col items-center justify-center gap-4 px-4">
+        {vid ? (
+          <div style={{ width: 'min(92vw, calc(82vh * (16/9)))', maxWidth: '92vw' }}>
+            <YouTubePlayer
+              videoId={vid}
+              startSec={q?.youtubeStartSec ?? 0}
+              endSec={q?.youtubeEndSec ?? 30}
+              onEnded={() => broadcast({ type: 'video_ended' })}
+            />
+          </div>
+        ) : (
+          <div className="text-[#f9d74e] text-4xl">Načítání videa...</div>
+        )}
+        <button
+          onClick={() => broadcast({ type: 'video_ended' })}
+          className="text-sm text-[#8899aa] opacity-40 hover:opacity-70 transition-opacity"
+        >
+          Přeskočit →
+        </button>
       </div>
     )
   }
