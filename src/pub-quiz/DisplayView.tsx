@@ -224,14 +224,7 @@ export default function DisplayView() {
 
         {/* Question */}
         <div className="flex-1 flex flex-col items-center justify-center">
-          {q.youtubeUrl && extractYouTubeId(q.youtubeUrl) ? (
-            <img
-              src={`https://img.youtube.com/vi/${extractYouTubeId(q.youtubeUrl)}/hqdefault.jpg`}
-              alt=""
-              className="rounded-2xl mb-6 object-cover"
-              style={{ width: 'min(60vw, calc(40vh * (16/9)))', maxWidth: '60vw' }}
-            />
-          ) : q.imageUrl ? (
+          {q.imageUrl ? (
             <img src={q.imageUrl} alt={q.label} className="w-40 h-40 object-cover rounded-2xl mb-6" />
           ) : q.symbol ? (
             <div className="text-8xl mb-6">{q.symbol}</div>
