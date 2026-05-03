@@ -5,6 +5,8 @@ import confetti from 'canvas-confetti'
 import { usePubQuizStore } from '../store/pubQuizStore'
 import { loadSession, loadTeams, joinChannel } from '../services/pubQuizService'
 import { DECKS } from '../data/decks'
+import { YouTubePlayer } from '../components/quiz/YouTubePlayer'
+import { extractYouTubeId } from '../utils/youtube'
 
 const LABEL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
@@ -192,12 +194,20 @@ export default function DisplayView() {
 
         {/* Question */}
         <div className="flex-1 flex flex-col items-center justify-center">
-          {q.imageUrl && (
+          {q.youtubeUrl && extractYouTubeId(q.youtubeUrl) ? (
+            <div style={{ width: 'min(80vw, calc(55vh * (16/9)))', maxWidth: '80vw', marginBottom: '1.5rem' }}>
+              <YouTubePlayer
+                videoId={extractYouTubeId(q.youtubeUrl)!}
+                startSec={q.youtubeStartSec ?? 0}
+                endSec={q.youtubeEndSec ?? 30}
+                onEnded={() => {}}
+              />
+            </div>
+          ) : q.imageUrl ? (
             <img src={q.imageUrl} alt={q.label} className="w-40 h-40 object-cover rounded-2xl mb-6" />
-          )}
-          {!q.imageUrl && q.symbol && (
+          ) : q.symbol ? (
             <div className="text-8xl mb-6">{q.symbol}</div>
-          )}
+          ) : null}
           <p className="text-[#8899aa] text-2xl mb-4">{q.question}</p>
 
           {/* Options grid */}
