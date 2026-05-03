@@ -371,9 +371,27 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
         })
         break
       }
-      case 'video_ended':
-        set({ status: 'question_active', timerRemaining: get().timerSeconds })
+      case 'video_ended': {
+        const { timerSeconds, hostId } = get()
+        set({ status: 'question_active', timerRemaining: timerSeconds })
+        if (hostId) {
+          get()._stopTimer()
+          const questionStartTime = Date.now()
+          set({ _questionStartTime: questionStartTime })
+          if (timerSeconds > 0) {
+            const interval = setInterval(() => {
+              const remaining = get().timerRemaining
+              if (remaining === null || remaining <= 0) { get()._stopTimer(); return }
+              const next = remaining - 1
+              set({ timerRemaining: next })
+              svc.broadcast({ type: 'timer_tick', remaining: next })
+              if (next <= 0) get()._stopTimer()
+            }, 1000)
+            set({ _timerInterval: interval })
+          }
+        }
         break
+      }
       case 'question_paused':
         set({ status: 'question_paused' })
         break
