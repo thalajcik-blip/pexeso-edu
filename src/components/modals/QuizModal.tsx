@@ -252,7 +252,7 @@ export default function QuizModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: tc.overlayBg }}>
-      <div className="pop-in w-full max-w-md rounded-2xl p-6 text-center space-y-4"
+      <div className={`pop-in w-full ${youtubeVideoId ? 'max-w-xl' : 'max-w-md'} rounded-2xl p-6 text-center space-y-4`}
         style={{ background: tc.modalSurface, border: `1px solid ${tc.modalSurfaceBorder}`, color: tc.text }}>
 
         {players.length > 1 && (
