@@ -821,32 +821,29 @@ export default function LightningGame() {
         </div>
       </div>
 
-      {/* Video phase */}
+      {/* Video phase — fullscreen overlay */}
       {videoPhase === 'video' && question.youtubeUrl && (() => {
         const vid = extractYouTubeId(question.youtubeUrl!)
         if (!vid) return null
         return (
-          <div className="max-w-lg mx-auto w-full mb-4">
-            <YouTubePlayer
-              videoId={vid}
-              startSec={question.youtubeStartSec ?? 0}
-              endSec={question.youtubeEndSec ?? 30}
-              onEnded={() => {
-                if (question.youtubeAutoadvance !== false) setVideoPhase('question')
-              }}
-            />
-            <p className="text-center text-sm mt-2" style={{ color: tc.textMuted }}>
-              👁 Sleduj pozorně…
-            </p>
-            <div className="flex justify-center mt-2">
-              <button
-                onClick={() => setVideoPhase('question')}
-                className="text-xs transition-opacity opacity-40 hover:opacity-70"
-                style={{ color: tc.textFaint }}
-              >
-                {question.youtubeAutoadvance !== false ? 'Přeskočit →' : 'Zobrazit otázku →'}
-              </button>
+          <div className="fixed inset-0 z-20 flex flex-col items-center justify-center gap-4 px-4" style={{ background: tc.bg }}>
+            <div style={{ width: 'min(92vw, calc(82vh * (16/9)))', maxWidth: '92vw' }}>
+              <YouTubePlayer
+                videoId={vid}
+                startSec={question.youtubeStartSec ?? 0}
+                endSec={question.youtubeEndSec ?? 30}
+                onEnded={() => {
+                  if (question.youtubeAutoadvance !== false) setVideoPhase('question')
+                }}
+              />
             </div>
+            <button
+              onClick={() => setVideoPhase('question')}
+              className="text-sm transition-opacity opacity-40 hover:opacity-70"
+              style={{ color: tc.textFaint }}
+            >
+              {question.youtubeAutoadvance !== false ? 'Přeskočit →' : 'Zobrazit otázku →'}
+            </button>
           </div>
         )
       })()}
