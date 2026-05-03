@@ -26,7 +26,6 @@ export default function HostView() {
   } = store
 
   const [loading, setLoading] = useState(true)
-  const [qrOpen, setQrOpen] = useState(false)
   const [customDeckNames, setCustomDeckNames] = useState<Record<string, string>>({})
 
   const prevStatus = useRef(status)
