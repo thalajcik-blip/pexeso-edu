@@ -43,6 +43,10 @@ export function buildPubQuizQuestions(
             options,
             correct,
             funFact: item.fun_fact || undefined,
+            youtubeUrl: item.youtube_url || undefined,
+            youtubeStartSec: item.youtube_start_sec ?? undefined,
+            youtubeEndSec: item.youtube_end_sec ?? undefined,
+            youtubeAutoadvance: item.youtube_autoadvance ?? undefined,
           }]
         }
       }
@@ -57,6 +61,10 @@ export function buildPubQuizQuestions(
           options: shuffle([...item.quiz_options]),
           correct: item.quiz_correct,
           funFact: item.fun_fact || undefined,
+          youtubeUrl: item.youtube_url || undefined,
+          youtubeStartSec: item.youtube_start_sec ?? undefined,
+          youtubeEndSec: item.youtube_end_sec ?? undefined,
+          youtubeAutoadvance: item.youtube_autoadvance ?? undefined,
         }]
       }
       return []

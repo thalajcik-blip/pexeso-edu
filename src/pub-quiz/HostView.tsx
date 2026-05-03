@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { usePubQuizStore } from '../store/pubQuizStore'
 import { loadSession, loadRounds, loadTeams, joinChannel, broadcast } from '../services/pubQuizService'
+import { supabase } from '../services/supabase'
 import { DECKS } from '../data/decks'
 import type { RoundScore } from '../types/pubQuiz'
 import { soundFlip, soundOpponentAnswered, soundTick, soundQuizTimeout, soundMatch, soundWin } from '../services/audioService'
@@ -19,12 +20,13 @@ export default function HostView() {
     revealedCount,
     initSession, setRounds, applyEvent,
     hostStartSession, hostStartQuestion,
+    hostActivateQuestion,
     hostPauseQuestion, hostResumeQuestion, hostEndQuestion,
     hostRevealNextTeam, hostNextRound, reset,
   } = store
 
   const [loading, setLoading] = useState(true)
-  const [qrOpen, setQrOpen] = useState(false)
+  const [customDeckNames, setCustomDeckNames] = useState<Record<string, string>>({})
 
   const prevStatus = useRef(status)
   const prevAnsweredCount = useRef(0)
@@ -73,6 +75,12 @@ export default function HostView() {
       }
 
       joinChannel(sessionCode, applyEvent)
+
+      // Load custom deck names for display
+      supabase.from('custom_decks').select('id, title').eq('status', 'approved').then(({ data }) => {
+        if (data) setCustomDeckNames(Object.fromEntries(data.map(d => [d.id, d.title])))
+      })
+
       setLoading(false)
     })()
 
@@ -119,12 +127,6 @@ export default function HostView() {
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-xl font-bold text-white">🎯 {quizName || 'Pub Kvíz'} — Host</h1>
             <div className="flex gap-2">
-              <button
-                onClick={() => setQrOpen(!qrOpen)}
-                className="px-3 py-2 bg-[#1a2a3a] text-white rounded-xl text-sm"
-              >
-                QR kód
-              </button>
               <a
                 href={displayUrl}
                 target="_blank"
@@ -163,7 +165,7 @@ export default function HostView() {
                 <div key={i} className="flex items-center gap-3 py-2 border-b border-[#2a3a4a] last:border-0">
                   <span className="text-[#f9d74e] font-bold w-8">#{i + 1}</span>
                   <span className="text-white text-sm flex-1">
-                    {r.gameMode === 'bleskovy_kviz' ? '⚡' : '🃏'} {deck?.icon} {deck?.label ?? r.customDeckId ?? '?'}
+                    {r.gameMode === 'bleskovy_kviz' ? '⚡' : '🃏'} {deck?.icon} {deck?.label ?? r.customDeckName ?? (r.customDeckId ? customDeckNames[r.customDeckId] : undefined) ?? '?'}
                     {' — '}{r.questionCount} otázek
                     {r.doublePoints && <span className="ml-2 text-[#f9d74e] text-xs">×2</span>}
                   </span>
@@ -235,6 +237,28 @@ export default function HostView() {
             className="w-full py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-2xl text-xl"
           >
             ▶ Spustit 1. otázku
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── VIDEO PLAYING ─────────────────────────────────────────────────────────
+
+  if (status === 'video_playing') {
+    const q = currentQuestionData
+    return (
+      <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
+        <div className="max-w-lg w-full text-center">
+          <div className="text-6xl mb-4">▶️</div>
+          <h2 className="text-2xl font-black text-white mb-2">Video hraje na projektoru</h2>
+          {q && <p className="text-[#8899aa] mb-2 text-sm">{q.question}</p>}
+          <p className="text-[#8899aa] mb-8 text-xs">Správná odpověď: <span className="text-[#22c55e] font-bold">{q?.correct}</span></p>
+          <button
+            onClick={hostActivateQuestion}
+            className="w-full py-4 bg-[#f9d74e] text-[#0d1b2a] font-black rounded-2xl text-xl"
+          >
+            ▶ Spustit otázku
           </button>
         </div>
       </div>

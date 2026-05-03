@@ -3,6 +3,7 @@ import type { LightningQuestion } from './game'
 export type SessionStatus =
   | 'lobby'
   | 'round_intro'
+  | 'video_playing'
   | 'question_active'
   | 'question_paused'
   | 'round_results'
@@ -14,6 +15,7 @@ export interface PubQuizRound {
   gameMode: 'pexequiz' | 'bleskovy_kviz'
   setSlug?: string          // built-in deck id
   customDeckId?: string
+  customDeckName?: string   // display name for custom deck (not persisted to DB)
   questionCount: number
   doublePoints: boolean
   status: 'pending' | 'active' | 'completed'
@@ -38,7 +40,7 @@ export interface RoundScore {
 
 // Events sent over Supabase Broadcast channel `pub-quiz-${sessionCode}`
 export type PubQuizEvent =
-  | { type: 'session_status_changed'; status: SessionStatus; currentRound?: number }
+  | { type: 'session_status_changed'; status: SessionStatus; currentRound?: number; rounds?: PubQuizRound[] }
   | { type: 'question_started'; roundNumber: number; questionIndex: number; question: LightningQuestion; timerSeconds?: number; questionStartTime: number }
   | { type: 'question_paused' }
   | { type: 'question_resumed'; questionStartTime: number; timerRemaining: number }
@@ -49,6 +51,7 @@ export type PubQuizEvent =
   | { type: 'team_joined'; team: PubQuizTeam }
   | { type: 'team_scores_updated'; teams: { id: string; totalScore: number }[] }
   | { type: 'timer_tick'; remaining: number }
+  | { type: 'video_ended' }
 
 export const TEAM_COLORS = ['#ef4444', '#3b82f6', '#eab308', '#22c55e', '#a855f7', '#f97316', '#06b6d4', '#ec4899']
 export const TEAM_AVATARS = ['🎯', '🚀', '⚡', '🌟', '🔥', '🎸', '🏆', '🦁', '🐉', '🌈', '💎', '🎭']

@@ -3,8 +3,10 @@ import { useParams } from 'react-router-dom'
 import QRCode from 'react-qr-code'
 import confetti from 'canvas-confetti'
 import { usePubQuizStore } from '../store/pubQuizStore'
-import { loadSession, loadTeams, joinChannel } from '../services/pubQuizService'
+import { loadSession, loadRounds, loadTeams, joinChannel, broadcast } from '../services/pubQuizService'
 import { DECKS } from '../data/decks'
+import { YouTubePlayer } from '../components/quiz/YouTubePlayer'
+import { extractYouTubeId } from '../utils/youtube'
 
 const LABEL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
@@ -16,7 +18,7 @@ export default function DisplayView() {
     sessionId, status, teams, currentRound, currentQuestion, quizName,
     currentQuestionData, timerRemaining, timerSeconds, answeredTeamIds,
     roundScores, revealedCount, rounds,
-    initSession, applyEvent,
+    initSession, setRounds, applyEvent,
   } = usePubQuizStore()
 
   useEffect(() => {
@@ -25,8 +27,9 @@ export default function DisplayView() {
       const session = await loadSession(sessionCode)
       if (!session) return
       if (!sessionId) {
-        const dbTeams = await loadTeams(session.id)
+        const [dbTeams, dbRounds] = await Promise.all([loadTeams(session.id), loadRounds(session.id)])
         initSession(session.id, sessionCode, null, session.name ?? '')
+        setRounds(dbRounds)
         usePubQuizStore.setState({ teams: dbTeams, status: session.status as any })
       }
       joinChannel(sessionCode, applyEvent)
@@ -143,6 +146,35 @@ export default function DisplayView() {
     )
   }
 
+  // ── VIDEO PLAYING ─────────────────────────────────────────────────────────
+
+  if (status === 'video_playing') {
+    const q = currentQuestionData
+    const vid = q?.youtubeUrl ? extractYouTubeId(q.youtubeUrl) : null
+    return (
+      <div className="min-h-screen bg-[#0d1b2a] flex flex-col items-center justify-center gap-4 px-4">
+        {vid ? (
+          <div style={{ width: 'min(92vw, calc(82vh * (16/9)))', maxWidth: '92vw' }}>
+            <YouTubePlayer
+              videoId={vid}
+              startSec={q?.youtubeStartSec ?? 0}
+              endSec={q?.youtubeEndSec ?? 30}
+              onEnded={() => { broadcast({ type: 'video_ended' }); applyEvent({ type: 'video_ended' }) }}
+            />
+          </div>
+        ) : (
+          <div className="text-[#f9d74e] text-4xl">Načítání videa...</div>
+        )}
+        <button
+          onClick={() => { broadcast({ type: 'video_ended' }); applyEvent({ type: 'video_ended' }) }}
+          className="text-sm text-[#8899aa] opacity-40 hover:opacity-70 transition-opacity"
+        >
+          Přeskočit →
+        </button>
+      </div>
+    )
+  }
+
   // ── QUESTION ACTIVE ───────────────────────────────────────────────────────
 
   if (status === 'question_active') {
@@ -192,12 +224,11 @@ export default function DisplayView() {
 
         {/* Question */}
         <div className="flex-1 flex flex-col items-center justify-center">
-          {q.imageUrl && (
+          {q.imageUrl ? (
             <img src={q.imageUrl} alt={q.label} className="w-40 h-40 object-cover rounded-2xl mb-6" />
-          )}
-          {!q.imageUrl && q.symbol && (
+          ) : q.symbol ? (
             <div className="text-8xl mb-6">{q.symbol}</div>
-          )}
+          ) : null}
           <p className="text-[#8899aa] text-2xl mb-4">{q.question}</p>
 
           {/* Options grid */}

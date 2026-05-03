@@ -254,6 +254,16 @@ export default function TeamView() {
 
   // ── QUESTION ACTIVE ───────────────────────────────────────────────────────
 
+  if (status === 'video_playing') {
+    return (
+      <div className="min-h-screen bg-[#0d1b2a] flex flex-col items-center justify-center p-6 text-center">
+        <div className="text-6xl mb-4">📺</div>
+        <h2 className="text-2xl font-black text-white mb-2">Sleduj video na projektoru</h2>
+        <p className="text-[#8899aa]">Otázka a odpovědi se zobrazí po skončení videa.</p>
+      </div>
+    )
+  }
+
   if (status === 'question_active') {
     const q = currentQuestionData
 
@@ -287,7 +297,7 @@ export default function TeamView() {
         </div>
 
         {/* Answer options */}
-        <div className="grid grid-cols-2 gap-3 mb-4 flex-1">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           {q.options.map((opt, i) => {
             const isSelected = selectedAnswer === opt
             return (
@@ -296,7 +306,7 @@ export default function TeamView() {
                 onClick={() => { if (!hasSubmitted) { teamSelectAnswer(opt); soundQuizSelect() } }}
                 disabled={hasSubmitted}
                 className={`
-                  rounded-2xl p-4 text-left font-bold text-base transition-all
+                  rounded-2xl p-3 text-left font-bold text-base transition-all min-h-[72px]
                   ${isSelected
                     ? 'bg-[#f9d74e] text-[#0d1b2a]'
                     : hasSubmitted

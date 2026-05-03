@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 declare global {
   interface Window {
@@ -10,7 +10,7 @@ declare global {
           playerVars: Record<string, unknown>
           events: { onStateChange?: (e: { data: number }) => void; onReady?: (e: { target: { playVideo: () => void; stopVideo: () => void; getCurrentTime: () => number } }) => void }
         }
-      ) => { destroy: () => void; stopVideo: () => void; getCurrentTime: () => number }
+      ) => { destroy: () => void; stopVideo: () => void; getCurrentTime: () => number; playVideo: () => void }
       PlayerState: { ENDED: number }
     }
     onYouTubeIframeAPIReady: () => void
@@ -29,9 +29,11 @@ export function YouTubePlayer({ videoId, startSec, endSec, onEnded }: YouTubePla
   const playerRef    = useRef<InstanceType<Window['YT']['Player']> | null>(null)
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const endedRef     = useRef(false)
+  const [playing, setPlaying] = useState(false)
 
   useEffect(() => {
     endedRef.current = false
+    setPlaying(false)
 
     const handleEnded = () => {
       if (endedRef.current) return
@@ -54,6 +56,7 @@ export function YouTubePlayer({ videoId, startSec, endSec, onEnded }: YouTubePla
         },
         events: {
           onStateChange: (e) => {
+            if (e.data === 1 || e.data === 3) setPlaying(true)
             if (e.data === 0) handleEnded()
           },
           onReady: (e) => {
@@ -96,6 +99,21 @@ export function YouTubePlayer({ videoId, startSec, endSec, onEnded }: YouTubePla
         ref={containerRef}
         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
       />
+      {!playing && (
+        <div
+          onClick={() => { playerRef.current?.playVideo(); setPlaying(true) }}
+          style={{
+            position: 'absolute', inset: 0,
+            background: 'rgba(13,27,42,0.7)',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', gap: 16,
+          }}
+        >
+          <div style={{ fontSize: 72, lineHeight: 1 }}>▶</div>
+          <div style={{ color: '#f9d74e', fontSize: 22, fontWeight: 700 }}>Klikni pro spuštění videa</div>
+        </div>
+      )}
     </div>
   )
 }
