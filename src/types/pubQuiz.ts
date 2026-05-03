@@ -39,7 +39,7 @@ export interface RoundScore {
 
 // Events sent over Supabase Broadcast channel `pub-quiz-${sessionCode}`
 export type PubQuizEvent =
-  | { type: 'session_status_changed'; status: SessionStatus; currentRound?: number }
+  | { type: 'session_status_changed'; status: SessionStatus; currentRound?: number; rounds?: PubQuizRound[] }
   | { type: 'question_started'; roundNumber: number; questionIndex: number; question: LightningQuestion; timerSeconds?: number; questionStartTime: number }
   | { type: 'question_paused' }
   | { type: 'question_resumed'; questionStartTime: number; timerRemaining: number }

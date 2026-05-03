@@ -117,7 +117,7 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
     await svc.saveRounds(sessionId, rounds)
     await svc.updateSession(sessionId, { status: 'round_intro', current_round: 1 })
     set({ status: 'round_intro', currentRound: 1 })
-    svc.broadcast({ type: 'session_status_changed', status: 'round_intro', currentRound: 1 })
+    svc.broadcast({ type: 'session_status_changed', status: 'round_intro', currentRound: 1, rounds })
   },
 
   async hostStartRound(roundIndex) {
@@ -136,7 +136,7 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
 
     set({ roundQuestions: questions, currentRound: roundIndex + 1, currentQuestion: 0, status: 'round_intro' })
     await svc.updateSession(sessionId, { status: 'round_intro', current_round: roundIndex + 1 })
-    svc.broadcast({ type: 'session_status_changed', status: 'round_intro', currentRound: roundIndex + 1 })
+    svc.broadcast({ type: 'session_status_changed', status: 'round_intro', currentRound: roundIndex + 1, rounds: get().rounds })
   },
 
   async hostStartQuestion(questionIndex) {
@@ -349,7 +349,11 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
   applyEvent(event) {
     switch (event.type) {
       case 'session_status_changed':
-        set({ status: event.status, currentRound: event.currentRound ?? get().currentRound })
+        set({
+          status: event.status,
+          currentRound: event.currentRound ?? get().currentRound,
+          ...(event.rounds ? { rounds: event.rounds } : {}),
+        })
         break
       case 'question_started': {
         const hasVideo = !!event.question.youtubeUrl
