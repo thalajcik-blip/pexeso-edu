@@ -17,6 +17,7 @@ export interface PubQuizRound {
   customDeckId?: string
   customDeckName?: string   // display name for custom deck (not persisted to DB)
   questionCount: number
+  timerSeconds: number
   doublePoints: boolean
   status: 'pending' | 'active' | 'completed'
 }

@@ -159,7 +159,7 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
     if (!roundQuestions[questionIndex]) return
 
     const question = roundQuestions[questionIndex]
-    const timerSeconds = round.gameMode === 'bleskovy_kviz' ? 20 : 30
+    const timerSeconds = round.timerSeconds ?? (round.gameMode === 'bleskovy_kviz' ? 20 : 30)
     const questionStartTime = Date.now()
 
     const hasVideo = !!question.youtubeUrl

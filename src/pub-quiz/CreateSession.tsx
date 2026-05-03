@@ -18,6 +18,7 @@ const DEFAULT_ROUND: Omit<PubQuizRound, 'roundNumber' | 'status'> = {
   gameMode: 'bleskovy_kviz',
   setSlug: 'flags',
   questionCount: 10,
+  timerSeconds: 20,
   doublePoints: false,
 }
 
@@ -218,6 +219,20 @@ export default function CreateSession() {
                     >
                       {[5, 10, 15, 20].map(n => (
                         <option key={n} value={n}>{n} otázek</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Timer */}
+                  <div>
+                    <label className="text-[#8899aa] text-xs mb-1 block">Časomiera</label>
+                    <select
+                      value={round.timerSeconds ?? 20}
+                      onChange={e => updateRound(i, { timerSeconds: Number(e.target.value) })}
+                      className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
+                    >
+                      {[10, 15, 20, 30, 45, 60].map(n => (
+                        <option key={n} value={n}>{n} sekúnd</option>
                       ))}
                     </select>
                   </div>
