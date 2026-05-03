@@ -159,14 +159,14 @@ export default function DisplayView() {
               videoId={vid}
               startSec={q?.youtubeStartSec ?? 0}
               endSec={q?.youtubeEndSec ?? 30}
-              onEnded={() => broadcast({ type: 'video_ended' })}
+              onEnded={() => { broadcast({ type: 'video_ended' }); applyEvent({ type: 'video_ended' }) }}
             />
           </div>
         ) : (
           <div className="text-[#f9d74e] text-4xl">Načítání videa...</div>
         )}
         <button
-          onClick={() => broadcast({ type: 'video_ended' })}
+          onClick={() => { broadcast({ type: 'video_ended' }); applyEvent({ type: 'video_ended' }) }}
           className="text-sm text-[#8899aa] opacity-40 hover:opacity-70 transition-opacity"
         >
           Přeskočit →
