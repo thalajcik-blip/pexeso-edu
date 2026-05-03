@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import QRCode from 'react-qr-code'
 import confetti from 'canvas-confetti'
 import { usePubQuizStore } from '../store/pubQuizStore'
-import { loadSession, loadTeams, joinChannel, broadcast } from '../services/pubQuizService'
+import { loadSession, loadRounds, loadTeams, joinChannel, broadcast } from '../services/pubQuizService'
 import { DECKS } from '../data/decks'
 import { YouTubePlayer } from '../components/quiz/YouTubePlayer'
 import { extractYouTubeId } from '../utils/youtube'
@@ -18,7 +18,7 @@ export default function DisplayView() {
     sessionId, status, teams, currentRound, currentQuestion, quizName,
     currentQuestionData, timerRemaining, timerSeconds, answeredTeamIds,
     roundScores, revealedCount, rounds,
-    initSession, applyEvent,
+    initSession, setRounds, applyEvent,
   } = usePubQuizStore()
 
   useEffect(() => {
@@ -27,8 +27,9 @@ export default function DisplayView() {
       const session = await loadSession(sessionCode)
       if (!session) return
       if (!sessionId) {
-        const dbTeams = await loadTeams(session.id)
+        const [dbTeams, dbRounds] = await Promise.all([loadTeams(session.id), loadRounds(session.id)])
         initSession(session.id, sessionCode, null, session.name ?? '')
+        setRounds(dbRounds)
         usePubQuizStore.setState({ teams: dbTeams, status: session.status as any })
       }
       joinChannel(sessionCode, applyEvent)
