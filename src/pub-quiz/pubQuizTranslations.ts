@@ -11,7 +11,7 @@ function pluralSK(n: number, one: string, few: string, many: string) {
 }
 
 export const PQ_TR = {
-  CZ: {
+  cs: {
     gameModeLabels: {
       pexequiz: 'PexeQuiz (100 bodů/otázka)',
       bleskovy_kviz: 'Bleskový kvíz (rychlost = body)',
@@ -118,7 +118,7 @@ export const PQ_TR = {
     teamsCount: (n: number) => `Týmy (${n}/8)`,
   },
 
-  SK: {
+  sk: {
     gameModeLabels: {
       pexequiz: 'PexeQuiz (100 bodov/otázka)',
       bleskovy_kviz: 'Bleskový kvíz (rýchlosť = body)',
@@ -225,7 +225,7 @@ export const PQ_TR = {
     teamsCount: (n: number) => `Tímy (${n}/8)`,
   },
 
-  EN: {
+  en: {
     gameModeLabels: {
       pexequiz: 'PexeQuiz (100 pts/question)',
       bleskovy_kviz: 'Lightning Quiz (speed = points)',

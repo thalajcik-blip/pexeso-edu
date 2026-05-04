@@ -34,7 +34,7 @@ export default function CreateSession() {
   const { user, profile } = useAuthStore()
   const { initSession, setRounds, applyEvent } = usePubQuizStore()
   const lang = useGameStore(s => s.language)
-  const t = PQ_TR[lang] ?? PQ_TR.CZ
+  const t = PQ_TR[lang] ?? PQ_TR.cs
 
   const [quizName, setQuizName] = useState('')
   const [rounds, setLocalRounds] = useState<Omit<PubQuizRound, 'roundNumber' | 'status'>[]>([
@@ -179,7 +179,7 @@ export default function CreateSession() {
                       onChange={e => updateRound(i, { gameMode: e.target.value as PubQuizRound['gameMode'] })}
                       className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
                     >
-                      {Object.entries(t.gameModeLabels).map(([k, v]) => (
+                      {(Object.entries(t.gameModeLabels) as [string, string][]).map(([k, v]) => (
                         <option key={k} value={k}>{v}</option>
                       ))}
                     </select>

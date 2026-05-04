@@ -12,7 +12,7 @@ const LABEL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 export default function TeamView() {
   const { sessionCode } = useParams<{ sessionCode: string }>()
   const lang = useGameStore(s => s.language)
-  const t = PQ_TR[lang] ?? PQ_TR.CZ
+  const t = PQ_TR[lang] ?? PQ_TR.cs
 
   const {
     sessionId, status, teams, currentRound, currentQuestion,
