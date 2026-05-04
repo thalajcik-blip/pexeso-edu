@@ -24,10 +24,10 @@ export async function createSession(hostId: string, name?: string): Promise<{ id
   return data
 }
 
-export async function loadSession(code: string): Promise<{ id: string; status: string; current_round: number; current_question: number; name: string | null } | null> {
+export async function loadSession(code: string): Promise<{ id: string; host_id: string; status: string; current_round: number; current_question: number; name: string | null } | null> {
   const { data, error } = await supabase
     .from('pub_quiz_sessions')
-    .select('id, status, current_round, current_question, name')
+    .select('id, host_id, status, current_round, current_question, name')
     .eq('code', code)
     .single()
   if (error) { console.error(error); return null }
