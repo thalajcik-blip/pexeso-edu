@@ -10,6 +10,9 @@ import { PQ_TR } from './pubQuizTranslations'
 import type { PubQuizRound } from '../types/pubQuiz'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 
 type CustomDeckOption = { id: string; title: string }
 
@@ -135,7 +138,6 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
     roundCard:   'border border-gray-100 rounded-lg p-4 bg-gray-50',
     roundLabel:  'text-sm font-semibold text-indigo-600',
     fieldLabel:  'text-xs font-medium text-gray-500 mb-1 block',
-    select:      'w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-200',
     checkLabel:  'text-gray-600 text-sm',
     removeBtn:   'text-gray-400 hover:text-red-500 text-sm',
     noRounds:    'text-gray-400 text-center py-4 text-sm',
@@ -147,7 +149,6 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
     roundCard:   'bg-[#0d1b2a] rounded-xl p-4 relative',
     roundLabel:  'text-[#f9d74e] font-bold text-sm',
     fieldLabel:  'text-[#8899aa] text-xs mb-1 block',
-    select:      'w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]',
     checkLabel:  'text-[#8899aa] text-sm',
     removeBtn:   'text-[#8899aa] hover:text-[#ef4444] text-sm ml-2',
     noRounds:    'text-[#8899aa] text-center py-4',
@@ -213,66 +214,141 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
                 {/* Game mode */}
                 <div>
                   <label className={cls.fieldLabel}>{t.gameModeLabel}</label>
-                  <select
-                    value={round.gameMode}
-                    onChange={e => updateRound(i, { gameMode: e.target.value as PubQuizRound['gameMode'] })}
-                    className={cls.select}
-                  >
-                    {(Object.entries(t.gameModeLabels) as [string, string][]).map(([k, v]) => (
-                      <option key={k} value={k}>{v}</option>
-                    ))}
-                  </select>
+                  {embedded ? (
+                    <Select
+                      value={round.gameMode}
+                      onValueChange={val => updateRound(i, { gameMode: val as PubQuizRound['gameMode'] })}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.entries(t.gameModeLabels) as [string, string][]).map(([k, v]) => (
+                          <SelectItem key={k} value={k}>{v}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <select
+                      value={round.gameMode}
+                      onChange={e => updateRound(i, { gameMode: e.target.value as PubQuizRound['gameMode'] })}
+                      className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
+                    >
+                      {(Object.entries(t.gameModeLabels) as [string, string][]).map(([k, v]) => (
+                        <option key={k} value={k}>{v}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 {/* Deck */}
                 <div>
                   <label className={cls.fieldLabel}>{t.deckLabel}</label>
-                  <select
-                    value={deckSelectValue(round)}
-                    onChange={e => updateRound(i, applyDeckSelection(e.target.value))}
-                    className={cls.select}
-                  >
-                    <optgroup label={t.builtInDecks}>
-                      {DECKS.map(d => (
-                        <option key={d.id} value={d.id}>{d.icon} {d.label}</option>
-                      ))}
-                    </optgroup>
-                    {customDecks.length > 0 && (
-                      <optgroup label={t.customDecks}>
-                        {customDecks.map(d => (
-                          <option key={d.id} value={`custom:${d.id}`}>📚 {d.title}</option>
+                  {embedded ? (
+                    <Select
+                      value={deckSelectValue(round)}
+                      onValueChange={val => updateRound(i, applyDeckSelection(val))}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>{t.builtInDecks}</SelectLabel>
+                          {DECKS.map(d => (
+                            <SelectItem key={d.id} value={d.id}>{d.icon} {d.label}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                        {customDecks.length > 0 && (
+                          <SelectGroup>
+                            <SelectLabel>{t.customDecks}</SelectLabel>
+                            {customDecks.map(d => (
+                              <SelectItem key={d.id} value={`custom:${d.id}`}>📚 {d.title}</SelectItem>
+                            ))}
+                          </SelectGroup>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <select
+                      value={deckSelectValue(round)}
+                      onChange={e => updateRound(i, applyDeckSelection(e.target.value))}
+                      className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
+                    >
+                      <optgroup label={t.builtInDecks}>
+                        {DECKS.map(d => (
+                          <option key={d.id} value={d.id}>{d.icon} {d.label}</option>
                         ))}
                       </optgroup>
-                    )}
-                  </select>
+                      {customDecks.length > 0 && (
+                        <optgroup label={t.customDecks}>
+                          {customDecks.map(d => (
+                            <option key={d.id} value={`custom:${d.id}`}>📚 {d.title}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </select>
+                  )}
                 </div>
 
                 {/* Question count */}
                 <div>
                   <label className={cls.fieldLabel}>{t.questionCountLabel}</label>
-                  <select
-                    value={round.questionCount}
-                    onChange={e => updateRound(i, { questionCount: Number(e.target.value) })}
-                    className={cls.select}
-                  >
-                    {[5, 10, 15, 20].map(n => (
-                      <option key={n} value={n}>{t.questions(n)}</option>
-                    ))}
-                  </select>
+                  {embedded ? (
+                    <Select
+                      value={String(round.questionCount)}
+                      onValueChange={val => updateRound(i, { questionCount: Number(val) })}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[5, 10, 15, 20].map(n => (
+                          <SelectItem key={n} value={String(n)}>{t.questions(n)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <select
+                      value={round.questionCount}
+                      onChange={e => updateRound(i, { questionCount: Number(e.target.value) })}
+                      className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
+                    >
+                      {[5, 10, 15, 20].map(n => (
+                        <option key={n} value={n}>{t.questions(n)}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 {/* Timer */}
                 <div>
                   <label className={cls.fieldLabel}>{t.timerLabel}</label>
-                  <select
-                    value={round.timerSeconds ?? 20}
-                    onChange={e => updateRound(i, { timerSeconds: Number(e.target.value) })}
-                    className={cls.select}
-                  >
-                    {[10, 15, 20, 30, 45, 60].map(n => (
-                      <option key={n} value={n}>{t.seconds(n)}</option>
-                    ))}
-                  </select>
+                  {embedded ? (
+                    <Select
+                      value={String(round.timerSeconds ?? 20)}
+                      onValueChange={val => updateRound(i, { timerSeconds: Number(val) })}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[10, 15, 20, 30, 45, 60].map(n => (
+                          <SelectItem key={n} value={String(n)}>{t.seconds(n)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <select
+                      value={round.timerSeconds ?? 20}
+                      onChange={e => updateRound(i, { timerSeconds: Number(e.target.value) })}
+                      className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
+                    >
+                      {[10, 15, 20, 30, 45, 60].map(n => (
+                        <option key={n} value={n}>{t.seconds(n)}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 {/* Double points */}
