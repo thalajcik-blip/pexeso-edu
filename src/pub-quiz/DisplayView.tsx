@@ -97,7 +97,7 @@ export default function DisplayView() {
               <div className="text-6xl font-mono font-black text-[#f9d74e] tracking-widest">{sessionCode}</div>
             </div>
             <div className="bg-white rounded-2xl p-3">
-              <QRCode value={`${window.location.origin}/?room=${sessionCode}`} size={150} />
+              <QRCode value={`${window.location.origin}/pub-quiz/play/${sessionCode}`} size={150} />
             </div>
           </div>
           <p className="text-[#8899aa]">{t.teamsCount(teams.length)}</p>
