@@ -184,7 +184,7 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
           {rounds.length < 8 && (
             embedded ? (
               <Button size="sm" variant="outline" onClick={addRound}>
-                + {t.addRound}
+                {t.addRound}
               </Button>
             ) : (
               <button
