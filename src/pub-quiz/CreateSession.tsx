@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { usePubQuizStore } from '../store/pubQuizStore'
@@ -11,10 +11,12 @@ import type { PubQuizRound } from '../types/pubQuiz'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 
-type CustomDeckOption = { id: string; title: string }
+const LANG_FLAG: Record<string, string> = { cs: '🇨🇿', sk: '🇸🇰', en: '🇬🇧' }
+
+type CustomDeckOption = { id: string; title: string; language: string }
 
 const DEFAULT_ROUND: Omit<PubQuizRound, 'roundNumber' | 'status'> = {
   gameMode: 'bleskovy_kviz',
@@ -32,6 +34,97 @@ function deckSelectValue(round: Omit<PubQuizRound, 'roundNumber' | 'status'>): s
 function applyDeckSelection(value: string): Partial<Omit<PubQuizRound, 'roundNumber' | 'status'>> {
   if (value.startsWith('custom:')) return { customDeckId: value.slice(7), setSlug: undefined }
   return { setSlug: value, customDeckId: undefined }
+}
+
+function DeckCombobox({ value, onValueChange, builtInLabel, customLabel, customDecks }: {
+  value: string
+  onValueChange: (val: string) => void
+  builtInLabel: string
+  customLabel: string
+  customDecks: CustomDeckOption[]
+}) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onMouseDown(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onMouseDown)
+    return () => document.removeEventListener('mousedown', onMouseDown)
+  }, [])
+
+  const selectedIcon = value.startsWith('custom:')
+    ? (LANG_FLAG[customDecks.find(d => d.id === value.slice(7))?.language ?? ''] ?? '📖')
+    : (DECKS.find(d => d.id === value)?.icon ?? '📖')
+  const selectedLabel = value.startsWith('custom:')
+    ? (customDecks.find(d => d.id === value.slice(7))?.title ?? '')
+    : (DECKS.find(d => d.id === value)?.label ?? '')
+
+  const q = search.toLowerCase()
+  const filteredBuiltIn = DECKS.filter(d => !q || d.label.toLowerCase().includes(q))
+  const filteredCustom = customDecks.filter(d => !q || d.title.toLowerCase().includes(q))
+
+  function pick(val: string) {
+    onValueChange(val)
+    setOpen(false)
+    setSearch('')
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div className="relative">
+        <Input
+          value={open ? search : `${selectedIcon} ${selectedLabel}`}
+          onChange={e => setSearch(e.target.value)}
+          onFocus={() => { setSearch(''); setOpen(true) }}
+          placeholder="Vyhledat sadu…"
+          className="pr-7"
+        />
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[10px]">▾</span>
+      </div>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+          {filteredBuiltIn.length > 0 && (
+            <>
+              <div className="px-3 pt-2 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{builtInLabel}</div>
+              {filteredBuiltIn.map(d => (
+                <button
+                  key={d.id}
+                  type="button"
+                  onMouseDown={e => { e.preventDefault(); pick(d.id) }}
+                  className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 ${value === d.id ? 'text-indigo-600 font-medium bg-indigo-50' : 'text-gray-900'}`}
+                >
+                  <span>{d.icon}</span><span>{d.label}</span>
+                </button>
+              ))}
+            </>
+          )}
+          {filteredCustom.length > 0 && (
+            <>
+              <div className="px-3 pt-2 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{customLabel}</div>
+              {filteredCustom.map(d => (
+                <button
+                  key={d.id}
+                  type="button"
+                  onMouseDown={e => { e.preventDefault(); pick(`custom:${d.id}`) }}
+                  className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 ${value === `custom:${d.id}` ? 'text-indigo-600 font-medium bg-indigo-50' : 'text-gray-900'}`}
+                >
+                  <span>{LANG_FLAG[d.language] ?? '📖'}</span><span>{d.title}</span>
+                </button>
+              ))}
+            </>
+          )}
+          {filteredBuiltIn.length === 0 && filteredCustom.length === 0 && (
+            <div className="px-3 py-4 text-sm text-gray-400 text-center">Žádné výsledky</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 interface Props {
@@ -60,7 +153,7 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
   useEffect(() => {
     supabase
       .from('custom_decks')
-      .select('id, title')
+      .select('id, title, language')
       .eq('status', 'approved')
       .order('title')
       .then(({ data }) => {
@@ -245,30 +338,13 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
                 <div>
                   <label className={cls.fieldLabel}>{t.deckLabel}</label>
                   {embedded ? (
-                    <Select
+                    <DeckCombobox
                       value={deckSelectValue(round)}
                       onValueChange={val => updateRound(i, applyDeckSelection(val))}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>{t.builtInDecks}</SelectLabel>
-                          {DECKS.map(d => (
-                            <SelectItem key={d.id} value={d.id}>{d.icon} {d.label}</SelectItem>
-                          ))}
-                        </SelectGroup>
-                        {customDecks.length > 0 && (
-                          <SelectGroup>
-                            <SelectLabel>{t.customDecks}</SelectLabel>
-                            {customDecks.map(d => (
-                              <SelectItem key={d.id} value={`custom:${d.id}`}>📚 {d.title}</SelectItem>
-                            ))}
-                          </SelectGroup>
-                        )}
-                      </SelectContent>
-                    </Select>
+                      builtInLabel={t.builtInDecks}
+                      customLabel={t.customDecks}
+                      customDecks={customDecks}
+                    />
                   ) : (
                     <select
                       value={deckSelectValue(round)}
@@ -283,7 +359,7 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
                       {customDecks.length > 0 && (
                         <optgroup label={t.customDecks}>
                           {customDecks.map(d => (
-                            <option key={d.id} value={`custom:${d.id}`}>📚 {d.title}</option>
+                            <option key={d.id} value={`custom:${d.id}`}>{LANG_FLAG[d.language] ?? '📖'} {d.title}</option>
                           ))}
                         </optgroup>
                       )}
