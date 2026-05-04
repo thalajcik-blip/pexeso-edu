@@ -29,7 +29,12 @@ function applyDeckSelection(value: string): Partial<Omit<PubQuizRound, 'roundNum
   return { setSlug: value, customDeckId: undefined }
 }
 
-export default function CreateSession() {
+interface Props {
+  onCreated?: (code: string) => void
+  embedded?: boolean
+}
+
+export default function CreateSession({ onCreated, embedded = false }: Props) {
   const navigate = useNavigate()
   const { user, profile } = useAuthStore()
   const { initSession, setRounds, applyEvent } = usePubQuizStore()
@@ -93,12 +98,16 @@ export default function CreateSession() {
     initSession(session.id, session.code, user.id, quizName.trim() || undefined)
     setRounds(fullRounds)
     joinChannel(session.code, applyEvent)
-    navigate(`/host/${session.code}`)
+    if (onCreated) {
+      onCreated(session.code)
+    } else {
+      navigate(`/host/${session.code}`)
+    }
   }
 
-  if (isLoading) return null
+  if (!embedded && isLoading) return null
 
-  if (!user || !isTeacher) {
+  if (!embedded && (!user || !isTeacher)) {
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="bg-[#1a2a3a] rounded-2xl p-8 max-w-md w-full text-center">
@@ -116,19 +125,10 @@ export default function CreateSession() {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-[#0d1b2a] p-6">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <button onClick={() => window.location.href = '/'} className="text-[#8899aa] hover:text-white text-sm">
-            {t.back}
-          </button>
-          <h1 className="text-2xl font-bold text-white">{t.newPubQuizTitle}</h1>
-        </div>
-
-        {/* Quiz name */}
-        <div className="bg-[#1a2a3a] rounded-2xl p-6 mb-6">
+  const formBody = (
+    <>
+      {/* Quiz name */}
+      <div className="bg-[#1a2a3a] rounded-2xl p-6 mb-6">
           <label className="text-[#8899aa] text-sm block mb-2">{t.quizNameLabel}</label>
           <input
             value={quizName}
@@ -268,6 +268,23 @@ export default function CreateSession() {
         >
           {loading ? t.creating : t.createButton}
         </button>
+    </>
+  )
+
+  if (embedded) {
+    return <div className="max-w-2xl">{formBody}</div>
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0d1b2a] p-6">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 mb-8">
+          <button onClick={() => window.location.href = '/'} className="text-[#8899aa] hover:text-white text-sm">
+            {t.back}
+          </button>
+          <h1 className="text-2xl font-bold text-white">{t.newPubQuizTitle}</h1>
+        </div>
+        {formBody}
       </div>
     </div>
   )

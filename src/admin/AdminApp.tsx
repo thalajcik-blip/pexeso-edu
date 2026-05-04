@@ -8,6 +8,8 @@ import DeckEditor from './DeckEditor'
 import UsersManager from './UsersManager'
 import AdminSettings from './AdminSettings'
 import TeacherRequestsManager from './TeacherRequestsManager'
+import CreateSession from '../pub-quiz/CreateSession'
+import { useAuthStore } from '../store/authStore'
 import type { useAuth as UseAuthType } from './useAuth'
 import { LogOut } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -150,8 +152,28 @@ function AdminSidebarContents({ isSuperadmin, email, signOut, visibleItems, navi
   )
 }
 
+function AdminPubQuizPage() {
+  const { _setUser, loadProfile } = useAuthStore()
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) { _setUser(session.user); loadProfile() }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return (
+    <>
+      <h1 className="text-xl font-bold text-gray-900 mb-6">🎯 Pub Kvíz</h1>
+      <CreateSession
+        embedded
+        onCreated={code => { window.location.href = `/pub-quiz/host/${code}` }}
+      />
+    </>
+  )
+}
+
 const NAV_ITEMS = [
   { path: '/admin', label: 'Sady', icon: '🃏', exact: true, superadminOnly: false },
+  { path: '/admin/pub-quiz', label: 'Pub Kvíz', icon: '🎯', exact: false, superadminOnly: false },
   { path: '/admin/teacher-requests', label: 'Žádosti učitelů', icon: '👨‍🏫', exact: false, superadminOnly: true },
   { path: '/admin/users', label: 'Uživatelé', icon: '👥', exact: false, superadminOnly: true },
   { path: '/admin/settings', label: 'Nastavení', icon: '⚙️', exact: false, superadminOnly: true },
@@ -191,6 +213,7 @@ function AdminLayout({ role, email, signOut }: { role: AdminRole; email: string;
               />
             } />
             <Route path="/admin/decks/:id" element={<DeckEditorRoute isSuperadmin={isSuperadmin} />} />
+            <Route path="/admin/pub-quiz" element={<AdminPubQuizPage />} />
             {isSuperadmin && <Route path="/admin/teacher-requests" element={<TeacherRequestsManager />} />}
             {isSuperadmin && <Route path="/admin/users" element={<UsersManager />} />}
             {isSuperadmin && <Route path="/admin/settings" element={<AdminSettings />} />}
