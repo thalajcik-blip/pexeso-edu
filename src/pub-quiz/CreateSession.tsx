@@ -8,6 +8,8 @@ import { DECKS } from '../data/decks'
 import { useGameStore } from '../store/gameStore'
 import { PQ_TR } from './pubQuizTranslations'
 import type { PubQuizRound } from '../types/pubQuiz'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 type CustomDeckOption = { id: string; title: string }
 
@@ -38,7 +40,7 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
   const navigate = useNavigate()
   const { user, profile } = useAuthStore()
   const { initSession, setRounds, applyEvent } = usePubQuizStore()
-  const lang = useGameStore(s => s.language)
+  const lang = useGameStore(st => st.language)
   const t = PQ_TR[lang] ?? PQ_TR.cs
 
   const [quizName, setQuizName] = useState('')
@@ -125,11 +127,46 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
     )
   }
 
+  // Style tokens: light admin (embedded) vs dark standalone
+  const cls = embedded ? {
+    section:     'border border-gray-200 rounded-xl p-6 mb-4 bg-white',
+    sectionTitle:'text-base font-semibold text-gray-900',
+    label:       'text-sm font-medium text-gray-700 block mb-1.5',
+    roundCard:   'border border-gray-100 rounded-lg p-4 bg-gray-50',
+    roundLabel:  'text-sm font-semibold text-indigo-600',
+    fieldLabel:  'text-xs font-medium text-gray-500 mb-1 block',
+    select:      'w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-200',
+    checkLabel:  'text-gray-600 text-sm',
+    removeBtn:   'text-gray-400 hover:text-red-500 text-sm',
+    noRounds:    'text-gray-400 text-center py-4 text-sm',
+    error:       'bg-red-50 border border-red-200 text-red-600 rounded-lg p-3 mb-4 text-sm',
+  } : {
+    section:     'bg-[#1a2a3a] rounded-2xl p-6 mb-6',
+    sectionTitle:'text-lg font-semibold text-white',
+    label:       'text-[#8899aa] text-sm block mb-2',
+    roundCard:   'bg-[#0d1b2a] rounded-xl p-4 relative',
+    roundLabel:  'text-[#f9d74e] font-bold text-sm',
+    fieldLabel:  'text-[#8899aa] text-xs mb-1 block',
+    select:      'w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]',
+    checkLabel:  'text-[#8899aa] text-sm',
+    removeBtn:   'text-[#8899aa] hover:text-[#ef4444] text-sm ml-2',
+    noRounds:    'text-[#8899aa] text-center py-4',
+    error:       'bg-[#3a1a1a] border border-[#ef4444] text-[#ef4444] rounded-xl p-3 mb-4 text-sm',
+  }
+
   const formBody = (
     <>
       {/* Quiz name */}
-      <div className="bg-[#1a2a3a] rounded-2xl p-6 mb-6">
-          <label className="text-[#8899aa] text-sm block mb-2">{t.quizNameLabel}</label>
+      <div className={cls.section}>
+        <label className={cls.label}>{t.quizNameLabel}</label>
+        {embedded ? (
+          <Input
+            value={quizName}
+            onChange={e => setQuizName(e.target.value)}
+            maxLength={60}
+            placeholder={t.quizNamePlaceholder}
+          />
+        ) : (
           <input
             value={quizName}
             onChange={e => setQuizName(e.target.value)}
@@ -137,130 +174,137 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
             placeholder={t.quizNamePlaceholder}
             className="w-full bg-[#0d1b2a] text-white rounded-xl px-4 py-3 border border-[#2a3a4a] focus:border-[#f9d74e] outline-none"
           />
-        </div>
+        )}
+      </div>
 
-        {/* Rounds */}
-        <div className="bg-[#1a2a3a] rounded-2xl p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">{t.rounds} ({rounds.length}/8)</h2>
-            {rounds.length < 8 && (
+      {/* Rounds */}
+      <div className={cls.section}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={cls.sectionTitle}>{t.rounds} ({rounds.length}/8)</h2>
+          {rounds.length < 8 && (
+            embedded ? (
+              <Button size="sm" variant="outline" onClick={addRound}>
+                + {t.addRound}
+              </Button>
+            ) : (
               <button
                 onClick={addRound}
                 className="px-4 py-2 bg-[#f9d74e] text-[#0d1b2a] font-bold rounded-xl text-sm"
               >
                 {t.addRound}
               </button>
-            )}
-          </div>
-
-          {rounds.length === 0 && (
-            <p className="text-[#8899aa] text-center py-4">{t.noRounds}</p>
+            )
           )}
-
-          <div className="space-y-4">
-            {rounds.map((round, i) => (
-              <div key={i} className="bg-[#0d1b2a] rounded-xl p-4 relative">
-                <div className="flex items-start justify-between mb-3">
-                  <span className="text-[#f9d74e] font-bold text-sm">{t.round} {i + 1}</span>
-                  <button
-                    onClick={() => removeRound(i)}
-                    className="text-[#8899aa] hover:text-[#ef4444] text-sm ml-2"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Game mode */}
-                  <div>
-                    <label className="text-[#8899aa] text-xs mb-1 block">{t.gameModeLabel}</label>
-                    <select
-                      value={round.gameMode}
-                      onChange={e => updateRound(i, { gameMode: e.target.value as PubQuizRound['gameMode'] })}
-                      className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
-                    >
-                      {(Object.entries(t.gameModeLabels) as [string, string][]).map(([k, v]) => (
-                        <option key={k} value={k}>{v}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Deck */}
-                  <div>
-                    <label className="text-[#8899aa] text-xs mb-1 block">{t.deckLabel}</label>
-                    <select
-                      value={deckSelectValue(round)}
-                      onChange={e => updateRound(i, applyDeckSelection(e.target.value))}
-                      className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
-                    >
-                      <optgroup label={t.builtInDecks}>
-                        {DECKS.map(d => (
-                          <option key={d.id} value={d.id}>{d.icon} {d.label}</option>
-                        ))}
-                      </optgroup>
-                      {customDecks.length > 0 && (
-                        <optgroup label={t.customDecks}>
-                          {customDecks.map(d => (
-                            <option key={d.id} value={`custom:${d.id}`}>📚 {d.title}</option>
-                          ))}
-                        </optgroup>
-                      )}
-                    </select>
-                  </div>
-
-                  {/* Question count */}
-                  <div>
-                    <label className="text-[#8899aa] text-xs mb-1 block">{t.questionCountLabel}</label>
-                    <select
-                      value={round.questionCount}
-                      onChange={e => updateRound(i, { questionCount: Number(e.target.value) })}
-                      className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
-                    >
-                      {[5, 10, 15, 20].map(n => (
-                        <option key={n} value={n}>{t.questions(n)}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Timer */}
-                  <div>
-                    <label className="text-[#8899aa] text-xs mb-1 block">{t.timerLabel}</label>
-                    <select
-                      value={round.timerSeconds ?? 20}
-                      onChange={e => updateRound(i, { timerSeconds: Number(e.target.value) })}
-                      className="w-full bg-[#1a2a3a] text-white rounded-lg px-3 py-2 text-sm border border-[#2a3a4a]"
-                    >
-                      {[10, 15, 20, 30, 45, 60].map(n => (
-                        <option key={n} value={n}>{t.seconds(n)}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Double points */}
-                  <div className="flex items-center gap-2 pt-5">
-                    <input
-                      type="checkbox"
-                      id={`double-${i}`}
-                      checked={round.doublePoints}
-                      onChange={e => updateRound(i, { doublePoints: e.target.checked })}
-                      className="w-4 h-4 accent-[#f9d74e]"
-                    />
-                    <label htmlFor={`double-${i}`} className="text-[#8899aa] text-sm">
-                      {t.doublePoints}
-                    </label>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
-        {error && (
-          <div className="bg-[#3a1a1a] border border-[#ef4444] text-[#ef4444] rounded-xl p-3 mb-4 text-sm">
-            {error}
-          </div>
+        {rounds.length === 0 && (
+          <p className={cls.noRounds}>{t.noRounds}</p>
         )}
 
+        <div className="space-y-3">
+          {rounds.map((round, i) => (
+            <div key={i} className={cls.roundCard}>
+              <div className="flex items-start justify-between mb-3">
+                <span className={cls.roundLabel}>{t.round} {i + 1}</span>
+                <button onClick={() => removeRound(i)} className={cls.removeBtn}>✕</button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Game mode */}
+                <div>
+                  <label className={cls.fieldLabel}>{t.gameModeLabel}</label>
+                  <select
+                    value={round.gameMode}
+                    onChange={e => updateRound(i, { gameMode: e.target.value as PubQuizRound['gameMode'] })}
+                    className={cls.select}
+                  >
+                    {(Object.entries(t.gameModeLabels) as [string, string][]).map(([k, v]) => (
+                      <option key={k} value={k}>{v}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Deck */}
+                <div>
+                  <label className={cls.fieldLabel}>{t.deckLabel}</label>
+                  <select
+                    value={deckSelectValue(round)}
+                    onChange={e => updateRound(i, applyDeckSelection(e.target.value))}
+                    className={cls.select}
+                  >
+                    <optgroup label={t.builtInDecks}>
+                      {DECKS.map(d => (
+                        <option key={d.id} value={d.id}>{d.icon} {d.label}</option>
+                      ))}
+                    </optgroup>
+                    {customDecks.length > 0 && (
+                      <optgroup label={t.customDecks}>
+                        {customDecks.map(d => (
+                          <option key={d.id} value={`custom:${d.id}`}>📚 {d.title}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                </div>
+
+                {/* Question count */}
+                <div>
+                  <label className={cls.fieldLabel}>{t.questionCountLabel}</label>
+                  <select
+                    value={round.questionCount}
+                    onChange={e => updateRound(i, { questionCount: Number(e.target.value) })}
+                    className={cls.select}
+                  >
+                    {[5, 10, 15, 20].map(n => (
+                      <option key={n} value={n}>{t.questions(n)}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Timer */}
+                <div>
+                  <label className={cls.fieldLabel}>{t.timerLabel}</label>
+                  <select
+                    value={round.timerSeconds ?? 20}
+                    onChange={e => updateRound(i, { timerSeconds: Number(e.target.value) })}
+                    className={cls.select}
+                  >
+                    {[10, 15, 20, 30, 45, 60].map(n => (
+                      <option key={n} value={n}>{t.seconds(n)}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Double points */}
+                <div className="flex items-center gap-2 pt-5">
+                  <input
+                    type="checkbox"
+                    id={`double-${i}`}
+                    checked={round.doublePoints}
+                    onChange={e => updateRound(i, { doublePoints: e.target.checked })}
+                    className={embedded ? 'w-4 h-4 accent-indigo-600' : 'w-4 h-4 accent-[#f9d74e]'}
+                  />
+                  <label htmlFor={`double-${i}`} className={cls.checkLabel}>
+                    {t.doublePoints}
+                  </label>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {error && <div className={cls.error}>{error}</div>}
+
+      {embedded ? (
+        <Button
+          onClick={handleCreate}
+          disabled={loading || rounds.length === 0}
+          className="w-full"
+        >
+          {loading ? t.creating : t.createButton}
+        </Button>
+      ) : (
         <button
           onClick={handleCreate}
           disabled={loading || rounds.length === 0}
@@ -268,6 +312,7 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
         >
           {loading ? t.creating : t.createButton}
         </button>
+      )}
     </>
   )
 
