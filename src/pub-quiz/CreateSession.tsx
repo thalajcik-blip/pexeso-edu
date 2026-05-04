@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { usePubQuizStore } from '../store/pubQuizStore'
-import { createSession, joinChannel } from '../services/pubQuizService'
+import { createSession, saveRounds, joinChannel } from '../services/pubQuizService'
 import { supabase } from '../services/supabase'
 import { DECKS } from '../data/decks'
 import { useGameStore } from '../store/gameStore'
@@ -193,6 +193,7 @@ export default function CreateSession({ onCreated, embedded = false }: Props) {
         : undefined,
     }))
 
+    await saveRounds(session.id, fullRounds)
     initSession(session.id, session.code, user.id, quizName.trim() || undefined)
     setRounds(fullRounds)
     joinChannel(session.code, applyEvent)
