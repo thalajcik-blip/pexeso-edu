@@ -71,7 +71,7 @@ export default function HostView() {
       if (!store.sessionId) {
         const dbRounds = await loadRounds(session.id)
         const dbTeams = await loadTeams(session.id)
-        initSession(session.id, sessionCode, null, session.name ?? '')
+        initSession(session.id, sessionCode, session.host_id, session.name ?? '')
         setRounds(dbRounds)
         usePubQuizStore.setState({ teams: dbTeams })
       }
