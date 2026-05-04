@@ -15,7 +15,7 @@ export default function HostView() {
   const { sessionCode } = useParams<{ sessionCode: string }>()
   const navigate = useNavigate()
   const lang = useGameStore(s => s.language)
-  const t = PQ_TR[lang] ?? PQ_TR.CZ
+  const t = PQ_TR[lang] ?? PQ_TR.cs
 
   const store = usePubQuizStore()
   const {
