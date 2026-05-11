@@ -107,7 +107,7 @@ export default function QuizModal() {
       return { correct: '', options: [] as string[], hint: card?.label ?? '' }
     }
 
-    const deck   = DECKS.find(d => d.id === selectedDeckId)!
+    const deck   = DECKS.find(d => d.id === selectedDeckId) ?? DECKS[0]
     const item   = deck.pool[quizSymbol]
     const isEn   = language === 'en'
     const enData = isEn ? EN_QUIZ[quizSymbol] : null
