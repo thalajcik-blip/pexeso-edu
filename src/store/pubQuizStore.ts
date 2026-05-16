@@ -407,9 +407,17 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
       case 'question_resumed':
         set({ status: 'question_active', timerRemaining: event.timerRemaining })
         break
-      case 'timer_tick':
-        set({ timerRemaining: event.remaining })
+      case 'timer_tick': {
+        // Auto-correct if video_ended broadcast was missed — timer only ticks during question_active
+        const currentStatus = get().status
+        set({
+          timerRemaining: event.remaining,
+          ...(currentStatus === 'video_playing' || currentStatus === 'video_playing_reveal'
+            ? { status: 'question_active' }
+            : {}),
+        })
         break
+      }
       case 'answer_submitted': {
         const ids = new Set(get().answeredTeamIds)
         ids.add(event.teamId)
