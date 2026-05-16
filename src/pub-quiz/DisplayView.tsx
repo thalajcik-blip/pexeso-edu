@@ -254,7 +254,13 @@ export default function DisplayView() {
         <div className="flex-1 flex flex-col items-center justify-center">
           {q.imageUrl ? (
             <img src={q.imageUrl} alt={q.label} className="w-40 h-40 object-cover rounded-2xl mb-6" />
-          ) : q.symbol ? (
+          ) : q.audioUrl ? (
+            <div className="flex flex-col items-center mb-6">
+              <div className="text-8xl mb-4">🎵</div>
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <audio key={q.audioUrl} src={q.audioUrl} autoPlay controls className="w-full max-w-lg" />
+            </div>
+          ) : q.symbol && !q.symbol.startsWith('http') ? (
             <div className="text-8xl mb-6">{q.symbol}</div>
           ) : null}
           <p className="text-[#8899aa] text-2xl mb-4">{q.question}</p>

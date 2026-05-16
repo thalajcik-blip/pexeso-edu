@@ -317,7 +317,13 @@ export default function HostView() {
               {q.imageUrl && (
                 <img src={q.imageUrl} alt={q.label} className="w-16 h-16 object-cover rounded-lg mb-3" />
               )}
-              {!q.imageUrl && q.symbol && <div className="text-5xl mb-3">{q.symbol}</div>}
+              {q.audioUrl && (
+                // eslint-disable-next-line jsx-a11y/media-has-caption
+                <audio key={q.audioUrl} src={q.audioUrl} controls className="w-full mb-3" />
+              )}
+              {!q.imageUrl && !q.audioUrl && q.symbol && !q.symbol.startsWith('http') && (
+                <div className="text-5xl mb-3">{q.symbol}</div>
+              )}
               <p className="text-[#8899aa] text-sm mb-1">{q.question}</p>
               <p className="text-white font-medium mb-4">{t.correctAnswer(q.correct)}</p>
 
