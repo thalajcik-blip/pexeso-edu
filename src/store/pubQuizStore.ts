@@ -4,6 +4,7 @@ import type { SessionStatus, PubQuizRound, PubQuizTeam, PubQuizEvent, RoundScore
 import * as svc from '../services/pubQuizService'
 import { buildPubQuizQuestions } from '../utils/buildPubQuizQuestions'
 import { fetchCustomDeckFull } from '../services/supabase'
+import { useGameStore } from './gameStore'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -126,12 +127,13 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
     if (!round) return
 
     // Pre-generate questions for this round
+    const lang = useGameStore.getState().language
     let questions: LightningQuestion[] = []
     if (round.customDeckId) {
       const customDeck = await fetchCustomDeckFull(round.customDeckId)
-      questions = buildPubQuizQuestions(round.customDeckId, customDeck, 'cs', round.questionCount)
+      questions = buildPubQuizQuestions(round.customDeckId, customDeck, lang, round.questionCount)
     } else if (round.setSlug) {
-      questions = buildPubQuizQuestions(round.setSlug, null, 'cs', round.questionCount)
+      questions = buildPubQuizQuestions(round.setSlug, null, lang, round.questionCount)
     }
 
     set({ roundQuestions: questions, currentRound: roundIndex + 1, currentQuestion: 0, status: 'round_intro' })
@@ -145,13 +147,14 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
     if (!round) return
 
     // Generate questions for this round if not yet done
+    const lang = useGameStore.getState().language
     let { roundQuestions } = get()
     if (roundQuestions.length === 0) {
       if (round.customDeckId) {
         const customDeck = await fetchCustomDeckFull(round.customDeckId)
-        roundQuestions = buildPubQuizQuestions(round.customDeckId, customDeck, 'cs', round.questionCount)
+        roundQuestions = buildPubQuizQuestions(round.customDeckId, customDeck, lang, round.questionCount)
       } else if (round.setSlug) {
-        roundQuestions = buildPubQuizQuestions(round.setSlug, null, 'cs', round.questionCount)
+        roundQuestions = buildPubQuizQuestions(round.setSlug, null, lang, round.questionCount)
       }
       set({ roundQuestions })
     }
