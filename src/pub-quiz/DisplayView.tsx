@@ -392,7 +392,7 @@ export default function DisplayView() {
                 key={team.id}
                 className={`flex items-center gap-4 rounded-2xl p-5 ${i === 0 ? 'bg-[#f9d74e]/10 border-2 border-[#f9d74e]' : 'bg-[#1a2a3a]'}`}
               >
-                <span className="text-4xl w-12">
+                <span className="text-4xl w-12 text-white">
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
                 </span>
                 <span className="text-4xl">{team.avatar}</span>
