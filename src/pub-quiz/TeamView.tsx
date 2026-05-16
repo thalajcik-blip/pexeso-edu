@@ -297,7 +297,10 @@ export default function TeamView() {
           {q.imageUrl && (
             <img src={q.imageUrl} alt={q.label} className="w-20 h-20 object-cover rounded-xl mx-auto mb-3" />
           )}
-          {!q.imageUrl && q.symbol && <div className="text-6xl mb-3">{q.symbol}</div>}
+          {q.audioUrl && <div className="text-5xl mb-3">🎵</div>}
+          {!q.imageUrl && !q.audioUrl && q.symbol && !q.symbol.startsWith('http') && (
+            <div className="text-6xl mb-3">{q.symbol}</div>
+          )}
           <p className="text-white font-medium">{q.question}</p>
         </div>
 
