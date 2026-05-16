@@ -28,6 +28,9 @@ export type CardData = {
   youtube_start_sec?: number | null
   youtube_end_sec?: number | null
   youtube_autoadvance?: boolean | null
+  youtube_url2?: string | null
+  youtube_start_sec2?: number | null
+  youtube_end_sec2?: number | null
 }
 
 function padAnswers(base: AnswerOption[], minCount: number): AnswerOption[] {
