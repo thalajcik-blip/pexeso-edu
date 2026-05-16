@@ -57,6 +57,7 @@ interface PubQuizActions {
   hostStartRound: (roundIndex: number) => Promise<void>
   hostStartQuestion: (questionIndex: number) => Promise<void>
   hostActivateQuestion: () => void
+  hostStartRevealVideo: () => void
   hostPauseQuestion: () => void
   hostResumeQuestion: () => void
   hostEndQuestion: () => Promise<void>
@@ -227,6 +228,11 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
       }, 1000)
       set({ _timerInterval: interval })
     }
+  },
+
+  hostStartRevealVideo() {
+    set({ status: 'video_playing_reveal' })
+    svc.broadcast({ type: 'reveal_video_started' })
   },
 
   hostPauseQuestion() {
@@ -437,6 +443,12 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
         break
       case 'session_finished':
         set({ status: 'finished', roundScores: event.finalScores })
+        break
+      case 'reveal_video_started':
+        set({ status: 'video_playing_reveal' })
+        break
+      case 'reveal_video_ended':
+        set({ status: 'question_active' })
         break
     }
   },

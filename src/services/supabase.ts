@@ -14,14 +14,14 @@ export async function fetchCustomDeckFull(id: string): Promise<CustomDeckData | 
   const [{ data: deckRow }, { data: cards }] = await Promise.all([
     supabase.from('custom_decks').select('title, language, deck_type, results_config, thumbnail_url').eq('id', id).single(),
     supabase.from('custom_cards')
-      .select('image_url, audio_url, label, quiz_question, answers, display_count, quiz_options, quiz_correct, fun_fact, translations, youtube_url, youtube_start_sec, youtube_end_sec, youtube_autoadvance')
+      .select('image_url, audio_url, label, quiz_question, answers, display_count, quiz_options, quiz_correct, fun_fact, translations, youtube_url, youtube_start_sec, youtube_end_sec, youtube_autoadvance, youtube_url2, youtube_start_sec2, youtube_end_sec2')
       .eq('deck_id', id)
       .order('sort_order'),
   ])
   if (!cards) return null
   const deckType: 'image' | 'audio' | 'text' = deckRow?.deck_type === 'audio' ? 'audio' : deckRow?.deck_type === 'text' ? 'text' : 'image'
   const pool: CustomDeckData['pool'] = {}
-  type RawCard = { image_url: string | null; audio_url?: string; label: string; quiz_question: string | null; answers: CustomDeckCard['answers']; display_count: number; quiz_options: [string,string,string,string] | null; quiz_correct: string | null; fun_fact: string | null; translations?: CustomDeckCard['translations']; youtube_url?: string | null; youtube_start_sec?: number | null; youtube_end_sec?: number | null; youtube_autoadvance?: boolean | null }
+  type RawCard = { image_url: string | null; audio_url?: string; label: string; quiz_question: string | null; answers: CustomDeckCard['answers']; display_count: number; quiz_options: [string,string,string,string] | null; quiz_correct: string | null; fun_fact: string | null; translations?: CustomDeckCard['translations']; youtube_url?: string | null; youtube_start_sec?: number | null; youtube_end_sec?: number | null; youtube_autoadvance?: boolean | null; youtube_url2?: string | null; youtube_start_sec2?: number | null; youtube_end_sec2?: number | null }
   cards.forEach((c: RawCard) => {
     const key = deckType === 'audio' ? (c.audio_url ?? c.image_url ?? c.label) : deckType === 'text' ? c.label : (c.image_url ?? c.label)
     pool[key] = {
@@ -39,6 +39,9 @@ export async function fetchCustomDeckFull(id: string): Promise<CustomDeckData | 
       youtube_start_sec: c.youtube_start_sec,
       youtube_end_sec: c.youtube_end_sec,
       youtube_autoadvance: c.youtube_autoadvance,
+      youtube_url2: c.youtube_url2,
+      youtube_start_sec2: c.youtube_start_sec2,
+      youtube_end_sec2: c.youtube_end_sec2,
     }
   })
   return {

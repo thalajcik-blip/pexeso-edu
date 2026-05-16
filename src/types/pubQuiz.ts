@@ -4,6 +4,7 @@ export type SessionStatus =
   | 'lobby'
   | 'round_intro'
   | 'video_playing'
+  | 'video_playing_reveal'
   | 'question_active'
   | 'question_paused'
   | 'round_results'
@@ -53,6 +54,8 @@ export type PubQuizEvent =
   | { type: 'team_scores_updated'; teams: { id: string; totalScore: number }[] }
   | { type: 'timer_tick'; remaining: number }
   | { type: 'video_ended' }
+  | { type: 'reveal_video_started' }
+  | { type: 'reveal_video_ended' }
 
 export const TEAM_COLORS = ['#ef4444', '#3b82f6', '#eab308', '#22c55e', '#a855f7', '#f97316', '#06b6d4', '#ec4899']
 export const TEAM_AVATARS = ['🎯', '🚀', '⚡', '🌟', '🔥', '🎸', '🏆', '🦁', '🐉', '🌈', '💎', '🎭']

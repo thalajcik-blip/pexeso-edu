@@ -86,6 +86,9 @@ export default function CardModal({ deckId, language, difficulty, deckType = 'im
   const [youtubeStartSec, setYoutubeStartSec] = useState(card?.youtube_start_sec ?? 0)
   const [youtubeEndSec, setYoutubeEndSec]     = useState(card?.youtube_end_sec ?? 30)
   const [youtubeAutoadvance, setYoutubeAutoadvance] = useState(card?.youtube_autoadvance ?? true)
+  const [youtubeUrl2, setYoutubeUrl2]           = useState(card?.youtube_url2 ?? '')
+  const [youtubeStartSec2, setYoutubeStartSec2] = useState(card?.youtube_start_sec2 ?? 0)
+  const [youtubeEndSec2, setYoutubeEndSec2]     = useState(card?.youtube_end_sec2 ?? 30)
   const fileRef      = useRef<HTMLInputElement>(null)
   const audioFileRef = useRef<HTMLInputElement>(null)
 
@@ -259,6 +262,9 @@ export default function CardModal({ deckId, language, difficulty, deckType = 'im
       youtube_start_sec:    youtubeUrl ? youtubeStartSec : null,
       youtube_end_sec:      youtubeUrl ? youtubeEndSec : null,
       youtube_autoadvance:  youtubeUrl ? youtubeAutoadvance : null,
+      youtube_url2:         youtubeUrl2 || null,
+      youtube_start_sec2:   youtubeUrl2 ? youtubeStartSec2 : null,
+      youtube_end_sec2:     youtubeUrl2 ? youtubeEndSec2 : null,
     }
     const { error: saveError } = card?.id
       ? await supabase.from('custom_cards').update(payload).eq('id', card.id)
@@ -491,10 +497,10 @@ export default function CardModal({ deckId, language, difficulty, deckType = 'im
               />
             </div>
 
-            {/* YouTube video preview */}
+            {/* YouTube video 1 */}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
-                YouTube ukážka <span className="text-gray-300 font-normal">(volitelné)</span>
+                YouTube ukážka — video 1 <span className="text-gray-300 font-normal">(volitelné, hrá pred otázkou)</span>
               </label>
               <Input
                 value={youtubeUrl}
@@ -539,6 +545,55 @@ export default function CardModal({ deckId, language, difficulty, deckType = 'im
                       <div className="text-xs text-gray-400 mb-1">Náhled úseku</div>
                       <iframe
                         src={`https://www.youtube.com/embed/${vid}?start=${youtubeStartSec}&end=${youtubeEndSec}&autoplay=0&controls=1&rel=0`}
+                        className="w-full rounded-lg border-0"
+                        style={{ aspectRatio: '16/9' }}
+                        allow="autoplay"
+                      />
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
+
+            {/* YouTube video 2 — reveal video after answers */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                YouTube ukážka — video 2 <span className="text-gray-300 font-normal">(volitelné, moderátor spustí po odpovediach)</span>
+              </label>
+              <Input
+                value={youtubeUrl2}
+                onChange={e => setYoutubeUrl2(e.target.value)}
+                placeholder="https://youtu.be/..."
+              />
+              {(() => {
+                const vid2 = extractYouTubeId(youtubeUrl2)
+                if (!vid2) return null
+                return (
+                  <div className="mt-3 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Začátek (s)</label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={youtubeStartSec2}
+                          onChange={e => setYoutubeStartSec2(parseInt(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Konec (s)</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={youtubeEndSec2}
+                          onChange={e => setYoutubeEndSec2(parseInt(e.target.value) || 1)}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-400 mb-1">Náhled úseku</div>
+                      <iframe
+                        src={`https://www.youtube.com/embed/${vid2}?start=${youtubeStartSec2}&end=${youtubeEndSec2}&autoplay=0&controls=1&rel=0`}
                         className="w-full rounded-lg border-0"
                         style={{ aspectRatio: '16/9' }}
                         allow="autoplay"

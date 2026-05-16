@@ -29,6 +29,9 @@ export interface LightningQuestion {
   youtubeStartSec?: number
   youtubeEndSec?: number
   youtubeAutoadvance?: boolean
+  youtubeUrl2?: string
+  youtubeStartSec2?: number
+  youtubeEndSec2?: number
 }
 
 export interface LightningAnswer {
@@ -51,6 +54,9 @@ export interface CustomDeckCard {
   youtube_start_sec?: number | null
   youtube_end_sec?: number | null
   youtube_autoadvance?: boolean | null
+  youtube_url2?: string | null
+  youtube_start_sec2?: number | null
+  youtube_end_sec2?: number | null
 }
 
 export interface CustomDeckData {

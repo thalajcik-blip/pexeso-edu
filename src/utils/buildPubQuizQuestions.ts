@@ -47,6 +47,9 @@ export function buildPubQuizQuestions(
             youtubeStartSec: item.youtube_start_sec ?? undefined,
             youtubeEndSec: item.youtube_end_sec ?? undefined,
             youtubeAutoadvance: item.youtube_autoadvance ?? undefined,
+            youtubeUrl2: item.youtube_url2 || undefined,
+            youtubeStartSec2: item.youtube_start_sec2 ?? undefined,
+            youtubeEndSec2: item.youtube_end_sec2 ?? undefined,
           }]
         }
       }
@@ -65,6 +68,9 @@ export function buildPubQuizQuestions(
           youtubeStartSec: item.youtube_start_sec ?? undefined,
           youtubeEndSec: item.youtube_end_sec ?? undefined,
           youtubeAutoadvance: item.youtube_autoadvance ?? undefined,
+          youtubeUrl2: item.youtube_url2 || undefined,
+          youtubeStartSec2: item.youtube_start_sec2 ?? undefined,
+          youtubeEndSec2: item.youtube_end_sec2 ?? undefined,
         }]
       }
       return []

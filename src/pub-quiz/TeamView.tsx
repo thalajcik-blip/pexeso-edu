@@ -260,6 +260,15 @@ export default function TeamView() {
     )
   }
 
+  if (status === 'video_playing_reveal') {
+    return (
+      <div className="min-h-screen bg-[#0d1b2a] flex flex-col items-center justify-center p-6 text-center">
+        <div className="text-6xl mb-4">🎬</div>
+        <h2 className="text-2xl font-black text-white mb-2">{t.watchVideoOnProjector}</h2>
+      </div>
+    )
+  }
+
   // ── QUESTION ACTIVE ───────────────────────────────────────────────────────
 
   if (status === 'question_active') {

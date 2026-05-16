@@ -116,6 +116,8 @@ export const PQ_TR = {
     pexeQuiz: '🃏 PexeQuiz',
     doublePointsDisplay: '🔥 Dvojité body!',
     teamsCount: (n: number) => `Týmy (${n}/8)`,
+    startRevealVideo: '🎬 Spustit odhalující video',
+    revealVideoPlayingHost: 'Odhalující video hraje na projektoru',
   },
 
   sk: {
@@ -223,6 +225,8 @@ export const PQ_TR = {
     pexeQuiz: '🃏 PexeQuiz',
     doublePointsDisplay: '🔥 Dvojité body!',
     teamsCount: (n: number) => `Tímy (${n}/8)`,
+    startRevealVideo: '🎬 Spustiť odhaľujúce video',
+    revealVideoPlayingHost: 'Odhaľujúce video hrá na projektore',
   },
 
   en: {
@@ -333,5 +337,7 @@ export const PQ_TR = {
     pexeQuiz: '🃏 PexeQuiz',
     doublePointsDisplay: '🔥 Double points!',
     teamsCount: (n: number) => `Teams (${n}/8)`,
+    startRevealVideo: '🎬 Play reveal video',
+    revealVideoPlayingHost: 'Reveal video playing on projector',
   },
 }

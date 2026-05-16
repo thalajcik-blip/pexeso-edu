@@ -24,7 +24,7 @@ export default function HostView() {
     revealedCount,
     initSession, setRounds, applyEvent,
     hostStartSession, hostStartQuestion,
-    hostActivateQuestion,
+    hostActivateQuestion, hostStartRevealVideo,
     hostPauseQuestion, hostResumeQuestion, hostEndQuestion,
     hostRevealNextTeam, hostNextRound, reset,
   } = store
@@ -260,6 +260,27 @@ export default function HostView() {
     )
   }
 
+  // ── REVEAL VIDEO PLAYING ──────────────────────────────────────────────────
+
+  if (status === 'video_playing_reveal') {
+    const q = currentQuestionData
+    return (
+      <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
+        <div className="max-w-lg w-full text-center">
+          <div className="text-6xl mb-4">🎬</div>
+          <h2 className="text-2xl font-black text-white mb-2">{t.revealVideoPlayingHost}</h2>
+          {q && <p className="text-[#8899aa] mb-8 text-sm">{t.correctAnswer(q.correct)}</p>}
+          <button
+            onClick={() => { broadcast({ type: 'reveal_video_ended' }); applyEvent({ type: 'reveal_video_ended' }) }}
+            className="text-sm text-[#8899aa] opacity-40 hover:opacity-70 transition-opacity"
+          >
+            {t.skip}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // ── QUESTION ACTIVE / PAUSED ──────────────────────────────────────────────
 
   if (status === 'question_active' || status === 'question_paused') {
@@ -331,6 +352,15 @@ export default function HostView() {
               })}
             </div>
           </div>
+
+          {q?.youtubeUrl2 && (answeredTeamIds.size >= teams.length || timerRemaining === 0) && (
+            <button
+              onClick={hostStartRevealVideo}
+              className="w-full py-3 bg-[#06b6d4] text-white font-black rounded-xl mb-3"
+            >
+              {t.startRevealVideo}
+            </button>
+          )}
 
           <div className="flex gap-3">
             {!isPaused ? (

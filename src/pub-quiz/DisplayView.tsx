@@ -178,6 +178,35 @@ export default function DisplayView() {
     )
   }
 
+  // ── REVEAL VIDEO PLAYING ──────────────────────────────────────────────────
+
+  if (status === 'video_playing_reveal') {
+    const q = currentQuestionData
+    const vid = q?.youtubeUrl2 ? extractYouTubeId(q.youtubeUrl2) : null
+    return (
+      <div className="min-h-screen bg-[#0d1b2a] flex flex-col items-center justify-center gap-4 px-4">
+        {vid ? (
+          <div style={{ width: 'min(92vw, calc(82vh * (16/9)))', maxWidth: '92vw' }}>
+            <YouTubePlayer
+              videoId={vid}
+              startSec={q?.youtubeStartSec2 ?? 0}
+              endSec={q?.youtubeEndSec2 ?? 30}
+              onEnded={() => { broadcast({ type: 'reveal_video_ended' }); applyEvent({ type: 'reveal_video_ended' }) }}
+            />
+          </div>
+        ) : (
+          <div className="text-[#f9d74e] text-4xl">{t.loadingVideo}</div>
+        )}
+        <button
+          onClick={() => { broadcast({ type: 'reveal_video_ended' }); applyEvent({ type: 'reveal_video_ended' }) }}
+          className="text-sm text-[#8899aa] opacity-40 hover:opacity-70 transition-opacity"
+        >
+          {t.skip}
+        </button>
+      </div>
+    )
+  }
+
   // ── QUESTION ACTIVE ───────────────────────────────────────────────────────
 
   if (status === 'question_active') {
