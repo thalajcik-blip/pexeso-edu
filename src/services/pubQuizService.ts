@@ -52,6 +52,7 @@ export async function saveRounds(sessionId: string, rounds: PubQuizRound[]): Pro
     custom_deck_id: r.customDeckId ?? null,
     question_count: r.questionCount,
     double_points: r.doublePoints,
+    timer_seconds: r.timerSeconds ?? null,
     status: 'pending',
   }))
   await supabase.from('pub_quiz_rounds').insert(rows)
@@ -72,6 +73,7 @@ export async function loadRounds(sessionId: string): Promise<PubQuizRound[]> {
     customDeckId: r.custom_deck_id ?? undefined,
     questionCount: r.question_count,
     doublePoints: r.double_points,
+    timerSeconds: r.timer_seconds ?? undefined,
     status: r.status,
   }))
 }
