@@ -74,6 +74,7 @@ export default function SetupScreen() {
       .from('custom_decks')
       .select('id, title, status, supported_modes, thumbnail_url, deck_type')
       .eq('status', 'approved')
+      .eq('is_private', false)
       .eq('language', language)
       .then(({ data }) => {
         if (!data) return
