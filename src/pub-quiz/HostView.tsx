@@ -99,8 +99,16 @@ export default function HostView() {
     const total = s.rounds[s.currentRound - 1]?.questionCount ?? 0
     if (s.currentQuestion >= total) {
       const sorted = [...s.teams]
-        .sort((a, b) => b.totalScore - a.totalScore)
-        .map((team, i) => ({ teamId: team.id, teamName: team.name, avatar: team.avatar, color: team.color, score: team.totalScore, position: i + 1 }))
+        .sort((a, b) => {
+          const aRound = a.totalScore - (s._roundStartScores[a.id] ?? 0)
+          const bRound = b.totalScore - (s._roundStartScores[b.id] ?? 0)
+          return bRound - aRound
+        })
+        .map((team, i) => ({
+          teamId: team.id, teamName: team.name, avatar: team.avatar, color: team.color,
+          score: team.totalScore - (s._roundStartScores[team.id] ?? 0),
+          position: i + 1,
+        }))
       usePubQuizStore.setState({ status: 'round_results', roundScores: sorted, revealedCount: 0 })
       broadcast({ type: 'round_results_reveal', roundNumber: s.currentRound, scores: sorted, revealedCount: 0 })
     }

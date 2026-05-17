@@ -44,6 +44,7 @@ interface PubQuizState {
   // Timer interval ref (host only)
   _timerInterval: ReturnType<typeof setInterval> | null
   _questionStartTime: number | null
+  _roundStartScores: Record<string, number>
 }
 
 interface PubQuizActions {
@@ -99,6 +100,7 @@ const DEFAULT: PubQuizState = {
   hasSubmitted: false,
   _timerInterval: null,
   _questionStartTime: null,
+  _roundStartScores: {},
 }
 
 export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) => ({
@@ -123,9 +125,13 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
   },
 
   async hostStartRound(roundIndex) {
-    const { sessionId, rounds } = get()
+    const { sessionId, rounds, teams } = get()
     const round = rounds[roundIndex]
     if (!round) return
+
+    const roundStartScores: Record<string, number> = {}
+    teams.forEach(t => { roundStartScores[t.id] = t.totalScore })
+    set({ _roundStartScores: roundStartScores })
 
     // Pre-generate questions for this round
     const lang = useGameStore.getState().language
