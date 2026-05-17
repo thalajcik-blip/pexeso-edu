@@ -180,11 +180,15 @@ export async function scoreAnswers(
 
 // ── Realtime channel ──────────────────────────────────────────────────────────
 
+let reconnectTimeout: ReturnType<typeof setTimeout> | null = null
+
 export function joinChannel(
   sessionCode: string,
   onEvent: (event: PubQuizEvent) => void,
+  onStatusChange?: (connected: boolean) => void,
 ): RealtimeChannel {
   if (channel) { supabase.removeChannel(channel) }
+  if (reconnectTimeout) { clearTimeout(reconnectTimeout); reconnectTimeout = null }
 
   channel = supabase.channel(`pub-quiz-${sessionCode}`, {
     config: { broadcast: { self: false } },
@@ -194,7 +198,17 @@ export function joinChannel(
     onEvent(payload as PubQuizEvent)
   })
 
-  channel.subscribe()
+  channel.subscribe((status) => {
+    if (status === 'SUBSCRIBED') {
+      onStatusChange?.(true)
+    } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
+      onStatusChange?.(false)
+      reconnectTimeout = setTimeout(() => {
+        joinChannel(sessionCode, onEvent, onStatusChange)
+      }, 2000)
+    }
+  })
+
   return channel
 }
 
@@ -204,6 +218,7 @@ export function broadcast(event: PubQuizEvent): void {
 }
 
 export function leaveChannel(): void {
+  if (reconnectTimeout) { clearTimeout(reconnectTimeout); reconnectTimeout = null }
   if (channel) {
     supabase.removeChannel(channel)
     channel = null

@@ -101,6 +101,8 @@ export const PQ_TR = {
     changeAnswer: 'Změnit odpověď',
     roundResultsTeam: (n: number) => `🏆 Výsledky Kola ${n}`,
     waitingForQuizmaster: 'Čekáme na kvízmastera...',
+    connectionLost: 'Spojení přerušeno',
+    reconnecting: 'Znovu se připojuji...',
     place: (n: number) => `${n}. místo`,
     joinOnPhone: 'Přidejte se na svém telefonu:',
     code: 'Kód',
@@ -210,6 +212,8 @@ export const PQ_TR = {
     changeAnswer: 'Zmeniť odpoveď',
     roundResultsTeam: (n: number) => `🏆 Výsledky Kola ${n}`,
     waitingForQuizmaster: 'Čakáme na kvízmastera...',
+    connectionLost: 'Spojenie prerušené',
+    reconnecting: 'Znovu sa pripájam...',
     place: (n: number) => `${n}. miesto`,
     joinOnPhone: 'Pridajte sa na svojom telefóne:',
     code: 'Kód',
@@ -319,6 +323,8 @@ export const PQ_TR = {
     changeAnswer: 'Change answer',
     roundResultsTeam: (n: number) => `🏆 Round ${n} Results`,
     waitingForQuizmaster: 'Waiting for quizmaster...',
+    connectionLost: 'Connection lost',
+    reconnecting: 'Reconnecting...',
     place: (n: number) => {
       const s = n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'
       return `${n}${s} place`

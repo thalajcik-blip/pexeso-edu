@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { usePubQuizStore } from '../store/pubQuizStore'
 import { loadSession, loadTeams, joinChannel } from '../services/pubQuizService'
@@ -66,6 +66,33 @@ export default function TeamView() {
   const [color, setColor] = useState(TEAM_COLORS[0])
   const [sessionLoading, setSessionLoading] = useState(true)
   const [sessionNotFound, setSessionNotFound] = useState(false)
+  const [isConnected, setIsConnected] = useState(true)
+  const wasConnected = useRef(false)
+
+  const handleStatusChange = useCallback(async (connected: boolean) => {
+    setIsConnected(connected)
+    if (connected && !wasConnected.current) {
+      // First connection — not a reconnect
+      wasConnected.current = true
+      return
+    }
+    if (connected && wasConnected.current) {
+      // Reconnected — refresh state from DB
+      const sid = usePubQuizStore.getState().sessionId
+      const sc = usePubQuizStore.getState().sessionCode
+      if (!sid || !sc) return
+      const [session, freshTeams] = await Promise.all([loadSession(sc), loadTeams(sid)])
+      if (session) {
+        usePubQuizStore.setState({
+          status: session.status as any,
+          currentRound: session.current_round,
+          currentQuestion: session.current_question,
+          teams: freshTeams,
+        })
+      }
+    }
+    if (!connected) wasConnected.current = true // was connected before drop
+  }, [])
 
   useEffect(() => {
     if (!sessionCode) return
@@ -79,7 +106,7 @@ export default function TeamView() {
         usePubQuizStore.setState({ teams: existingTeams, status: session.status as any })
       }
 
-      joinChannel(sessionCode, applyEvent)
+      joinChannel(sessionCode, applyEvent, handleStatusChange)
       setSessionLoading(false)
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -194,11 +221,14 @@ export default function TeamView() {
     )
   }
 
-  // ── LOBBY WAIT ────────────────────────────────────────────────────────────
+  // ── POST-JOIN SCREENS ─────────────────────────────────────────────────────
+
+  const myTeam = teams.find(team => team.id === myTeamId)
+
+  let content: React.ReactNode = null
 
   if (status === 'lobby') {
-    const myTeam = teams.find(team => team.id === myTeamId)
-    return (
+    content = (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="w-full max-w-sm text-center">
           <div className="text-6xl mb-4">{myTeam?.avatar}</div>
@@ -218,12 +248,8 @@ export default function TeamView() {
         </div>
       </div>
     )
-  }
-
-  // ── ROUND INTRO ───────────────────────────────────────────────────────────
-
-  if (status === 'round_intro') {
-    return (
+  } else if (status === 'round_intro') {
+    content = (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="text-center">
           <div className="text-5xl mb-3">⏳</div>
@@ -232,12 +258,8 @@ export default function TeamView() {
         </div>
       </div>
     )
-  }
-
-  // ── PAUSED ────────────────────────────────────────────────────────────────
-
-  if (status === 'question_paused') {
-    return (
+  } else if (status === 'question_paused') {
+    content = (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="text-center">
           <div className="text-6xl mb-4">⏸</div>
@@ -246,43 +268,28 @@ export default function TeamView() {
         </div>
       </div>
     )
-  }
-
-  // ── VIDEO PLAYING ─────────────────────────────────────────────────────────
-
-  if (status === 'video_playing') {
-    return (
+  } else if (status === 'video_playing') {
+    content = (
       <div className="min-h-screen bg-[#0d1b2a] flex flex-col items-center justify-center p-6 text-center">
         <div className="text-6xl mb-4">📺</div>
         <h2 className="text-2xl font-black text-white mb-2">{t.watchVideoOnProjector}</h2>
         <p className="text-[#8899aa]">{t.answersAfterVideo}</p>
       </div>
     )
-  }
-
-  if (status === 'video_playing_reveal') {
-    return (
+  } else if (status === 'video_playing_reveal') {
+    content = (
       <div className="min-h-screen bg-[#0d1b2a] flex flex-col items-center justify-center p-6 text-center">
         <div className="text-6xl mb-4">🎬</div>
         <h2 className="text-2xl font-black text-white mb-2">{t.watchVideoOnProjector}</h2>
       </div>
     )
-  }
-
-  // ── QUESTION ACTIVE ───────────────────────────────────────────────────────
-
-  if (status === 'question_active') {
+  } else if (status === 'question_active') {
     const q = currentQuestionData
-
-    if (!q) {
-      return (
-        <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center">
-          <div className="text-[#8899aa]">{t.loadingQuestion}</div>
-        </div>
-      )
-    }
-
-    return (
+    content = !q ? (
+      <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center">
+        <div className="text-[#8899aa]">{t.loadingQuestion}</div>
+      </div>
+    ) : (
       <div className="min-h-screen bg-[#0d1b2a] p-4 flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <p className="text-[#8899aa] text-sm">{t.roundShort(currentRound, 0).split('/')[0]} · {t.questionShort(currentQuestion, 0).split('/')[0]}</p>
@@ -353,15 +360,10 @@ export default function TeamView() {
         )}
       </div>
     )
-  }
-
-  // ── ROUND RESULTS ─────────────────────────────────────────────────────────
-
-  if (status === 'round_results') {
+  } else if (status === 'round_results') {
     const sorted = [...roundScores].sort((a, b) => a.position - b.position)
     const revealed = sorted.slice(sorted.length - revealedCount).reverse()
-
-    return (
+    content = (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <h2 className="text-2xl font-black text-white text-center mb-6">
@@ -370,7 +372,7 @@ export default function TeamView() {
           <div className="bg-[#1a2a3a] rounded-2xl p-5 space-y-3 mb-4">
             {revealed.map(s => (
               <div key={s.teamId} className={`flex items-center gap-3 ${s.teamId === myTeamId ? 'text-[#f9d74e]' : ''}`}>
-                <span className="text-2xl w-8">
+                <span className="text-2xl w-8 text-white">
                   {s.position === 1 ? '🥇' : s.position === 2 ? '🥈' : s.position === 3 ? '🥉' : `${s.position}.`}
                 </span>
                 <span className="text-2xl">{s.avatar}</span>
@@ -390,16 +392,11 @@ export default function TeamView() {
         </div>
       </div>
     )
-  }
-
-  // ── FINISHED ──────────────────────────────────────────────────────────────
-
-  if (status === 'finished') {
+  } else if (status === 'finished') {
     const sorted = [...roundScores].sort((a, b) => a.position - b.position)
     const myScore = sorted.find(s => s.teamId === myTeamId)
     const myPosition = myScore?.position ?? sorted.length + 1
-
-    return (
+    content = (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center p-6">
         <div className="w-full max-w-sm text-center">
           <div className="text-6xl mb-2">{myPosition === 1 ? '🏆' : myPosition === 2 ? '🥈' : myPosition === 3 ? '🥉' : '🎯'}</div>
@@ -412,7 +409,7 @@ export default function TeamView() {
           <div className="bg-[#1a2a3a] rounded-2xl p-5 space-y-3">
             {sorted.map((s, i) => (
               <div key={s.teamId} className="flex items-center gap-3">
-                <span className="text-xl w-6">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
+                <span className="text-xl w-6 text-white">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
                 <span className="text-xl">{s.avatar}</span>
                 <span className={`flex-1 text-left font-bold ${s.teamId === myTeamId ? 'text-[#f9d74e]' : 'text-white'}`}>{s.teamName}</span>
                 <span className={`font-black ${s.teamId === myTeamId ? 'text-[#f9d74e]' : 'text-white'}`}>{s.score}</span>
@@ -424,5 +421,16 @@ export default function TeamView() {
     )
   }
 
-  return null
+  return (
+    <>
+      {!isConnected && (
+        <div className="fixed top-0 inset-x-0 z-50 bg-[#1a2a3a] border-b-2 border-[#ef4444] px-4 py-2 flex items-center justify-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-[#ef4444] animate-pulse" />
+          <span className="text-white text-sm font-bold">{t.connectionLost}</span>
+          <span className="text-[#8899aa] text-xs">{t.reconnecting}</span>
+        </div>
+      )}
+      {content}
+    </>
+  )
 }
