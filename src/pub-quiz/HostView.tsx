@@ -426,7 +426,7 @@ export default function HostView() {
           <div className="bg-[#1a2a3a] rounded-2xl p-5 mb-6 space-y-3">
             {revealed.map((s: RoundScore) => (
               <div key={s.teamId} className="flex items-center gap-3 animate-pulse-once">
-                <span className="text-2xl w-8">
+                <span className="text-2xl w-8 text-white">
                   {s.position === 1 ? '🥇' : s.position === 2 ? '🥈' : s.position === 3 ? '🥉' : `${s.position}.`}
                 </span>
                 <span className="text-2xl">{s.avatar}</span>
@@ -488,7 +488,7 @@ export default function HostView() {
           <div className="bg-[#1a2a3a] rounded-2xl p-6 mb-8 space-y-4">
             {sorted.map((team, i) => (
               <div key={team.id} className="flex items-center gap-3">
-                <span className="text-2xl w-8">
+                <span className="text-2xl w-8 text-white">
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
                 </span>
                 <span className="text-2xl">{team.avatar}</span>

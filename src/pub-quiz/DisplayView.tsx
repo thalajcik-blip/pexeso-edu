@@ -329,7 +329,7 @@ export default function DisplayView() {
           <div className="space-y-3">
             {revealed.map(s => (
               <div key={s.teamId} className="flex items-center gap-4 bg-[#1a2a3a] rounded-2xl p-4">
-                <span className="text-3xl w-10">
+                <span className="text-3xl w-10 text-white">
                   {s.position === 1 ? '🥇' : s.position === 2 ? '🥈' : s.position === 3 ? '🥉' : `${s.position}.`}
                 </span>
                 <span className="text-3xl">{s.avatar}</span>
@@ -359,7 +359,7 @@ export default function DisplayView() {
           <div className="space-y-3">
             {overallSorted.map((team, i) => (
               <div key={team.id} className="flex items-center gap-3 bg-[#1a2a3a] rounded-xl p-3">
-                <span className="text-lg w-6">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
+                <span className="text-lg w-6 text-white">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
                 <span className="text-xl">{team.avatar}</span>
                 <div className="flex-1">
                   <p className="text-white text-sm font-bold truncate">{team.name}</p>
