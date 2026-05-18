@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { usePubQuizStore } from '../store/pubQuizStore'
-import { loadSession, loadTeams, joinChannel } from '../services/pubQuizService'
+import { loadSession, loadTeams, joinChannel, loadMyAnswer } from '../services/pubQuizService'
+import { saveTeamIdentity } from '../utils/pubQuizStorage'
 import { TEAM_COLORS, TEAM_AVATARS } from '../types/pubQuiz'
 import { useGameStore } from '../store/gameStore'
 import { PQ_TR } from './pubQuizTranslations'
@@ -17,8 +18,8 @@ export default function TeamView() {
   const {
     sessionId, status, teams, currentRound, currentQuestion,
     currentQuestionData, timerRemaining, answeredTeamIds, roundScores,
-    revealedCount, myTeamId, selectedAnswer, hasSubmitted,
-    initSession, applyEvent,
+    revealedCount, myTeamId, selectedAnswer, hasSubmitted, isReconnecting,
+    initSession, applyEvent, tryReconnect,
     teamJoin, teamSelectAnswer, teamSubmitAnswer, teamChangeAnswer,
   } = usePubQuizStore()
 
@@ -67,6 +68,7 @@ export default function TeamView() {
   const [sessionLoading, setSessionLoading] = useState(true)
   const [sessionNotFound, setSessionNotFound] = useState(false)
   const [isConnected, setIsConnected] = useState(true)
+  const [welcomeBack, setWelcomeBack] = useState(false)
   const wasConnected = useRef(false)
 
   const handleStatusChange = useCallback(async (connected: boolean) => {
@@ -100,10 +102,28 @@ export default function TeamView() {
       const session = await loadSession(sessionCode)
       if (!session) { setSessionNotFound(true); setSessionLoading(false); return }
 
-      if (!sessionId) {
-        const existingTeams = await loadTeams(session.id)
-        initSession(session.id, sessionCode, null, session.name ?? '')
-        usePubQuizStore.setState({ teams: existingTeams, status: session.status as any })
+      const existingTeams = await loadTeams(session.id)
+      initSession(session.id, sessionCode, null, session.name ?? '')
+      usePubQuizStore.setState({ teams: existingTeams, status: session.status as any,
+        currentRound: session.current_round, currentQuestion: session.current_question })
+
+      const reconnected = await tryReconnect(sessionCode)
+
+      if (reconnected) {
+        // Restore timer from DB
+        if (session.timer_active && session.timer_started_at && session.timer_seconds) {
+          const elapsed = (Date.now() - new Date(session.timer_started_at).getTime()) / 1000
+          const remaining = Math.max(0, session.timer_seconds - elapsed)
+          usePubQuizStore.setState({ timerRemaining: Math.floor(remaining), timerSeconds: session.timer_seconds })
+        }
+        // Restore submitted answer if question active
+        if (session.status === 'question_active' && session.current_question > 0) {
+          const myId = usePubQuizStore.getState().myTeamId
+          const answer = await loadMyAnswer(session.id, myId, session.current_round, session.current_question - 1)
+          if (answer) usePubQuizStore.setState({ selectedAnswer: answer, hasSubmitted: true })
+        }
+        setWelcomeBack(true)
+        setTimeout(() => setWelcomeBack(false), 3000)
       }
 
       joinChannel(sessionCode, applyEvent, handleStatusChange)
@@ -124,10 +144,10 @@ export default function TeamView() {
     if (!ok) { setJoinError(t.errorJoinFailed); setJoining(false) }
   }
 
-  if (sessionLoading) {
+  if (sessionLoading || isReconnecting) {
     return (
       <div className="min-h-screen bg-[#0d1b2a] flex items-center justify-center">
-        <div className="text-[#f9d74e] text-xl">{t.loading}</div>
+        <div className="text-[#f9d74e] text-xl">{isReconnecting ? t.reconnecting : t.loading}</div>
       </div>
     )
   }
@@ -207,12 +227,20 @@ export default function TeamView() {
 
           {teams.length > 0 && (
             <div className="mt-4 bg-[#1a2a3a] rounded-2xl p-4">
-              <p className="text-[#8899aa] text-sm mb-2">{t.joinedTeamsTitle} ({teams.length}/8)</p>
+              <p className="text-[#8899aa] text-sm mb-2">{t.rejoinPrompt}</p>
               {teams.map(team => (
-                <div key={team.id} className="flex items-center gap-2 py-1">
+                <button
+                  key={team.id}
+                  onClick={() => {
+                    saveTeamIdentity({ teamId: team.id, teamName: team.name, joinedAt: Date.now(), sessionCode: sessionCode! })
+                    usePubQuizStore.setState({ myTeamId: team.id, myTeamName: team.name })
+                  }}
+                  className="flex items-center gap-2 w-full py-2 px-2 rounded-xl hover:bg-[#0d1b2a] transition-colors text-left"
+                >
                   <span>{team.avatar}</span>
-                  <span className="text-white text-sm">{team.name}</span>
-                </div>
+                  <span className="text-white text-sm flex-1">{team.name}</span>
+                  <span className="text-[#f9d74e] text-xs">{t.thisIsMe}</span>
+                </button>
               ))}
             </div>
           )}
@@ -428,6 +456,11 @@ export default function TeamView() {
           <div className="w-2 h-2 rounded-full bg-[#ef4444] animate-pulse" />
           <span className="text-white text-sm font-bold">{t.connectionLost}</span>
           <span className="text-[#8899aa] text-xs">{t.reconnecting}</span>
+        </div>
+      )}
+      {welcomeBack && (
+        <div className="fixed top-0 inset-x-0 z-50 bg-[#22c55e] px-4 py-2 flex items-center justify-center gap-2">
+          <span className="text-white text-sm font-bold">👋 {t.welcomeBack}</span>
         </div>
       )}
       {content}

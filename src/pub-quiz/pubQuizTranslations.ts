@@ -103,6 +103,9 @@ export const PQ_TR = {
     waitingForQuizmaster: 'Čekáme na kvízmastera...',
     connectionLost: 'Spojení přerušeno',
     reconnecting: 'Znovu se připojuji...',
+    welcomeBack: 'Vítej zpátky!',
+    rejoinPrompt: 'Jsi jeden z těchto týmů?',
+    thisIsMe: 'To jsem já →',
     place: (n: number) => `${n}. místo`,
     joinOnPhone: 'Přidejte se na svém telefonu:',
     code: 'Kód',
@@ -214,6 +217,9 @@ export const PQ_TR = {
     waitingForQuizmaster: 'Čakáme na kvízmastera...',
     connectionLost: 'Spojenie prerušené',
     reconnecting: 'Znovu sa pripájam...',
+    welcomeBack: 'Vitaj späť!',
+    rejoinPrompt: 'Si jeden z týchto tímov?',
+    thisIsMe: 'To som ja →',
     place: (n: number) => `${n}. miesto`,
     joinOnPhone: 'Pridajte sa na svojom telefóne:',
     code: 'Kód',
@@ -325,6 +331,9 @@ export const PQ_TR = {
     waitingForQuizmaster: 'Waiting for quizmaster...',
     connectionLost: 'Connection lost',
     reconnecting: 'Reconnecting...',
+    welcomeBack: 'Welcome back!',
+    rejoinPrompt: 'Are you one of these teams?',
+    thisIsMe: 'That\'s me →',
     place: (n: number) => {
       const s = n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'
       return `${n}${s} place`

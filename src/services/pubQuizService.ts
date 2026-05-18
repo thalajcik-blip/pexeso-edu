@@ -24,14 +24,31 @@ export async function createSession(hostId: string, name?: string): Promise<{ id
   return data
 }
 
-export async function loadSession(code: string): Promise<{ id: string; host_id: string; status: string; current_round: number; current_question: number; name: string | null } | null> {
+export async function loadSession(code: string): Promise<{ id: string; host_id: string; status: string; current_round: number; current_question: number; name: string | null; timer_active: boolean; timer_seconds: number | null; timer_started_at: string | null } | null> {
   const { data, error } = await supabase
     .from('pub_quiz_sessions')
-    .select('id, host_id, status, current_round, current_question, name')
+    .select('id, host_id, status, current_round, current_question, name, timer_active, timer_seconds, timer_started_at')
     .eq('code', code)
     .single()
   if (error) { console.error(error); return null }
   return data
+}
+
+export async function loadMyAnswer(
+  sessionId: string,
+  teamId: string,
+  roundNumber: number,
+  questionIndex: number,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from('pub_quiz_answers')
+    .select('answer')
+    .eq('session_id', sessionId)
+    .eq('team_id', teamId)
+    .eq('round_number', roundNumber)
+    .eq('question_index', questionIndex)
+    .maybeSingle()
+  return data?.answer ?? null
 }
 
 export async function updateSession(id: string, update: Record<string, unknown>): Promise<void> {

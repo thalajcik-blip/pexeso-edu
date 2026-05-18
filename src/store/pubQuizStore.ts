@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { LightningQuestion } from '../types/game'
 import type { SessionStatus, PubQuizRound, PubQuizTeam, PubQuizEvent, RoundScore } from '../types/pubQuiz'
 import * as svc from '../services/pubQuizService'
+import { saveTeamIdentity, loadTeamIdentity, clearTeamIdentity } from '../utils/pubQuizStorage'
 import { buildPubQuizQuestions } from '../utils/buildPubQuizQuestions'
 import { fetchCustomDeckFull } from '../services/supabase'
 import { useGameStore } from './gameStore'
@@ -40,6 +41,7 @@ interface PubQuizState {
   myTeamName: string
   selectedAnswer: string | null
   hasSubmitted: boolean
+  isReconnecting: boolean
 
   // Timer interval ref (host only)
   _timerInterval: ReturnType<typeof setInterval> | null
@@ -73,6 +75,7 @@ interface PubQuizActions {
   teamChangeAnswer: () => void
 
   // Shared
+  tryReconnect: (sessionCode: string) => Promise<boolean>
   reset: () => void
   _stopTimer: () => void
 }
@@ -98,6 +101,7 @@ const DEFAULT: PubQuizState = {
   myTeamName: '',
   selectedAnswer: null,
   hasSubmitted: false,
+  isReconnecting: false,
   _timerInterval: null,
   _questionStartTime: null,
   _roundStartScores: {},
@@ -332,11 +336,29 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
 
   // ── Team actions ──────────────────────────────────────────────────────────
 
+  async tryReconnect(sessionCode) {
+    set({ isReconnecting: true })
+    const stored = loadTeamIdentity(sessionCode)
+    if (!stored) { set({ isReconnecting: false }); return false }
+
+    const teams = await svc.loadTeams(get().sessionId)
+    const team = teams.find(t => t.id === stored.teamId)
+    if (!team) {
+      clearTeamIdentity(sessionCode)
+      set({ isReconnecting: false })
+      return false
+    }
+
+    set({ myTeamId: team.id, myTeamName: team.name, isReconnecting: false })
+    return true
+  },
+
   async teamJoin(name, avatar, color) {
-    const { sessionId } = get()
+    const { sessionId, sessionCode } = get()
     if (!sessionId) return false
     const team = await svc.joinTeam(sessionId, name, avatar, color)
     if (!team) return false
+    saveTeamIdentity({ teamId: team.id, teamName: name, joinedAt: Date.now(), sessionCode })
     set({ myTeamId: team.id, myTeamName: name, teams: [...get().teams, team] })
     svc.broadcast({ type: 'team_joined', team })
     return true
@@ -457,6 +479,7 @@ export const usePubQuizStore = create<PubQuizState & PubQuizActions>((set, get) 
         break
       case 'session_finished':
         set({ status: 'finished', roundScores: event.finalScores })
+        clearTeamIdentity(get().sessionCode)
         break
       case 'reveal_video_started':
         set({ status: 'video_playing_reveal' })
