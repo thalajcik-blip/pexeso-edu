@@ -16,7 +16,7 @@ export default function TeamView() {
   const t = PQ_TR[lang] ?? PQ_TR.cs
 
   const {
-    sessionId, status, teams, currentRound, currentQuestion,
+    status, teams, currentRound, currentQuestion,
     currentQuestionData, timerRemaining, answeredTeamIds, roundScores,
     revealedCount, myTeamId, selectedAnswer, hasSubmitted, isReconnecting,
     initSession, applyEvent, tryReconnect,
