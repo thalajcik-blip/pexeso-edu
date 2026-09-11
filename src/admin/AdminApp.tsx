@@ -8,6 +8,7 @@ import DeckEditor from './DeckEditor'
 import UsersManager from './UsersManager'
 import AdminSettings from './AdminSettings'
 import TeacherRequestsManager from './TeacherRequestsManager'
+import AccountSettings from './AccountSettings'
 import CreateSession from '../pub-quiz/CreateSession'
 import { useAuthStore } from '../store/authStore'
 import { supabase } from '../services/supabase'
@@ -177,6 +178,7 @@ const NAV_ITEMS = [
   { path: '/admin/pub-quiz', label: 'Pub Kvíz', icon: '🎯', exact: false, superadminOnly: false },
   { path: '/admin/teacher-requests', label: 'Žádosti učitelů', icon: '👨‍🏫', exact: false, superadminOnly: true },
   { path: '/admin/users', label: 'Uživatelé', icon: '👥', exact: false, superadminOnly: true },
+  { path: '/admin/profile', label: 'Můj profil', icon: '👤', exact: false, superadminOnly: false },
   { path: '/admin/settings', label: 'Nastavení', icon: '⚙️', exact: false, superadminOnly: true },
 ]
 
@@ -217,6 +219,7 @@ function AdminLayout({ role, email, signOut }: { role: AdminRole; email: string;
             <Route path="/admin/pub-quiz" element={<AdminPubQuizPage />} />
             {isSuperadmin && <Route path="/admin/teacher-requests" element={<TeacherRequestsManager />} />}
             {isSuperadmin && <Route path="/admin/users" element={<UsersManager />} />}
+            <Route path="/admin/profile" element={<AccountSettings />} />
             {isSuperadmin && <Route path="/admin/settings" element={<AdminSettings />} />}
           </Routes>
         </main>
