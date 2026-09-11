@@ -280,14 +280,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     const { user } = get()
     if (!user) return 'Nie si prihlásený'
     const isMinor = user.user_metadata?.pexedu_is_minor === '1'
+    // Preserve roles already set on this profile (e.g. by an admin invite) —
+    // this onboarding step should never demote an existing teacher/superadmin to player.
+    const { data: existing } = await supabase.from('profiles').select('roles').eq('id', user.id).maybeSingle()
+    const roles = existing?.roles ?? ['player']
     const { error } = await supabase
       .from('profiles')
-      .upsert({ id: user.id, roles: ['player'], is_minor: isMinor, show_stats: !isMinor }, { onConflict: 'id' })
+      .upsert({ id: user.id, roles, is_minor: isMinor, show_stats: !isMinor }, { onConflict: 'id' })
     if (error) return error.message
     set(s => ({
       profile: s.profile
-        ? { ...s.profile, roles: ['player'], is_minor: isMinor, show_stats: !isMinor }
-        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: !isMinor, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: null, is_minor: isMinor },
+        ? { ...s.profile, roles, is_minor: isMinor, show_stats: !isMinor }
+        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: !isMinor, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles, teacher_request_status: null, is_minor: isMinor },
       showIntentScreen: false,
       registrationType: 'player',
     }))
@@ -298,9 +302,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     const { user } = get()
     if (!user) return 'Nie si prihlásený'
     const isMinor = user.user_metadata?.pexedu_is_minor === '1'
+    // Preserve roles already set on this profile (e.g. by an admin invite) —
+    // this onboarding step should never demote an existing teacher/superadmin to player.
+    const { data: existing } = await supabase.from('profiles').select('roles').eq('id', user.id).maybeSingle()
+    const roles = existing?.roles ?? ['player']
     const { error: profileError } = await supabase
       .from('profiles')
-      .upsert({ id: user.id, roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor, show_stats: !isMinor }, { onConflict: 'id' })
+      .upsert({ id: user.id, roles, teacher_request_status: 'pending', is_minor: isMinor, show_stats: !isMinor }, { onConflict: 'id' })
     if (profileError) return profileError.message
     const { error: reqError } = await supabase
       .from('teacher_requests')
@@ -308,8 +316,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     if (reqError) return reqError.message
     set(s => ({
       profile: s.profile
-        ? { ...s.profile, roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor, show_stats: !isMinor }
-        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: !isMinor, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles: ['player'], teacher_request_status: 'pending', is_minor: isMinor },
+        ? { ...s.profile, roles, teacher_request_status: 'pending', is_minor: isMinor, show_stats: !isMinor }
+        : { id: user.id, username: null, avatar_id: 0, xp: 0, level: 1, locale: 'cs', show_stats: !isMinor, show_favorites: true, show_activity: true, created_at: new Date().toISOString(), roles, teacher_request_status: 'pending', is_minor: isMinor },
       showIntentScreen: false,
       registrationType: 'pending_teacher',
     }))
