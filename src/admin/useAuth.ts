@@ -9,6 +9,9 @@ export function useAuth() {
   const [role, setRole]           = useState<AdminRole>(null)
   const [loading, setLoading]     = useState(true)
   const [isRecovery, setIsRecovery] = useState(false)
+  // Invite links land here as SIGNED_IN (not a distinct auth event like PASSWORD_RECOVERY),
+  // so detect them from the hash before supabase-js strips it after processing.
+  const [isInvite, setIsInvite] = useState(() => window.location.hash.includes('type=invite'))
 
   async function fetchRole(userId: string) {
     const { data } = await supabase
@@ -72,7 +75,10 @@ export function useAuth() {
 
   async function updatePassword(newPassword: string) {
     const { error } = await supabase.auth.updateUser({ password: newPassword })
-    if (!error) setIsRecovery(false)
+    if (!error) {
+      setIsRecovery(false)
+      setIsInvite(false)
+    }
     return error
   }
 
@@ -88,5 +94,5 @@ export function useAuth() {
     await supabase.auth.signOut()
   }
 
-  return { user, role, loading, isRecovery, signIn, signUp, resetPassword, updatePassword, signInWithGoogle, signOut }
+  return { user, role, loading, isRecovery, isInvite, signIn, signUp, resetPassword, updatePassword, signInWithGoogle, signOut }
 }

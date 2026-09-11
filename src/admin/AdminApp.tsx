@@ -22,7 +22,7 @@ import {
   SidebarProvider, SidebarTrigger, useSidebar,
 } from '@/components/ui/sidebar'
 
-function SetNewPasswordScreen({ updatePassword }: { updatePassword: ReturnType<typeof UseAuthType>['updatePassword'] }) {
+function SetNewPasswordScreen({ updatePassword, invite }: { updatePassword: ReturnType<typeof UseAuthType>['updatePassword']; invite?: boolean }) {
   const [password, setPassword]   = useState('')
   const [password2, setPassword2] = useState('')
   const [error, setError]         = useState('')
@@ -40,8 +40,8 @@ function SetNewPasswordScreen({ updatePassword }: { updatePassword: ReturnType<t
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8">
-        <div className="text-2xl font-bold text-gray-800 mb-1">Nové heslo</div>
-        <div className="text-sm text-gray-500 mb-6">Zadejte své nové heslo</div>
+        <div className="text-2xl font-bold text-gray-800 mb-1">{invite ? 'Vítejte v Pexedu' : 'Nové heslo'}</div>
+        <div className="text-sm text-gray-500 mb-6">{invite ? 'Nastavte si heslo k novému účtu' : 'Zadejte své nové heslo'}</div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Nové heslo</label>
@@ -226,7 +226,7 @@ function AdminLayout({ role, email, signOut }: { role: AdminRole; email: string;
 }
 
 export default function AdminApp() {
-  const { user, role, loading, isRecovery, signIn, signUp, resetPassword, updatePassword, signInWithGoogle, signOut } = useAuth()
+  const { user, role, loading, isRecovery, isInvite, signIn, signUp, resetPassword, updatePassword, signInWithGoogle, signOut } = useAuth()
 
   if (loading) {
     return (
@@ -238,7 +238,7 @@ export default function AdminApp() {
 
   if (!user) return <LoginScreen signIn={signIn} signUp={signUp} resetPassword={resetPassword} signInWithGoogle={signInWithGoogle} />
 
-  if (isRecovery) return <SetNewPasswordScreen updatePassword={updatePassword} />
+  if (isRecovery || isInvite) return <SetNewPasswordScreen updatePassword={updatePassword} invite={isInvite} />
 
   if (!role) {
     return (
