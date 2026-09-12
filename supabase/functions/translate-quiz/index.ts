@@ -90,7 +90,7 @@ async function callOpenAIRaw(prompt: string, apiKey: string): Promise<string> {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 256, messages: [{ role: 'user', content: prompt }] }),
+    body: JSON.stringify({ model: 'gpt-5.4-mini', max_tokens: 256, messages: [{ role: 'user', content: prompt }] }),
   })
   if (!response.ok) throw new Error(`OpenAI error: ${response.status}`)
   const data = await response.json()
@@ -106,7 +106,7 @@ async function callOpenAI(prompt: string, apiKey: string, target_lang = 'cs') {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5.4-mini',
         max_tokens: 1024,
         response_format: { type: 'json_object' },
         messages: [
@@ -137,7 +137,7 @@ async function callClaudeRaw(prompt: string, apiKey: string): Promise<string> {
 
 async function callGeminiRaw(prompt: string, apiKey: string): Promise<string> {
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -175,7 +175,7 @@ async function callGemini(prompt: string, apiKey: string, target_lang = 'cs', re
   let response: Response
   try {
     response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'content-type': 'application/json' },

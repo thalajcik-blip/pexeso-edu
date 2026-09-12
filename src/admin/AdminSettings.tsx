@@ -59,9 +59,9 @@ const DEFAULT_GLOBAL: Record<'cs' | 'sk' | 'en', TierConfig[]> = {
 const PROVIDERS: AiProvider[] = ['claude', 'gemini', 'openai']
 
 const PROVIDER_LABELS: Record<AiProvider, string> = {
-  claude: 'Claude Haiku (Anthropic)',
-  gemini: 'Gemini 2.5 Flash (Google)',
-  openai: 'GPT-4o mini (OpenAI)',
+  claude: 'Claude Haiku 4.5 (Anthropic)',
+  gemini: 'Gemini 3.5 Flash (Google)',
+  openai: 'GPT-5.4 mini (OpenAI)',
 }
 
 type View = 'ai' | 'results'

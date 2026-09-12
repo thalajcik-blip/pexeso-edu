@@ -179,7 +179,7 @@ async function callOpenAI(prompt: string, apiKey: string, difficulty: string, la
       method: 'POST',
       headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5.4-mini',
         max_tokens: 1024,
         response_format: { type: 'json_object' },
         messages: [
@@ -219,7 +219,7 @@ async function callGemini(prompt: string, apiKey: string, difficulty: string, la
   let response: Response
   try {
     response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
