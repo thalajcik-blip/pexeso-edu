@@ -90,7 +90,7 @@ async function callOpenAIRaw(prompt: string, apiKey: string): Promise<string> {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-5.4-mini', max_tokens: 256, messages: [{ role: 'user', content: prompt }] }),
+    body: JSON.stringify({ model: 'gpt-5.4-mini', max_completion_tokens: 256, messages: [{ role: 'user', content: prompt }] }),
   })
   if (!response.ok) throw new Error(`OpenAI error: ${response.status}`)
   const data = await response.json()
@@ -107,7 +107,7 @@ async function callOpenAI(prompt: string, apiKey: string, target_lang = 'cs') {
       headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
       body: JSON.stringify({
         model: 'gpt-5.4-mini',
-        max_tokens: 1024,
+        max_completion_tokens: 1024,
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: systemPrompt },
