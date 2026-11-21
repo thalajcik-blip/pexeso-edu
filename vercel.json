@@ -1,3 +1,14 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "redirects": [
+    { "source": "/ttt", "destination": "https://www.pexedu.com/tinyturbotour/", "permanent": false },
+    { "source": "/ttt/", "destination": "https://www.pexedu.com/tinyturbotour/", "permanent": false },
+    { "source": "/tinyturbotour", "has": [{ "type": "host", "value": "(www\\.)?pexedu\\.cz" }], "destination": "https://www.pexedu.com/tinyturbotour/", "permanent": false },
+    { "source": "/tinyturbotour/:path*", "has": [{ "type": "host", "value": "(www\\.)?pexedu\\.cz" }], "destination": "https://www.pexedu.com/tinyturbotour/:path*", "permanent": false },
+    { "source": "/tinyturbotour", "destination": "/tinyturbotour/", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/tinyturbotour/", "destination": "https://pinecrest-kart.vercel.app/tinyturbotour/" },
+    { "source": "/tinyturbotour/:path+", "destination": "https://pinecrest-kart.vercel.app/tinyturbotour/:path+" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
