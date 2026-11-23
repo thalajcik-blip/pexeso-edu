@@ -9,7 +9,8 @@
     { "source": "/tta", "destination": "/tinyturbotour/aces.html", "permanent": false },
     { "source": "/tta/", "destination": "/tinyturbotour/aces.html", "permanent": false },
     { "source": "/tinyturboaces", "destination": "/tinyturbotour/aces.html", "permanent": false },
-    { "source": "/tinyturboaces/:path*", "destination": "/tinyturbotour/aces.html", "permanent": false }
+    { "source": "/tinyturboaces/", "destination": "/tinyturbotour/aces.html", "permanent": false },
+    { "source": "/tinyturboaces/:path+", "destination": "/tinyturbotour/aces.html", "permanent": false }
   ],
   "rewrites": [
     { "source": "/tinyturbotour/", "destination": "https://pinecrest-kart.vercel.app/tinyturbotour/" },
